@@ -78,17 +78,31 @@ struct StrokeDirectionTests {
         #expect(stroke([0, 0, 50, 0, 0, 0]).directionDescription == "右→左（闭环）") // Delete
     }
 
-    @Test("任意形状的点列是原始屏幕坐标，既不倒序也不翻转 y")
-    func arbitraryShapeIsRawScreenCoordinates() {
-        // 参考配置里「重新载入」的点列，y 全为正值
+    @Test("任意形状的点列同样按 y 轴向上为正存储")
+    func arbitraryShapeUsesTheSameConvention() {
+        // 参考配置里「重新载入」的点列
         let definition = stroke([969, 546, 1069, 395, 1203, 575], isSimple: false)
         #expect(definition.drawingOrderPoints == [
-            CGPoint(x: 969, y: 546),
-            CGPoint(x: 1069, y: 395),
-            CGPoint(x: 1203, y: 575),
+            CGPoint(x: 969, y: -546),
+            CGPoint(x: 1069, y: -395),
+            CGPoint(x: 1203, y: -575),
         ])
-        // 屏幕坐标系的 y 一定是正数；如果是 y 轴向上存储的，这里就会是负数
-        #expect(definition.drawingOrderPoints.allSatisfy { $0.y > 0 })
+        // 屏幕坐标下是「先向右下、再向右上」—— 这才是用户实际画出来的形状
+        #expect(definition.directionDescription == "下右→上右")
+    }
+
+    @Test("任意形状若当成原始屏幕坐标（不翻转 y），会与另一条手势互换")
+    func skippingTheFlipSwapsTwoGestures() {
+        // 「其他窗口」的原始 P
+        let other = stroke([838, 481, 934, 707, 961, 630, 966, 621, 969, 611, 1014, 531, 1020, 524, 1041, 476],
+                           isSimple: false)
+        #expect(other.directionDescription == "上右→下右")
+
+        // 「重新载入」翻转后是 下右→上右；若不翻转则是 上右→下右 ——
+        // 正好与「其他窗口」互换，这就是用户报告的「两个手势搞反了」
+        let reload = stroke([969, 546, 1069, 395, 1203, 575], isSimple: false)
+        #expect(reload.directionDescription == "下右→上右")
+        #expect(reload.directionDescription != other.directionDescription)
     }
 }
 

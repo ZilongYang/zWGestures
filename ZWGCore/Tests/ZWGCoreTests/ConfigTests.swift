@@ -174,14 +174,15 @@ struct WGStrokeEncodingTests {
         #expect(points.first == points.last)
     }
 
-    @Test("任意形状手势保存的是原始屏幕坐标，既不倒序也不翻转 y")
-    func arbitraryShapeKeepsRawCoordinates() throws {
+    @Test("任意形状手势的 y 同样是向上为正，与简单手势一致")
+    func arbitraryShapeUsesTheSameAxisAsSimpleStrokes() throws {
         let config = try decodeFixture()
         let stroke = try #require(config.apps[0].intents[0].strokeStep)
         #expect(!stroke.isSimple)
-        #expect(stroke.points.count == 6)
-        #expect(stroke.drawingOrderPoints.first == CGPoint(x: 969, y: 546))
-        #expect(stroke.drawingOrderPoints.allSatisfy { $0.y > 0 }, "屏幕坐标的 y 一定是正数")
+        #expect(stroke.points == [969, 546, 1069, 395, 1203, 575])
+        #expect(stroke.drawingOrderPoints.first == CGPoint(x: 969, y: -546))
+        // 屏幕坐标下是「先向右下、再向右上」
+        #expect(stroke.directionDescription == "下右→上右")
     }
 
     @Test("能区分出触发前缀、轨迹与后缀修饰步骤")

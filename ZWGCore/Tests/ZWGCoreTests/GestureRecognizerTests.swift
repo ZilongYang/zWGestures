@@ -262,32 +262,44 @@ struct SimpleStrokeRecognitionTests {
 
 @Suite("识别：手写形状")
 struct ArbitraryShapeRecognitionTests {
-    private var definition: WGStrokeStep {
-        // Arbitrary shapes are stored as the raw screen-coordinate point list, in drawing order.
-        WGStrokeStep(isSimple: false, points: Unit.reloadCurve.flatMap { [Int($0.x), Int($0.y)] })
+    /// The reference configuration's `重新载入` gesture, exactly as it appears in `P`.
+    private let storedPoints: [CGPoint] = [
+        CGPoint(x: 969, y: 546),
+        CGPoint(x: 1069, y: 395),
+        CGPoint(x: 1203, y: 575),
+    ]
+
+    /// The same trajectory in screen orientation — what the user's hand actually did.
+    private var drawnPoints: [CGPoint] {
+        storedPoints.map { CGPoint(x: $0.x, y: -$0.y) }
     }
 
-    @Test("任意形状的点列就是原始屏幕坐标，顺序即绘制顺序")
-    func definitionIsTheRawPointList() {
+    private var definition: WGStrokeStep {
+        WGStrokeStep(isSimple: false, points: storedPoints.flatMap { [Int($0.x), Int($0.y)] })
+    }
+
+    private func drawn(_ points: [CGPoint], scale: CGFloat = 1, origin: CGPoint = .zero) -> Stroke {
+        polyline(points.map { CGPoint(x: origin.x + $0.x * scale, y: origin.y + $0.y * scale) })
+    }
+
+    @Test("P 就是绘制顺序，且 y 轴向上为正")
+    func definitionIsTheStoredPointList() {
         #expect(definition.points == [969, 546, 1069, 395, 1203, 575])
-        #expect(definition.drawingOrderPoints == Unit.reloadCurve)
+        #expect(definition.drawingOrderPoints == drawnPoints)
+        #expect(definition.directionDescription == "下右→上右")
     }
 
     @Test("换个位置后仍然匹配")
     func matchesShiftedCurve() {
-        let shifted = Unit.reloadCurve.map { CGPoint(x: $0.x - 400, y: $0.y + 120) }
-        #expect(StrokeMatcher.distance(
-            stroke: live(shifted, scale: 1, origin: .zero),
-            definition: definition,
-            sampleCount: 32
-        ) < 0.02)
+        let shifted = drawnPoints.map { CGPoint(x: $0.x - 400, y: $0.y + 120) }
+        #expect(StrokeMatcher.distance(stroke: drawn(shifted), definition: definition, sampleCount: 32) < 0.02)
     }
 
     @Test("放大缩小后仍然匹配")
     func matchesScaledCurve() {
         for scale in [0.4, 1.0, 2.5] as [CGFloat] {
             let value = StrokeMatcher.distance(
-                stroke: live(Unit.reloadCurve, scale: scale, origin: .zero),
+                stroke: drawn(drawnPoints, scale: scale),
                 definition: definition,
                 sampleCount: 32
             )
@@ -297,9 +309,8 @@ struct ArbitraryShapeRecognitionTests {
 
     @Test("手的抖动不会破坏识别")
     func matchesJitteredCurve() {
-        let scaledJitter = jittered(Unit.reloadCurve, by: 6)
         #expect(StrokeMatcher.distance(
-            stroke: live(scaledJitter, scale: 1, origin: .zero),
+            stroke: drawn(jittered(drawnPoints, by: 6)),
             definition: definition,
             sampleCount: 32
         ) < 0.1)
@@ -307,9 +318,9 @@ struct ArbitraryShapeRecognitionTests {
 
     @Test("上下镜像后的同一形状不会被误判为匹配")
     func mirrorIsNotAMatch() {
-        let mirrored = Unit.reloadCurve.map { CGPoint(x: $0.x, y: 1000 - $0.y) }
+        let mirrored = drawnPoints.map { CGPoint(x: $0.x, y: -$0.y) }
         #expect(StrokeMatcher.distance(
-            stroke: live(mirrored, scale: 1, origin: .zero),
+            stroke: drawn(mirrored),
             definition: definition,
             sampleCount: 32
         ) > 0.2)

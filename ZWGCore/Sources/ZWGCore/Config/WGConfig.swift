@@ -224,17 +224,18 @@ public struct WGKeyDownStep: Codable, Equatable, Sendable {
 }
 
 public struct WGStrokeStep: Codable, Equatable, Sendable {
-    /// `true` for a straight/simple stroke stored on the 50-unit grid; `false` for an
-    /// arbitrary shape stored as raw screen coordinates.
+    /// `true` for a straight/simple stroke quantised to the 50-unit grid; `false` for a shape
+    /// recorded free-hand, whose points are whatever the user's hand did.
+    ///
+    /// The flag changes how a stroke is *matched* (grid shapes want a looser tolerance) but not
+    /// how it is decoded — see `drawingOrderPoints`.
     public var isSimple: Bool
     /// Flat `x, y, x, y, …` list, **in drawing order** — the first pair is where the stroke
     /// starts, which is exactly the point WGestures draws its trigger symbol on.
     ///
-    /// The stored coordinates use the mathematical convention with **y growing upwards**,
-    /// while `CGEvent.location` (and therefore `Stroke`) uses screen coordinates with y
-    /// growing downwards. No axis flip is needed for `IsSimple = false` strokes, whose points
-    /// are already raw screen coordinates — but simple strokes must be flipped, which is what
-    /// `drawingOrderPoints` does.
+    /// The stored coordinates use the mathematical convention with **y growing upwards**, for
+    /// simple and arbitrary strokes alike, while `CGEvent.location` (and therefore `Stroke`) uses
+    /// screen coordinates with y growing downwards. `drawingOrderPoints` does the flip.
     public var points: [Int]
 
     public init(isSimple: Bool, points: [Int]) {
@@ -250,14 +251,16 @@ public struct WGStrokeStep: Codable, Equatable, Sendable {
     /// The trajectory as points in screen orientation (y downwards), ready to be compared with
     /// a live `Stroke`.
     ///
-    /// Simple strokes are stored on a grid with y upwards, so y is negated here. Arbitrary
-    /// shapes are already screen coordinates and are passed through.
+    /// **Both** stroke kinds store y with the opposite sign to the screen: simple strokes on the
+    /// 50-unit grid and recorded arbitrary shapes alike. Only one coordinate convention for one
+    /// `StrokeStep` type makes sense, and the user's own report settles it — treating arbitrary
+    /// shapes as raw screen coordinates turned out to swap two of their gestures, because the two
+    /// shapes are vertical mirrors of each other and the recogniser cannot confuse them (they are
+    /// more than 0.3 apart). A y flip maps one onto the other exactly.
     public var drawingOrderPoints: [CGPoint] {
-        let pairs = stride(from: 0, to: points.count - 1, by: 2).map { index in
-            CGPoint(x: CGFloat(points[index]), y: CGFloat(points[index + 1]))
+        stride(from: 0, to: points.count - 1, by: 2).map { index in
+            CGPoint(x: CGFloat(points[index]), y: -CGFloat(points[index + 1]))
         }
-        guard isSimple else { return pairs }
-        return pairs.map { CGPoint(x: $0.x, y: -$0.y) }
     }
 }
 
