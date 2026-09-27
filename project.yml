@@ -1,0 +1,84 @@
+name: zWGestures
+options:
+  bundleIdPrefix: com.zilong
+  createIntermediateGroups: true
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "26.6"
+  groupSortPosition: top
+  generateEmptyDirectories: true
+
+packages: {}
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    ARCHS: arm64
+    ONLY_ACTIVE_ARCH: YES
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    # Local-only distribution: App Sandbox off (global event taps + shell scripts require it),
+    # hardened runtime off (no notarization).
+    ENABLE_HARDENED_RUNTIME: NO
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
+    CLANG_ENABLE_MODULES: YES
+    CODE_SIGN_STYLE: Manual
+    # P0 uses ad-hoc signing; P0b switches to the stable local self-signed identity.
+    CODE_SIGN_IDENTITY: "-"
+    DEVELOPMENT_TEAM: ""
+    PROVISIONING_PROFILE_SPECIFIER: ""
+    CODE_SIGNING_REQUIRED: YES
+    CODE_SIGNING_ALLOWED: YES
+
+targets:
+  zWGestures:
+    type: application
+    platform: macOS
+    sources:
+      - path: zWGestures
+        excludes:
+          - "Resources/Info.plist"
+      # ZWGCore is a SwiftPM package so that `swift test` can exercise the testable logic
+      # without an app host (see Makefile). Its sources are compiled directly into the app
+      # target rather than linked as a package product: Xcode 26 fails to resolve a local
+      # package product referenced from an XcodeGen-generated project
+      # ("Missing package product 'ZWGCore'").
+      - path: ZWGCore/Sources/ZWGCore
+    info:
+      path: zWGestures/Resources/Info.plist
+      properties:
+        CFBundleName: zWGestures
+        CFBundleDisplayName: zWGestures
+        CFBundleExecutable: $(EXECUTABLE_NAME)
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundlePackageType: APPL
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleDevelopmentRegion: zh-Hans
+        CFBundleLocalizations: [zh-Hans, en]
+        LSMinimumSystemVersion: "14.0"
+        # Menu-bar-only agent app (no Dock icon).
+        LSUIElement: true
+        NSHighResolutionCapable: true
+        NSAppleEventsUsageDescription: zWGestures 需要通过 AppleScript / Shell 脚本控制其它应用来执行你配置的手势命令。
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.zilong.zwgestures
+        PRODUCT_NAME: zWGestures
+        SWIFT_STRICT_CONCURRENCY: complete
+
+schemes:
+  zWGestures:
+    build:
+      targets:
+        zWGestures: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: false
+      # Unit tests live in the `Core` SwiftPM package and run with `swift test`
+      # (see README) because `xcodebuild test` needs a pseudo-terminal for the
+      # host app launcher.
+      targets: []

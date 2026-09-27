@@ -1,0 +1,417 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		270F06823612F9887ABA6342 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E67B92FE1303A703B5885A /* main.swift */; };
+		6EEAAB5A5C3825293D9C469C /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E83B1397FEFFA16BBEED4800 /* StatusItemController.swift */; };
+		75A267C79DF6EBC5ADFC54D0 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = BED6B7EF21C4A63D52847B55 /* Log.swift */; };
+		B74F84187764E1C1B2C31B3D /* PermissionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD120B910B3EAAF21113B6A /* PermissionGate.swift */; };
+		D8FE20F18E73B88FBDCB0662 /* BuildInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88F93E17ED488092EFF652BE /* BuildInfo.swift */; };
+		E600576F631A200D29E7BE94 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ECC7CDA01EA1FFBEEDD5B97 /* AppDelegate.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0DE58556186EDEF3072856D2 /* zWGestures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = zWGestures.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4DD120B910B3EAAF21113B6A /* PermissionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionGate.swift; sourceTree = "<group>"; };
+		65E67B92FE1303A703B5885A /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		7ECC7CDA01EA1FFBEEDD5B97 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		88F93E17ED488092EFF652BE /* BuildInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildInfo.swift; sourceTree = "<group>"; };
+		BED6B7EF21C4A63D52847B55 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
+		E83B1397FEFFA16BBEED4800 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0CC63C350EB1EE0A09888900 = {
+			isa = PBXGroup;
+			children = (
+				1817BFB6A97FB8FB63676E39 /* ZWGCore */,
+				BCD519B8708A9E8ED6A6CFEB /* zWGestures */,
+				88DFCD2DF1301AF6B4739325 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1817BFB6A97FB8FB63676E39 /* ZWGCore */ = {
+			isa = PBXGroup;
+			children = (
+				3B6F47DF0770B09D4EA4D288 /* Sources */,
+			);
+			path = ZWGCore;
+			sourceTree = "<group>";
+		};
+		3B6F47DF0770B09D4EA4D288 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				F0C99F9994CF28B8C9A84C4B /* ZWGCore */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		495AE27E85CE4E7F86A9C20B /* Target */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Target;
+			sourceTree = "<group>";
+		};
+		79F96F3E14D2C460ABC09B83 /* Input */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Input;
+			sourceTree = "<group>";
+		};
+		7E67A3B3A770FB88955389BC /* App */ = {
+			isa = PBXGroup;
+			children = (
+				7ECC7CDA01EA1FFBEEDD5B97 /* AppDelegate.swift */,
+				65E67B92FE1303A703B5885A /* main.swift */,
+				E83B1397FEFFA16BBEED4800 /* StatusItemController.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		88DFCD2DF1301AF6B4739325 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0DE58556186EDEF3072856D2 /* zWGestures.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B347625EA2E78D2855919D1A /* UI */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		BCD519B8708A9E8ED6A6CFEB /* zWGestures */ = {
+			isa = PBXGroup;
+			children = (
+				DBF38484725B4ADF86295678 /* Action */,
+				7E67A3B3A770FB88955389BC /* App */,
+				D67E16AF35233820F28F5C7D /* Config */,
+				79F96F3E14D2C460ABC09B83 /* Input */,
+				BCD7E238C8871C4F93ED5241 /* Overlay */,
+				C5BAE327C43C1BFFFE722BBE /* Recog */,
+				495AE27E85CE4E7F86A9C20B /* Target */,
+				B347625EA2E78D2855919D1A /* UI */,
+			);
+			path = zWGestures;
+			sourceTree = "<group>";
+		};
+		BCD7E238C8871C4F93ED5241 /* Overlay */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Overlay;
+			sourceTree = "<group>";
+		};
+		C5BAE327C43C1BFFFE722BBE /* Recog */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Recog;
+			sourceTree = "<group>";
+		};
+		D67E16AF35233820F28F5C7D /* Config */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		DBF38484725B4ADF86295678 /* Action */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Action;
+			sourceTree = "<group>";
+		};
+		F0C99F9994CF28B8C9A84C4B /* ZWGCore */ = {
+			isa = PBXGroup;
+			children = (
+				88F93E17ED488092EFF652BE /* BuildInfo.swift */,
+				BED6B7EF21C4A63D52847B55 /* Log.swift */,
+				4DD120B910B3EAAF21113B6A /* PermissionGate.swift */,
+			);
+			path = ZWGCore;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9D71407E2FD602187EC2A972 /* zWGestures */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 03BB04F583A780CD2CA17320 /* Build configuration list for PBXNativeTarget "zWGestures" */;
+			buildPhases = (
+				710AE20A8BD0CB8C8D95F376 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = zWGestures;
+			packageProductDependencies = (
+			);
+			productName = zWGestures;
+			productReference = 0DE58556186EDEF3072856D2 /* zWGestures.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		92B9C98EE7D5FD1881D02036 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					9D71407E2FD602187EC2A972 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Manual;
+					};
+				};
+			};
+			buildConfigurationList = F542207979F5B06ECAD08BE2 /* Build configuration list for PBXProject "zWGestures" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 0CC63C350EB1EE0A09888900;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 88DFCD2DF1301AF6B4739325 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				9D71407E2FD602187EC2A972 /* zWGestures */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		710AE20A8BD0CB8C8D95F376 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E600576F631A200D29E7BE94 /* AppDelegate.swift in Sources */,
+				D8FE20F18E73B88FBDCB0662 /* BuildInfo.swift in Sources */,
+				75A267C79DF6EBC5ADFC54D0 /* Log.swift in Sources */,
+				B74F84187764E1C1B2C31B3D /* PermissionGate.swift in Sources */,
+				6EEAAB5A5C3825293D9C469C /* StatusItemController.swift in Sources */,
+				270F06823612F9887ABA6342 /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		2C535E7D13DB59D3DD4E35A1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_TREAT_WARNINGS_AS_ERRORS = NO;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		4C6C893D91A61997821CE745 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = zWGestures/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.zilong.zwgestures;
+				PRODUCT_NAME = zWGestures;
+				SDKROOT = macosx;
+				SWIFT_STRICT_CONCURRENCY = complete;
+			};
+			name = Debug;
+		};
+		5B097BA3B29DCDBFFA76733C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_TREAT_WARNINGS_AS_ERRORS = NO;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		D017D65D52079C6778863A06 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = zWGestures/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.zilong.zwgestures;
+				PRODUCT_NAME = zWGestures;
+				SDKROOT = macosx;
+				SWIFT_STRICT_CONCURRENCY = complete;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		03BB04F583A780CD2CA17320 /* Build configuration list for PBXNativeTarget "zWGestures" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4C6C893D91A61997821CE745 /* Debug */,
+				D017D65D52079C6778863A06 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F542207979F5B06ECAD08BE2 /* Build configuration list for PBXProject "zWGestures" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2C535E7D13DB59D3DD4E35A1 /* Debug */,
+				5B097BA3B29DCDBFFA76733C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 92B9C98EE7D5FD1881D02036 /* Project object */;
+}
