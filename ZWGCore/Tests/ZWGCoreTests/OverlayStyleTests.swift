@@ -64,6 +64,30 @@ struct OverlayStyleTests {
         #expect(OverlayStyle(gesturePosition: -1).labelCenterY(screenHeight: 1000) == 0)
     }
 
+    @Test("识别出来就立刻用识别色 —— 绘制途中也要变绿，而不是等松手")
+    func recognizedColourAppliesWhileDrawing() {
+        let style = OverlayStyle()
+        #expect(style.pathColor(recognized: false) == style.pathColorNormal)
+        #expect(style.pathColor(recognized: true) == style.pathColorRecognized)
+        #expect(style.labelColor(recognized: true) == style.labelColorExecuted)
+
+        // 绘制中且已识别：轨迹与名称都必须是识别色
+        let drawing = OverlayState(
+            phase: .drawing,
+            points: [.zero, CGPoint(x: 10, y: 10)],
+            gestureName: "Close",
+            isRecognized: true
+        )
+        #expect(drawing.phase == .drawing)
+        #expect(drawing.isRecognized)
+        #expect(style.pathColor(recognized: drawing.isRecognized) == style.pathColorRecognized)
+
+        // 绘制中但还没识别出来：常态色，且不该有名字
+        let pending = OverlayState(phase: .drawing, points: [.zero], gestureName: nil, isRecognized: false)
+        #expect(pending.gestureName == nil)
+        #expect(style.pathColor(recognized: pending.isRecognized) == style.pathColorNormal)
+    }
+
     @Test(
         "真实偏好能完整映射成 Overlay 样式",
         .enabled(if: LegacyConfigImporter.locateVersionDirectory() != nil)

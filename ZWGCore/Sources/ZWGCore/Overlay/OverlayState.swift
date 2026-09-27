@@ -22,6 +22,11 @@ public struct OverlayState: Sendable, Equatable {
     public var points: [CGPoint] = []
     /// Name to show, when the gesture matched.
     public var gestureName: String?
+    /// Whether the trail should be drawn in the recognised colour.
+    ///
+    /// This is true while the stroke is still being drawn as soon as it matches, so the trail
+    /// turns green the moment WGestures recognises it rather than only on release.
+    public var isRecognized: Bool = false
     /// Increments once per finished stroke, so the overlay can tell a new one from a redraw.
     public var completionSequence: Int = 0
 
@@ -29,11 +34,13 @@ public struct OverlayState: Sendable, Equatable {
         phase: Phase = .idle,
         points: [CGPoint] = [],
         gestureName: String? = nil,
+        isRecognized: Bool = false,
         completionSequence: Int = 0
     ) {
         self.phase = phase
         self.points = points
         self.gestureName = gestureName
+        self.isRecognized = isRecognized
         self.completionSequence = completionSequence
     }
 
@@ -93,5 +100,16 @@ public struct OverlayStyle: Sendable, Equatable {
     public func labelCenterY(screenHeight: CGFloat) -> CGFloat {
         let clamped = min(max(gesturePosition, 0), 1)
         return screenHeight * clamped
+    }
+
+    /// The trail colour: the recognised colour as soon as the stroke matches, even mid-draw.
+    public func pathColor(recognized: Bool) -> WGColor {
+        recognized ? pathColorRecognized : pathColorNormal
+    }
+
+    /// The label colour. It follows the trail, so a name is never shown in the "idle" colour
+    /// while the trail is already green.
+    public func labelColor(recognized: Bool) -> WGColor {
+        recognized ? labelColorExecuted : labelColorNormal
     }
 }

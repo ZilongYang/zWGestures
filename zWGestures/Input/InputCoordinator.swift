@@ -364,6 +364,8 @@ final class InputCoordinator: @unchecked Sendable {
                     phase: .drawing,
                     points: gesture.stroke.points,
                     gestureName: name,
+                    // 一旦识别出来就立刻变绿，而不是等松手
+                    isRecognized: name != nil,
                     completionSequence: completionCount
                 )
             }
@@ -411,6 +413,7 @@ final class InputCoordinator: @unchecked Sendable {
                 phase: name == nil ? .unmatched : .matched,
                 points: candidate.stroke.points,
                 gestureName: name,
+                isRecognized: name != nil,
                 completionSequence: completionCount
             )
         }

@@ -200,8 +200,8 @@ private final class TrailView: NSView {
         context.setLineJoin(.round)
         context.setLineWidth(style.lineWidth)
 
-        let recognized = state.phase == .matched
-        let color = recognized ? style.pathColorRecognized : style.pathColorNormal
+        let recognized = state.isRecognized
+        let color = style.pathColor(recognized: recognized)
         context.setStrokeColor(red: color.red, green: color.green, blue: color.blue, alpha: color.alpha * alpha)
 
         let points = state.points.map(localPoint(fromCG:))
@@ -214,12 +214,12 @@ private final class TrailView: NSView {
         context.strokePath()
 
         if style.showGestureName, let name = state.gestureName, !name.isEmpty {
-            drawLabel(name, recognized: recognized, recognizedColor: color)
+            drawLabel(name, recognized: recognized)
         }
     }
 
-    private func drawLabel(_ name: String, recognized: Bool, recognizedColor: WGColor) {
-        let labelColor = recognized ? style.labelColorExecuted : style.labelColorNormal
+    private func drawLabel(_ name: String, recognized: Bool) {
+        let labelColor = style.labelColor(recognized: recognized)
         let color = NSColor(
             srgbRed: labelColor.red,
             green: labelColor.green,
