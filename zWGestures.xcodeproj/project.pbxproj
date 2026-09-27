@@ -15,8 +15,10 @@
 		1D96047CAB4FEF028345ECDA /* MonotonicClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 126D92BFBFA3E4B274393D35 /* MonotonicClock.swift */; };
 		20BA77DFC9FB80EF291E5C3A /* PointerEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B06777C46F74A73BE3DFAA02 /* PointerEvent.swift */; };
 		270F06823612F9887ABA6342 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E67B92FE1303A703B5885A /* main.swift */; };
+		49708BA7C9C5006DFBE58DDE /* WebSearchRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89448E399658487F235019DB /* WebSearchRunner.swift */; };
 		49CAE6454474546D40CD74E1 /* EventTapController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3216492821234F47E042DD74 /* EventTapController.swift */; };
 		5633593749843878218A20A5 /* WGConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A64E5D44D16632374E7585 /* WGConfig.swift */; };
+		58FD4C71B2ABD3CB65755E7E /* WGCommandPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72CE5E7190D3810B837000B3 /* WGCommandPlanner.swift */; };
 		5BC178E8C5BF03C819D95292 /* WGInputToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54FC8A50F77DDF46B3EC6C08 /* WGInputToken.swift */; };
 		5F271E0433B7609765D9A526 /* WGPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8DBAC8592F6FAEC6C1A76E /* WGPreferences.swift */; };
 		611034544BEA508CCE4CEA83 /* ConfigController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E642F91C963A1195967A57C /* ConfigController.swift */; };
@@ -24,12 +26,17 @@
 		70892C1BD3EA6010C5F65EEE /* StrokeNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C390F8040B68014AF2B56727 /* StrokeNormalizer.swift */; };
 		741E9516BCE709CA45B3479C /* WGConfigCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B3261300424B06F6A1DFA1D /* WGConfigCodec.swift */; };
 		75A267C79DF6EBC5ADFC54D0 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = BED6B7EF21C4A63D52847B55 /* Log.swift */; };
+		7BD238A177C5ED3225C78992 /* WGKeyCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75010A7BD55B495E897BA081 /* WGKeyCode.swift */; };
 		7CDCA875B2CD5785580F23B6 /* WGEdgeCorner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 389CCF3A1A0E88671C79DD3A /* WGEdgeCorner.swift */; };
 		867BEBB34B54E726C2D8BD85 /* PanicShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF7F9BF44FB51C9C5CEA1972 /* PanicShortcut.swift */; };
+		946DAC3008D6703095ABAAA8 /* ShellScriptRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 295D267B8197892CBCF5B45C /* ShellScriptRunner.swift */; };
 		960C0E6B6A845CA2A6D7634C /* InputEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571F286DEA2B2AE4976D787E /* InputEngine.swift */; };
+		AAA7D11E8C47A9C5D9E08DE0 /* CommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92CBA6DC86C7A9DB15273C50 /* CommandExecutor.swift */; };
 		B74F84187764E1C1B2C31B3D /* PermissionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD120B910B3EAAF21113B6A /* PermissionGate.swift */; };
+		D487BF881310D3FF47DB3C22 /* KeyEventPoster.swift in Sources */ = {isa = PBXBuildFile; fileRef = A81491D8DC7F824A57EA9A34 /* KeyEventPoster.swift */; };
 		D7B14F419F40CAE86D52A8E4 /* DebugHUDWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9064449516F65A9510DD1E /* DebugHUDWindow.swift */; };
 		D8FE20F18E73B88FBDCB0662 /* BuildInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88F93E17ED488092EFF652BE /* BuildInfo.swift */; };
+		DEBD2C91305267F6D14EFAEA /* WGActionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39CB8AC93BED2227B3EB998 /* WGActionContext.swift */; };
 		E2A29BDBB1334AD17B516FE7 /* ConfigStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABAA2D5526E8980C694B5548 /* ConfigStore.swift */; };
 		E600576F631A200D29E7BE94 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ECC7CDA01EA1FFBEEDD5B97 /* AppDelegate.swift */; };
 		FDF5F36C475F910B6B15D0C9 /* LegacyConfigImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3411F37FC05B72B39D6837A /* LegacyConfigImporter.swift */; };
@@ -38,6 +45,7 @@
 /* Begin PBXFileReference section */
 		0DE58556186EDEF3072856D2 /* zWGestures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = zWGestures.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		126D92BFBFA3E4B274393D35 /* MonotonicClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonotonicClock.swift; sourceTree = "<group>"; };
+		295D267B8197892CBCF5B45C /* ShellScriptRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellScriptRunner.swift; sourceTree = "<group>"; };
 		3216492821234F47E042DD74 /* EventTapController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTapController.swift; sourceTree = "<group>"; };
 		37BF10BA5362196075C3E339 /* GestureRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureRecognizer.swift; sourceTree = "<group>"; };
 		389CCF3A1A0E88671C79DD3A /* WGEdgeCorner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGEdgeCorner.swift; sourceTree = "<group>"; };
@@ -50,11 +58,17 @@
 		58E69FA11F1C5AED1F3E8887 /* InputCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputCoordinator.swift; sourceTree = "<group>"; };
 		65E67B92FE1303A703B5885A /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		6AD84F47ADADCB43601E2F71 /* Stroke.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stroke.swift; sourceTree = "<group>"; };
+		72CE5E7190D3810B837000B3 /* WGCommandPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGCommandPlanner.swift; sourceTree = "<group>"; };
+		75010A7BD55B495E897BA081 /* WGKeyCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGKeyCode.swift; sourceTree = "<group>"; };
 		7ECC7CDA01EA1FFBEEDD5B97 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		88F93E17ED488092EFF652BE /* BuildInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildInfo.swift; sourceTree = "<group>"; };
+		89448E399658487F235019DB /* WebSearchRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchRunner.swift; sourceTree = "<group>"; };
+		92CBA6DC86C7A9DB15273C50 /* CommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandExecutor.swift; sourceTree = "<group>"; };
+		A81491D8DC7F824A57EA9A34 /* KeyEventPoster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEventPoster.swift; sourceTree = "<group>"; };
 		ABAA2D5526E8980C694B5548 /* ConfigStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigStore.swift; sourceTree = "<group>"; };
 		AC8DBAC8592F6FAEC6C1A76E /* WGPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGPreferences.swift; sourceTree = "<group>"; };
 		B06777C46F74A73BE3DFAA02 /* PointerEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointerEvent.swift; sourceTree = "<group>"; };
+		B39CB8AC93BED2227B3EB998 /* WGActionContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGActionContext.swift; sourceTree = "<group>"; };
 		BCAA306B3006478FA8B51C30 /* EngineController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineController.swift; sourceTree = "<group>"; };
 		BED6B7EF21C4A63D52847B55 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		C2A64E5D44D16632374E7585 /* WGConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGConfig.swift; sourceTree = "<group>"; };
@@ -130,6 +144,16 @@
 				AC8DBAC8592F6FAEC6C1A76E /* WGPreferences.swift */,
 			);
 			path = Config;
+			sourceTree = "<group>";
+		};
+		782AF96029B0E18286914E04 /* Action */ = {
+			isa = PBXGroup;
+			children = (
+				B39CB8AC93BED2227B3EB998 /* WGActionContext.swift */,
+				72CE5E7190D3810B837000B3 /* WGCommandPlanner.swift */,
+				75010A7BD55B495E897BA081 /* WGKeyCode.swift */,
+			);
+			path = Action;
 			sourceTree = "<group>";
 		};
 		79F96F3E14D2C460ABC09B83 /* Input */ = {
@@ -210,6 +234,10 @@
 		DBF38484725B4ADF86295678 /* Action */ = {
 			isa = PBXGroup;
 			children = (
+				92CBA6DC86C7A9DB15273C50 /* CommandExecutor.swift */,
+				A81491D8DC7F824A57EA9A34 /* KeyEventPoster.swift */,
+				295D267B8197892CBCF5B45C /* ShellScriptRunner.swift */,
+				89448E399658487F235019DB /* WebSearchRunner.swift */,
 			);
 			path = Action;
 			sourceTree = "<group>";
@@ -217,6 +245,7 @@
 		F0C99F9994CF28B8C9A84C4B /* ZWGCore */ = {
 			isa = PBXGroup;
 			children = (
+				782AF96029B0E18286914E04 /* Action */,
 				77DF59B90DADCDB32789A412 /* Config */,
 				6F63765F53F4AF7D32167E14 /* Input */,
 				5E460AE5900A25361D6B25CE /* Recog */,
@@ -288,6 +317,7 @@
 			files = (
 				E600576F631A200D29E7BE94 /* AppDelegate.swift in Sources */,
 				D8FE20F18E73B88FBDCB0662 /* BuildInfo.swift in Sources */,
+				AAA7D11E8C47A9C5D9E08DE0 /* CommandExecutor.swift in Sources */,
 				611034544BEA508CCE4CEA83 /* ConfigController.swift in Sources */,
 				E2A29BDBB1334AD17B516FE7 /* ConfigStore.swift in Sources */,
 				D7B14F419F40CAE86D52A8E4 /* DebugHUDWindow.swift in Sources */,
@@ -296,21 +326,27 @@
 				1ADA97FF6B1AB8935CE567FB /* GestureRecognizer.swift in Sources */,
 				0ABBA99ECD0A9BFD2D208516 /* InputCoordinator.swift in Sources */,
 				960C0E6B6A845CA2A6D7634C /* InputEngine.swift in Sources */,
+				D487BF881310D3FF47DB3C22 /* KeyEventPoster.swift in Sources */,
 				FDF5F36C475F910B6B15D0C9 /* LegacyConfigImporter.swift in Sources */,
 				75A267C79DF6EBC5ADFC54D0 /* Log.swift in Sources */,
 				1D96047CAB4FEF028345ECDA /* MonotonicClock.swift in Sources */,
 				867BEBB34B54E726C2D8BD85 /* PanicShortcut.swift in Sources */,
 				B74F84187764E1C1B2C31B3D /* PermissionGate.swift in Sources */,
 				20BA77DFC9FB80EF291E5C3A /* PointerEvent.swift in Sources */,
+				946DAC3008D6703095ABAAA8 /* ShellScriptRunner.swift in Sources */,
 				6EEAAB5A5C3825293D9C469C /* StatusItemController.swift in Sources */,
 				03639C7D8FA0755A9DD5944B /* Stroke.swift in Sources */,
 				70892C1BD3EA6010C5F65EEE /* StrokeNormalizer.swift in Sources */,
 				1AF54D920DBE3BCDAB6868D0 /* SyntheticEventPoster.swift in Sources */,
+				DEBD2C91305267F6D14EFAEA /* WGActionContext.swift in Sources */,
+				58FD4C71B2ABD3CB65755E7E /* WGCommandPlanner.swift in Sources */,
 				5633593749843878218A20A5 /* WGConfig.swift in Sources */,
 				741E9516BCE709CA45B3479C /* WGConfigCodec.swift in Sources */,
 				7CDCA875B2CD5785580F23B6 /* WGEdgeCorner.swift in Sources */,
 				5BC178E8C5BF03C819D95292 /* WGInputToken.swift in Sources */,
+				7BD238A177C5ED3225C78992 /* WGKeyCode.swift in Sources */,
 				5F271E0433B7609765D9A526 /* WGPreferences.swift in Sources */,
+				49708BA7C9C5006DFBE58DDE /* WebSearchRunner.swift in Sources */,
 				270F06823612F9887ABA6342 /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

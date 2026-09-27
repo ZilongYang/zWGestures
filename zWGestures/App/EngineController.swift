@@ -9,6 +9,10 @@ import Foundation
 @MainActor
 final class EngineController {
     let coordinator: InputCoordinator
+    /// Runs the actions of recognised gestures; lives on the main actor, never on the tap
+    /// thread.
+    let executor = CommandExecutor()
+
     private var permissionTimer: Timer?
     private(set) var isRunning = false
     private(set) var lastFailureReason: String?
@@ -23,6 +27,19 @@ final class EngineController {
                 self?.pause(reason: "急停快捷键 \(PanicShortcut.displayName)")
             }
         }
+        coordinator.onGestureMatched = { [weak self] match, candidate in
+            let gestureStart = candidate.stroke.startPoint
+            Task { @MainActor in
+                self?.run(match: match, gestureStart: gestureStart)
+            }
+        }
+    }
+
+    private func run(match: RecognitionMatch, gestureStart: CGPoint) {
+        let plan = WGCommandPlanner.plan(match.intent.command)
+        let context = ActionContextProvider.current(gestureStart: gestureStart)
+        executor.execute(plan: plan, intentName: match.name, context: context)
+        coordinator.noteExecuted(WGCommandPlanner.summary(of: match.intent.command))
     }
 
     /// Applies the user's preference to the running engine.

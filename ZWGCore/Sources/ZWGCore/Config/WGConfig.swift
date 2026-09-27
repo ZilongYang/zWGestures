@@ -434,6 +434,21 @@ public enum WGSystemFunction: Int, CaseIterable, Sendable {
         case .volumeUp: "增加音量"
         }
     }
+
+    /// The `NX_KEYTYPE_*` value these keys are delivered as. Media and brightness keys are not
+    /// regular key codes; they travel as `systemDefined` events.
+    public var nxKeyType: Int {
+        switch self {
+        case .volumeUp: 0 // NX_KEYTYPE_SOUND_UP
+        case .volumeDown: 1 // NX_KEYTYPE_SOUND_DOWN
+        case .brightnessUp: 2 // NX_KEYTYPE_BRIGHTNESS_UP
+        case .brightnessDown: 3 // NX_KEYTYPE_BRIGHTNESS_DOWN
+        case .mute: 7 // NX_KEYTYPE_MUTE
+        case .playPause: 16 // NX_KEYTYPE_PLAY
+        case .nextTrack: 17 // NX_KEYTYPE_NEXT
+        case .previousTrack: 18 // NX_KEYTYPE_PREVIOUS
+        }
+    }
 }
 
 public enum WGCommand: Codable, Equatable, Sendable {

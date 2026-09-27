@@ -21,6 +21,8 @@ struct InputSnapshot: Sendable, Equatable {
     var nearestGestureDistance: CGFloat?
     var strokeLength: CGFloat = 0
     var matchedCount: Int = 0
+    /// Short description of the last command that actually ran.
+    var lastExecuted: String?
 }
 
 /// Wires the event tap to the gesture engine and carries out the engine's decisions.
@@ -45,6 +47,10 @@ final class InputCoordinator: @unchecked Sendable {
 
     /// Invoked on the tap thread when the emergency-stop shortcut is pressed.
     var onPanic: (@Sendable () -> Void)?
+
+    /// Invoked on the tap thread when a stroke matches a configured gesture. The handler must
+    /// return promptly — it must hand off anything slow to another queue.
+    var onGestureMatched: (@Sendable (RecognitionMatch, GestureCandidate) -> Void)?
 
     init(settings: EngineSettings = EngineSettings()) {
         engine = InputEngine(settings: settings)
@@ -171,6 +177,7 @@ final class InputCoordinator: @unchecked Sendable {
                 （距离 \(match.distance, privacy: .public)，\
                 \(candidate.stroke.points.count, privacy: .public) 个轨迹点）
                 """)
+            onGestureMatched?(match, candidate)
         } else {
             Log.recog.debug("""
                 未识别：\(candidate.stroke.points.count, privacy: .public) 点、\
@@ -199,6 +206,11 @@ final class InputCoordinator: @unchecked Sendable {
             if match != nil { next.matchedCount += 1 }
             snapshotStorage = next
         }
+    }
+
+    /// Records that a command ran, for the debug HUD. Safe to call from any thread.
+    func noteExecuted(_ summary: String) {
+        snapshotLock.withLock { snapshotStorage.lastExecuted = summary }
     }
 
     // MARK: - Start-drag timeout
