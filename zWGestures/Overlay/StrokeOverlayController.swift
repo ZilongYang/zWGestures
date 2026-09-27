@@ -18,11 +18,17 @@ final class StrokeOverlayController {
 
     private var state = OverlayState()
     private var lastSequence = 0
+    /// The finished stroke that is currently being animated, frozen when it completed.
+    ///
+    /// Pinned deliberately: live state keeps arriving (every mouse move publishes something), so
+    /// animating straight from it meant the recognised colour was often overwritten before it
+    /// could be seen.
+    private var completedState: OverlayState?
     /// Time the last stroke finished, used to drive the hold-then-fade animation.
     private var completedAt: TimeInterval?
 
     /// How long the finished trail stays fully visible before fading.
-    private let holdDuration: TimeInterval = 0.45
+    private let holdDuration: TimeInterval = 0.5
     /// How long the fade takes.
     private let fadeDuration: TimeInterval = 0.5
     private let refreshInterval = Duration.milliseconds(16)
@@ -96,9 +102,20 @@ final class StrokeOverlayController {
         let next = coordinator.overlayState()
         if next.completionSequence != lastSequence {
             lastSequence = next.completionSequence
-            completedAt = MonotonicClock.now
+            switch next.phase {
+            case .matched, .unmatched:
+                completedState = next
+                completedAt = MonotonicClock.now
+            case .idle:
+                completedState = nil
+                completedAt = nil
+            case .drawing:
+                break
+            }
         }
-        state = next
+
+        // A stroke in progress always wins; otherwise the frozen completion keeps animating.
+        state = next.phase == .drawing ? next : (completedState ?? next)
 
         let alpha = trailAlpha()
         let needsDrawing = style.showPath && !state.isEmpty && alpha > 0
@@ -116,7 +133,7 @@ final class StrokeOverlayController {
         case .drawing:
             return 1
         case .matched, .unmatched:
-            guard let completedAt else { return 1 }
+            guard let completedAt else { return 0 }
             let elapsed = MonotonicClock.now - completedAt
             if elapsed <= holdDuration { return 1 }
             let fade = (elapsed - holdDuration) / fadeDuration

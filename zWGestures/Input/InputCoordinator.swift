@@ -356,7 +356,8 @@ final class InputCoordinator: @unchecked Sendable {
     /// one-way (`overlayLock` may take nothing, `recognitionLock` may take nothing) and the two
     /// can never deadlock.
     private func publishTrail(state: EngineState, effect: EngineEffect) {
-        if case .drawing(let gesture) = state {
+        switch state {
+        case .drawing(let gesture):
             let name = previewName(for: gesture)
             overlayLock.withLock {
                 overlayStorage = OverlayState(
@@ -366,16 +367,21 @@ final class InputCoordinator: @unchecked Sendable {
                     completionSequence: completionCount
                 )
             }
-            return
-        }
 
-        // A finished stroke has already been published by `handleCompletedGesture`.
-        if case .gestureCompleted = effect { return }
-
-        overlayLock.withLock {
-            if overlayStorage.phase != .idle {
-                overlayStorage = OverlayState(phase: .idle, completionSequence: completionCount)
+        case .pending:
+            // A new press starts: drop whatever the previous gesture left on screen.
+            overlayLock.withLock {
+                if overlayStorage.phase != .idle {
+                    overlayStorage = OverlayState(phase: .idle, completionSequence: completionCount)
+                }
             }
+
+        case .idle, .passthrough:
+            // Deliberately does nothing. The finished stroke's state is published by
+            // `handleCompletedGesture`, and clearing it here would race with the very next mouse
+            // move — which is what stopped the recognised colour from ever showing. The overlay
+            // fades it out on its own, and the next press clears it.
+            break
         }
     }
 
