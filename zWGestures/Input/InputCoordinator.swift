@@ -23,6 +23,36 @@ struct InputSnapshot: Sendable, Equatable {
     var matchedCount: Int = 0
     /// Short description of the last command that actually ran.
     var lastExecuted: String?
+    /// Which gesture set applied to the last stroke: the general one, or an application's.
+    var targetName: String?
+}
+
+/// Everything the tap thread needs in order to decide which gesture set applies.
+///
+/// The application directory is a snapshot rather than a live reference so that nothing on the
+/// tap thread has to call AppKit.
+struct RecognitionContext: Sendable {
+    var config = WGConfig()
+    var targetMode: WGTargetMode = .focused
+    var applications: [Int32: WGApplicationIdentity] = [:]
+    var focusedPID: Int32?
+
+    func identity(for pid: Int32) -> WGApplicationIdentity? {
+        applications[pid]
+    }
+
+    var focusedIdentity: WGApplicationIdentity? {
+        focusedPID.flatMap { applications[$0] }
+    }
+}
+
+/// A recognised gesture together with everything the command needs to run.
+struct GestureOutcome: Sendable {
+    var match: RecognitionMatch
+    var candidate: GestureCandidate
+    var target: WGResolvedTarget
+    /// Window server id of the window the gesture started over, when one was found.
+    var windowID: Int?
 }
 
 /// Wires the event tap to the gesture engine and carries out the engine's decisions.
@@ -39,18 +69,22 @@ final class InputCoordinator: @unchecked Sendable {
     /// Written from the main thread, read on the tap thread.
     private let recognitionLock = NSLock()
     private var recognizer = GestureRecognizer()
-    private var recognitionTarget = WGTarget.makeGeneral()
+    private var recognitionContext = RecognitionContext()
 
     /// Tap-thread state.
     private var pendingTimer: CFRunLoopTimer?
     private var armedPressStartedAt: TimeInterval?
+    /// The target resolved when the current press began, so a stroke is matched against the
+    /// application it started over even if focus changes mid-gesture.
+    private var pressTarget: WGResolvedTarget?
+    private var pressWindowID: Int?
 
     /// Invoked on the tap thread when the emergency-stop shortcut is pressed.
     var onPanic: (@Sendable () -> Void)?
 
     /// Invoked on the tap thread when a stroke matches a configured gesture. The handler must
     /// return promptly — it must hand off anything slow to another queue.
-    var onGestureMatched: (@Sendable (RecognitionMatch, GestureCandidate) -> Void)?
+    var onGestureMatched: (@Sendable (GestureOutcome) -> Void)?
 
     init(settings: EngineSettings = EngineSettings()) {
         engine = InputEngine(settings: settings)
@@ -62,13 +96,10 @@ final class InputCoordinator: @unchecked Sendable {
 
     var isRunning: Bool { tap.status.isRunning }
 
-    /// Publishes the gesture set the engine should match against.
-    ///
-    /// Target resolution (per-application overrides) lands with the target resolver; for now
-    /// the general target is used.
-    func updateRecognition(target: WGTarget, settings: RecognitionSettings = RecognitionSettings()) {
+    /// Publishes the gesture sets, the targeting mode and the application directory.
+    func updateRecognition(_ context: RecognitionContext, settings: RecognitionSettings = RecognitionSettings()) {
         recognitionLock.withLock {
-            recognitionTarget = target
+            recognitionContext = context
             recognizer = GestureRecognizer(settings: settings)
         }
     }
@@ -127,6 +158,7 @@ final class InputCoordinator: @unchecked Sendable {
         let decision = engine.handle(pointerEvent)
         perform(decision.effect)
         updateSnapshot(with: decision.effect, state: decision.state)
+        captureTargetIfNeeded(for: decision.state)
         rescheduleStartDragTimeout(for: decision.state)
 
         return decision.effect == .passThrough ? event : nil
@@ -150,12 +182,17 @@ final class InputCoordinator: @unchecked Sendable {
     /// Replaying an unmatched stroke matters: without it a right-button drag would simply
     /// vanish, and the context menu or text selection the user expected would never appear.
     private func handleCompletedGesture(_ candidate: GestureCandidate) {
-        let (recognizer, target) = recognitionLock.withLock { (self.recognizer, self.recognitionTarget) }
+        let (recognizer, context) = recognitionLock.withLock { (self.recognizer, self.recognitionContext) }
+        let resolved = pressTarget ?? resolveTarget(at: candidate.stroke.startPoint, in: context)
+        let windowID = pressWindowID
+        pressTarget = nil
+        pressWindowID = nil
+
         let match = recognizer.recognize(
             stroke: candidate.stroke,
             button: candidate.button,
             modifiers: candidate.modifiers,
-            in: target
+            in: resolved.target
         )
 
         // Diagnose a miss by reporting the closest configured gesture anyway: "nothing
@@ -165,23 +202,30 @@ final class InputCoordinator: @unchecked Sendable {
                 stroke: candidate.stroke,
                 button: candidate.button,
                 modifiers: candidate.modifiers,
-                in: target
+                in: resolved.target
             )
             : nil
 
-        record(match, nearest: nearest, candidate: candidate)
+        record(match, nearest: nearest, candidate: candidate, resolved: resolved)
 
         if let match {
             Log.recog.notice("""
                 命中手势「\(match.intent.name, privacy: .public)」\
                 （距离 \(match.distance, privacy: .public)，\
+                目标 \(resolved.displayName, privacy: .public)，\
                 \(candidate.stroke.points.count, privacy: .public) 个轨迹点）
                 """)
-            onGestureMatched?(match, candidate)
+            onGestureMatched?(GestureOutcome(
+                match: match,
+                candidate: candidate,
+                target: resolved,
+                windowID: windowID
+            ))
         } else {
             Log.recog.debug("""
                 未识别：\(candidate.stroke.points.count, privacy: .public) 点、\
                 长度 \(candidate.stroke.pathLength, privacy: .public)、\
+                目标 \(resolved.displayName, privacy: .public)、\
                 最近的是「\(nearest?.intent.name ?? "无候选", privacy: .public)」\
                 距离 \(nearest?.distance ?? .infinity, privacy: .public)，回放给系统
                 """)
@@ -189,10 +233,80 @@ final class InputCoordinator: @unchecked Sendable {
         }
     }
 
+    private func captureTargetIfNeeded(for state: EngineState) {
+        guard case .pending(let press) = state else {
+            if case .drawing = state { return }
+            pressTarget = nil
+            pressWindowID = nil
+            return
+        }
+        guard pressTarget == nil else { return }
+
+        let context = recognitionLock.withLock { recognitionContext }
+        // In focused mode the probe is usually unnecessary, so only pay for it when the result
+        // can change the answer.
+        let probe = needsWindowProbe(for: context) ? WindowProbe.probe(at: press.startPoint) : nil
+        pressWindowID = probe?.windowID
+        pressTarget = resolveTarget(at: press.startPoint, in: context, probe: probe)
+    }
+
+    private func needsWindowProbe(for context: RecognitionContext) -> Bool {
+        switch context.targetMode {
+        case .underCursor: true
+        case .focused: context.focusedIdentity?.bundleIdentifier == "com.apple.finder"
+        }
+    }
+
+    /// Works out which application (or the desktop) the gesture is aimed at.
+    ///
+    /// Probing the window server costs a few milliseconds, and this runs on the tap thread, so
+    /// `focused` mode skips the probe entirely unless the focused application is Finder — the
+    /// only case where the desktop matters.
+    private func resolveTarget(
+        at point: CGPoint,
+        in context: RecognitionContext,
+        probe providedProbe: WindowProbe.Result? = nil
+    ) -> WGResolvedTarget {
+        if case .focused = context.targetMode,
+           let focused = context.focusedIdentity,
+           focused.bundleIdentifier != "com.apple.finder"
+        {
+            return TargetResolver.resolve(
+                config: context.config,
+                application: focused,
+                isOverDesktop: false,
+                mode: context.targetMode
+            )
+        }
+
+        let probe = providedProbe ?? WindowProbe.probe(at: point)
+
+        let application: WGApplicationIdentity?
+        switch context.targetMode {
+        case .underCursor:
+            application = probe.flatMap { context.identity(for: $0.pid) }
+        case .focused:
+            application = context.focusedIdentity
+        }
+
+        // The desktop is Finder's window at a lower layer; only treat it as the desktop when the
+        // point really landed there.
+        let isOverDesktop = probe?.isDesktop == true
+            && (application?.bundleIdentifier ?? "com.apple.finder") == "com.apple.finder"
+
+        return TargetResolver.resolve(
+            config: context.config,
+            application: application,
+            isOverDesktop: isOverDesktop,
+            mode: context.targetMode
+        )
+    }
+
     private func record(
         _ match: RecognitionMatch?,
         nearest: RecognitionMatch?,
-        candidate: GestureCandidate
+        candidate: GestureCandidate,
+        resolved: WGResolvedTarget
     ) {
         snapshotLock.withLock {
             var next = snapshotStorage
@@ -203,6 +317,7 @@ final class InputCoordinator: @unchecked Sendable {
             next.strokeStart = candidate.stroke.startPoint
             next.strokeEnd = candidate.stroke.endPoint
             next.strokeLength = candidate.stroke.pathLength
+            next.targetName = resolved.displayName
             if match != nil { next.matchedCount += 1 }
             snapshotStorage = next
         }

@@ -125,6 +125,7 @@ final class DebugHUDWindow {
             strokes      \(snapshot.gestureCount)   replays \(snapshot.replayCount)
             matched      \(snapshot.matchedCount)
             gesture      \(gestureDescription(snapshot))
+            target       \(snapshot.targetName ?? "—")
             executed     \(snapshot.lastExecuted ?? "—")
             stroke pts   \(snapshot.strokePointCount)   长度 \(Int(snapshot.strokeLength))
             panic        \(PanicShortcut.displayName)

@@ -17,6 +17,7 @@
 		270F06823612F9887ABA6342 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E67B92FE1303A703B5885A /* main.swift */; };
 		49708BA7C9C5006DFBE58DDE /* WebSearchRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89448E399658487F235019DB /* WebSearchRunner.swift */; };
 		49CAE6454474546D40CD74E1 /* EventTapController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3216492821234F47E042DD74 /* EventTapController.swift */; };
+		4AA1EB92D31866167A674BCA /* AppDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F467548A3AD0F152969DB2 /* AppDirectory.swift */; };
 		5633593749843878218A20A5 /* WGConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A64E5D44D16632374E7585 /* WGConfig.swift */; };
 		58FD4C71B2ABD3CB65755E7E /* WGCommandPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72CE5E7190D3810B837000B3 /* WGCommandPlanner.swift */; };
 		5BC178E8C5BF03C819D95292 /* WGInputToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54FC8A50F77DDF46B3EC6C08 /* WGInputToken.swift */; };
@@ -31,8 +32,10 @@
 		867BEBB34B54E726C2D8BD85 /* PanicShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF7F9BF44FB51C9C5CEA1972 /* PanicShortcut.swift */; };
 		946DAC3008D6703095ABAAA8 /* ShellScriptRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 295D267B8197892CBCF5B45C /* ShellScriptRunner.swift */; };
 		960C0E6B6A845CA2A6D7634C /* InputEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571F286DEA2B2AE4976D787E /* InputEngine.swift */; };
+		9F85F6EE80EBF792076DA72E /* WindowProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5376AF66A75D62EF0403C889 /* WindowProbe.swift */; };
 		AAA7D11E8C47A9C5D9E08DE0 /* CommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92CBA6DC86C7A9DB15273C50 /* CommandExecutor.swift */; };
 		B74F84187764E1C1B2C31B3D /* PermissionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD120B910B3EAAF21113B6A /* PermissionGate.swift */; };
+		BE0AB9F149CF95824F4041B9 /* TargetResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D609A7BD92EC1F5F4BA9BF0 /* TargetResolver.swift */; };
 		D487BF881310D3FF47DB3C22 /* KeyEventPoster.swift in Sources */ = {isa = PBXBuildFile; fileRef = A81491D8DC7F824A57EA9A34 /* KeyEventPoster.swift */; };
 		D7B14F419F40CAE86D52A8E4 /* DebugHUDWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9064449516F65A9510DD1E /* DebugHUDWindow.swift */; };
 		D8FE20F18E73B88FBDCB0662 /* BuildInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88F93E17ED488092EFF652BE /* BuildInfo.swift */; };
@@ -43,6 +46,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		04F467548A3AD0F152969DB2 /* AppDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDirectory.swift; sourceTree = "<group>"; };
 		0DE58556186EDEF3072856D2 /* zWGestures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = zWGestures.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		126D92BFBFA3E4B274393D35 /* MonotonicClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonotonicClock.swift; sourceTree = "<group>"; };
 		295D267B8197892CBCF5B45C /* ShellScriptRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellScriptRunner.swift; sourceTree = "<group>"; };
@@ -53,6 +57,7 @@
 		4B3261300424B06F6A1DFA1D /* WGConfigCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGConfigCodec.swift; sourceTree = "<group>"; };
 		4DD120B910B3EAAF21113B6A /* PermissionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionGate.swift; sourceTree = "<group>"; };
 		4E642F91C963A1195967A57C /* ConfigController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigController.swift; sourceTree = "<group>"; };
+		5376AF66A75D62EF0403C889 /* WindowProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowProbe.swift; sourceTree = "<group>"; };
 		54FC8A50F77DDF46B3EC6C08 /* WGInputToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGInputToken.swift; sourceTree = "<group>"; };
 		571F286DEA2B2AE4976D787E /* InputEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputEngine.swift; sourceTree = "<group>"; };
 		58E69FA11F1C5AED1F3E8887 /* InputCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputCoordinator.swift; sourceTree = "<group>"; };
@@ -63,6 +68,7 @@
 		7ECC7CDA01EA1FFBEEDD5B97 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		88F93E17ED488092EFF652BE /* BuildInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildInfo.swift; sourceTree = "<group>"; };
 		89448E399658487F235019DB /* WebSearchRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchRunner.swift; sourceTree = "<group>"; };
+		8D609A7BD92EC1F5F4BA9BF0 /* TargetResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetResolver.swift; sourceTree = "<group>"; };
 		92CBA6DC86C7A9DB15273C50 /* CommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandExecutor.swift; sourceTree = "<group>"; };
 		A81491D8DC7F824A57EA9A34 /* KeyEventPoster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEventPoster.swift; sourceTree = "<group>"; };
 		ABAA2D5526E8980C694B5548 /* ConfigStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigStore.swift; sourceTree = "<group>"; };
@@ -108,6 +114,8 @@
 		495AE27E85CE4E7F86A9C20B /* Target */ = {
 			isa = PBXGroup;
 			children = (
+				04F467548A3AD0F152969DB2 /* AppDirectory.swift */,
+				5376AF66A75D62EF0403C889 /* WindowProbe.swift */,
 			);
 			path = Target;
 			sourceTree = "<group>";
@@ -242,6 +250,14 @@
 			path = Action;
 			sourceTree = "<group>";
 		};
+		DFFA8358CEA7D9569D9ECAAD /* Target */ = {
+			isa = PBXGroup;
+			children = (
+				8D609A7BD92EC1F5F4BA9BF0 /* TargetResolver.swift */,
+			);
+			path = Target;
+			sourceTree = "<group>";
+		};
 		F0C99F9994CF28B8C9A84C4B /* ZWGCore */ = {
 			isa = PBXGroup;
 			children = (
@@ -249,6 +265,7 @@
 				77DF59B90DADCDB32789A412 /* Config */,
 				6F63765F53F4AF7D32167E14 /* Input */,
 				5E460AE5900A25361D6B25CE /* Recog */,
+				DFFA8358CEA7D9569D9ECAAD /* Target */,
 				88F93E17ED488092EFF652BE /* BuildInfo.swift */,
 				BED6B7EF21C4A63D52847B55 /* Log.swift */,
 				4DD120B910B3EAAF21113B6A /* PermissionGate.swift */,
@@ -316,6 +333,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E600576F631A200D29E7BE94 /* AppDelegate.swift in Sources */,
+				4AA1EB92D31866167A674BCA /* AppDirectory.swift in Sources */,
 				D8FE20F18E73B88FBDCB0662 /* BuildInfo.swift in Sources */,
 				AAA7D11E8C47A9C5D9E08DE0 /* CommandExecutor.swift in Sources */,
 				611034544BEA508CCE4CEA83 /* ConfigController.swift in Sources */,
@@ -338,6 +356,7 @@
 				03639C7D8FA0755A9DD5944B /* Stroke.swift in Sources */,
 				70892C1BD3EA6010C5F65EEE /* StrokeNormalizer.swift in Sources */,
 				1AF54D920DBE3BCDAB6868D0 /* SyntheticEventPoster.swift in Sources */,
+				BE0AB9F149CF95824F4041B9 /* TargetResolver.swift in Sources */,
 				DEBD2C91305267F6D14EFAEA /* WGActionContext.swift in Sources */,
 				58FD4C71B2ABD3CB65755E7E /* WGCommandPlanner.swift in Sources */,
 				5633593749843878218A20A5 /* WGConfig.swift in Sources */,
@@ -347,6 +366,7 @@
 				7BD238A177C5ED3225C78992 /* WGKeyCode.swift in Sources */,
 				5F271E0433B7609765D9A526 /* WGPreferences.swift in Sources */,
 				49708BA7C9C5006DFBE58DDE /* WebSearchRunner.swift in Sources */,
+				9F85F6EE80EBF792076DA72E /* WindowProbe.swift in Sources */,
 				270F06823612F9887ABA6342 /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

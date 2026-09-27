@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var engine: EngineController?
     private var debugHUD: DebugHUDWindow?
     private var config: ConfigController?
+    private var appDirectory: AppDirectory?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Log.app.notice("""
@@ -16,7 +17,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             """)
 
         let config = ConfigController()
-        let engine = EngineController(startDragTimeout: config.preferences.startDragTimeoutSeconds)
+        let appDirectory = AppDirectory()
+        let engine = EngineController(
+            appDirectory: appDirectory,
+            startDragTimeout: config.preferences.startDragTimeoutSeconds
+        )
         let debugHUD = DebugHUDWindow(coordinator: engine.coordinator)
         let statusItemController = StatusItemController(
             engine: engine,
@@ -25,6 +30,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
 
         self.config = config
+        self.appDirectory = appDirectory
         self.engine = engine
         self.debugHUD = debugHUD
         self.statusItemController = statusItemController
@@ -34,8 +40,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             statusItemController?.refresh()
         }
         config.start()
+        appDirectory.start()
         engine.apply(startDragTimeout: config.preferences.startDragTimeoutSeconds)
-        engine.applyRecognition(config: config.config)
+        engine.apply(config: config.config, targetMode: config.preferences.targetMode)
 
         if ProcessInfo.processInfo.environment["ZWG_DEBUG_HUD"] == "1" {
             debugHUD.show()

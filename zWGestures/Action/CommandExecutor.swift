@@ -94,16 +94,55 @@ final class CommandExecutor {
 /// Builds the action context for a gesture that has just been recognised.
 @MainActor
 enum ActionContextProvider {
-    static func current(gestureStart: CGPoint) -> WGActionContext {
-        let application = NSWorkspace.shared.frontmostApplication
-        let screenHeight = NSScreen.screens.first?.frame.height ?? 0
+    /// - Parameters:
+    ///   - application: the application the gesture was aimed at, when it was resolved.
+    ///   - windowID: window server id of the window under the gesture's start point.
+    static func current(
+        gestureStart: CGPoint,
+        application: WGApplicationIdentity? = nil,
+        windowID: Int? = nil
+    ) -> WGActionContext {
+        let resolved = application ?? NSWorkspace.shared.frontmostApplication.map {
+            WGApplicationIdentity(
+                pid: $0.processIdentifier,
+                bundleIdentifier: $0.bundleIdentifier,
+                executablePath: $0.executableURL?.path,
+                localizedName: $0.localizedName
+            )
+        }
+
         return WGActionContext(
-            targetPID: application?.processIdentifier,
-            targetBundleIdentifier: application?.bundleIdentifier,
-            targetExecutablePath: application?.executableURL?.path,
-            targetAppName: application?.localizedName,
+            targetPID: resolved?.pid,
+            targetBundleIdentifier: resolved?.bundleIdentifier,
+            targetExecutablePath: resolved?.executablePath,
+            targetWindowID: windowID,
+            targetAppName: resolved?.localizedName,
+            targetWindowName: windowTitle(for: resolved?.pid),
             gestureStart: gestureStart,
-            screenHeight: screenHeight
+            screenHeight: NSScreen.screens.first?.frame.height ?? 0
         )
+    }
+
+    /// The focused window's title, read through the Accessibility API.
+    ///
+    /// Window titles are not available from `CGWindowListCopyWindowInfo` unless the process also
+    /// holds Screen Recording permission, so the AX API is used instead.
+    private static func windowTitle(for pid: Int32?) -> String? {
+        guard let pid else { return nil }
+        let application = AXUIElementCreateApplication(pid)
+        var windowValue: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(
+            application,
+            kAXFocusedWindowAttribute as CFString,
+            &windowValue
+        ) == .success, let window = windowValue else { return nil }
+
+        var titleValue: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(
+            window as! AXUIElement,
+            kAXTitleAttribute as CFString,
+            &titleValue
+        ) == .success else { return nil }
+        return titleValue as? String
     }
 }

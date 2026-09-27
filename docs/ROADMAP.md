@@ -12,7 +12,7 @@
 | P1 | 输入引擎：EventTap 生命周期、抑制/回放、起始超时、禁用自恢复、PanicGuard | ✅ 代码完成，待实机验证 |
 | P2 | 配置层：完整 `Codable` 模型、旧配置导入器、偏好项 | ✅ 完成（导入与原文件逐键一致） |
 | P3 | 识别层：简单手势、任意形状（DTW）、序列匹配 | ⏳ |
-| P4 | 执行层：`KeySeqCommand` / `WebSearchCommand` / `ShellScriptCommand` / `SystemFunctionKeyCommand`，目标解析 | ⏳ |
+| P4 | 执行层：`KeySeqCommand` / `WebSearchCommand` / `ShellScriptCommand` / `SystemFunctionKeyCommand`，目标解析 | ✅ 完成（分组与触发矩阵继承待 P5） |
 | P5 | 边角与滚轮触发、轨迹可视化 Overlay、菜单栏完整化、开机自启 | ⏳ |
 | P6 | 设置界面（简版）：目标列表、手势列表、触发矩阵、命令编辑器 | ⏳ |
 | P7 | 与原版逐项对照验收、多屏/全屏/长跑加固 | ⏳ |

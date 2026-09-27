@@ -13,6 +13,10 @@ final class EngineController {
     /// thread.
     let executor = CommandExecutor()
 
+    private let appDirectory: AppDirectory
+    private var config = WGConfig()
+    private var targetMode: WGTargetMode = .focused
+
     private var permissionTask: Task<Void, Never>?
     private let pollInterval = Duration.seconds(2)
     private(set) var isRunning = false
@@ -21,26 +25,33 @@ final class EngineController {
     /// Called whenever `isRunning` or the permission state may have changed.
     var onStateChange: (() -> Void)?
 
-    init(startDragTimeout: TimeInterval = 0.25) {
+    init(appDirectory: AppDirectory, startDragTimeout: TimeInterval = 0.25) {
+        self.appDirectory = appDirectory
         coordinator = InputCoordinator(settings: EngineSettings(startDragTimeout: startDragTimeout))
         coordinator.onPanic = { [weak self] in
             Task { @MainActor in
                 self?.pause(reason: "急停快捷键 \(PanicShortcut.displayName)")
             }
         }
-        coordinator.onGestureMatched = { [weak self] match, candidate in
-            let gestureStart = candidate.stroke.startPoint
+        coordinator.onGestureMatched = { [weak self] outcome in
             Task { @MainActor in
-                self?.run(match: match, gestureStart: gestureStart)
+                self?.run(outcome)
             }
+        }
+        appDirectory.onChange = { [weak self] in
+            self?.pushRecognitionContext()
         }
     }
 
-    private func run(match: RecognitionMatch, gestureStart: CGPoint) {
-        let plan = WGCommandPlanner.plan(match.intent.command)
-        let context = ActionContextProvider.current(gestureStart: gestureStart)
-        executor.execute(plan: plan, intentName: match.name, context: context)
-        coordinator.noteExecuted(WGCommandPlanner.summary(of: match.intent.command))
+    private func run(_ outcome: GestureOutcome) {
+        let plan = WGCommandPlanner.plan(outcome.match.intent.command)
+        let context = ActionContextProvider.current(
+            gestureStart: outcome.candidate.stroke.startPoint,
+            application: outcome.target.application,
+            windowID: outcome.windowID
+        )
+        executor.execute(plan: plan, intentName: outcome.match.name, context: context)
+        coordinator.noteExecuted(WGCommandPlanner.summary(of: outcome.match.intent.command))
     }
 
     /// Applies the user's preference to the running engine.
@@ -48,9 +59,20 @@ final class EngineController {
         coordinator.engine.settings.startDragTimeout = startDragTimeout
     }
 
-    /// Publishes the gesture set the engine matches against.
-    func applyRecognition(config: WGConfig) {
-        coordinator.updateRecognition(target: config.general)
+    /// Publishes the gesture sets, the targeting mode and the current application directory.
+    func apply(config: WGConfig, targetMode: WGTargetMode) {
+        self.config = config
+        self.targetMode = targetMode
+        pushRecognitionContext()
+    }
+
+    private func pushRecognitionContext() {
+        coordinator.updateRecognition(RecognitionContext(
+            config: config,
+            targetMode: targetMode,
+            applications: appDirectory.applications,
+            focusedPID: appDirectory.focusedPID
+        ))
     }
 
     var isPermitted: Bool { PermissionGate.isAccessibilityTrusted }
