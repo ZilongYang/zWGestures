@@ -89,6 +89,26 @@ CDHash，每次编译都会变，会导致每次构建后都要重新授权。
 `make build` 里的 `unlock-signing` 目标负责解锁；如果钥匙串被删除，构建仍会继续，
 只是签名会失败，此时重新运行 `scripts/create-signing-cert.sh` 即可。
 
+## 开发约定
+
+**不要在 `Timer` 的 block 里碰 actor 隔离的状态。** `Timer.scheduledTimer` 的 block 是
+`@Sendable` 闭包，从里面访问 `@MainActor` 的状态会迫使编译器插入
+`MainActor.assumeIsolated`。这个运行时断言在本工程的 debug dylib 布局下**直接崩掉**
+（SIGBUS，栈顶落在 `SerialExecutor.isMainExecutor`）。需要周期性刷新时用 `Task` 循环：
+
+```swift
+refreshTask = Task { @MainActor [weak self] in
+    while !Task.isCancelled {
+        guard let self else { return }
+        self.refresh()
+        try? await Task.sleep(for: .milliseconds(100))
+    }
+}
+```
+
+崩溃报告在 `~/Library/Logs/DiagnosticReports/zWGestures-*.ips`，是 `.ips` 格式（首行是
+一条 JSON 头，第二行才是正文），可以直接用 Python 解析出 `exception`、崩溃线程和调用栈。
+
 ## 与 WGestures 的关系
 
 本项目是独立的重新实现，不包含原版的任何二进制、字体、图标或激活码。

@@ -5,12 +5,20 @@ import AppKit
 /// P1 has no visible gesture trail yet, so this is how behaviour gets verified: the state
 /// machine, the decisions it takes and the event counters are all visible while clicking
 /// and drawing. Toggle it from the menu bar, or set `ZWG_DEBUG_HUD=1` to open it on launch.
+///
+/// The refresh loop is a `Task` rather than a `Timer` on purpose. A `Timer` block is a
+/// `@Sendable` closure, so touching main-actor state from it forces the compiler to emit
+/// `MainActor.assumeIsolated` — and that runtime check faulted (SIGBUS inside
+/// `SerialExecutor.isMainExecutor`) and took the whole app down. A `Task` hops to the main
+/// actor properly instead of asserting that it is already there.
 @MainActor
 final class DebugHUDWindow {
     private let coordinator: InputCoordinator
     private var window: NSPanel?
     private var label: NSTextField?
-    private var timer: Timer?
+    private var refreshTask: Task<Void, Never>?
+
+    private let refreshInterval = Duration.milliseconds(100)
 
     init(coordinator: InputCoordinator) {
         self.coordinator = coordinator
@@ -26,18 +34,35 @@ final class DebugHUDWindow {
         let panel = window ?? makePanel()
         window = panel
         refresh()
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-            MainActor.assumeIsolated { [weak self] in
-                self?.refresh()
-            }
-        }
+        startRefreshing()
         panel.orderFrontRegardless()
     }
 
     func hide() {
-        timer?.invalidate()
-        timer = nil
+        stopRefreshing()
         window?.orderOut(nil)
+    }
+
+    // MARK: - Refresh loop
+
+    private func startRefreshing() {
+        guard refreshTask == nil else { return }
+        refreshTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                guard let self else { return }
+                self.refresh()
+                do {
+                    try await Task.sleep(for: self.refreshInterval)
+                } catch {
+                    return // cancelled
+                }
+            }
+        }
+    }
+
+    private func stopRefreshing() {
+        refreshTask?.cancel()
+        refreshTask = nil
     }
 
     // MARK: - Private

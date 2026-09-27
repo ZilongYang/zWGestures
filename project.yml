@@ -21,6 +21,10 @@ settings:
     # Local-only distribution: App Sandbox off (global event taps + shell scripts require it),
     # hardened runtime off (no notarization).
     ENABLE_HARDENED_RUNTIME: NO
+    # Xcode 16+ splits the app into a stub executable plus `zWGestures.debug.dylib` to speed up
+    # previews. That layout complicates signing and stack traces for no benefit here, so the app
+    # builds as a single executable.
+    ENABLE_DEBUG_DYLIB: NO
     SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
     CLANG_ENABLE_MODULES: YES
     CODE_SIGN_STYLE: Manual

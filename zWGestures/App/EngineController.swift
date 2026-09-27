@@ -13,7 +13,8 @@ final class EngineController {
     /// thread.
     let executor = CommandExecutor()
 
-    private var permissionTimer: Timer?
+    private var permissionTask: Task<Void, Never>?
+    private let pollInterval = Duration.seconds(2)
     private(set) var isRunning = false
     private(set) var lastFailureReason: String?
 
@@ -95,18 +96,30 @@ final class EngineController {
 
     /// Polls for the Accessibility grant so the engine comes up on its own once the user
     /// ticks the checkbox, without needing a relaunch.
+    ///
+    /// A `Task` loop rather than a `Timer`: see `DebugHUDWindow` for why `Timer` blocks force
+    /// `MainActor.assumeIsolated` and how that faulted.
     private func startPermissionPolling() {
-        guard permissionTimer == nil else { return }
-        permissionTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { _ in
-            MainActor.assumeIsolated { [weak self] in
-                guard let self, self.isPermitted else { return }
-                self.startIfPermitted()
+        guard permissionTask == nil else { return }
+        permissionTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                do {
+                    try await Task.sleep(for: self?.pollInterval ?? .seconds(2))
+                } catch {
+                    return // cancelled
+                }
+                guard let self else { return }
+                if self.isPermitted {
+                    self.stopPermissionPolling()
+                    self.startIfPermitted()
+                    return
+                }
             }
         }
     }
 
     private func stopPermissionPolling() {
-        permissionTimer?.invalidate()
-        permissionTimer = nil
+        permissionTask?.cancel()
+        permissionTask = nil
     }
 }
