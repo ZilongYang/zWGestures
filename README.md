@@ -53,17 +53,24 @@ zWGestures 需要「辅助功能」权限才能安装全局事件拦截器和发
 ## 签名
 
 zWGestures 用一把本机自签名证书 `zWGestures Local Signing` 签名，由
-`scripts/create-signing-cert.sh` 创建。这样它的**指定代码要求（designated requirement）**
-是稳定的：
+`scripts/create-signing-cert.sh` 创建并放进**独立钥匙串**
+`~/Library/Keychains/zWGestures.keychain-db`（密码 `zwgestures`）。这样它的
+**指定代码要求（designated requirement）** 是稳定的：
 
 ```
-designated => identifier "com.zilong.zwgestures" and certificate root = H"845764a2…"
+designated => identifier "com.zilong.zwgestures" and certificate root = H"85d71af4…"
 ```
 
 因此「辅助功能」授权在重新编译之后依然有效。ad-hoc 签名（`codesign -s -`）的要求基于
 CDHash，每次编译都会变，会导致每次构建后都要重新授权。
 
-首次签名时 macOS 可能弹出钥匙串授权对话框，点「始终允许」即可。
+之所以用独立钥匙串而不是登录钥匙串：登录钥匙串里的私钥需要 SecurityAgent 弹窗授权，
+在 `xcodebuild` 这种无人值守进程里弹窗不会被应答，签名会随机失败并报
+`errSecInternalComponent`。独立钥匙串的密码由构建脚本掌握，配合 key partition list
+就可以免弹窗签名。`make build` 会先自动解锁该钥匙串。
+
+`make build` 里的 `unlock-signing` 目标负责解锁；如果钥匙串被删除，构建仍会继续，
+只是签名会失败，此时重新运行 `scripts/create-signing-cert.sh` 即可。
 
 ## 与 WGestures 的关系
 
