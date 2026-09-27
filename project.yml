@@ -24,8 +24,11 @@ settings:
     SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
     CLANG_ENABLE_MODULES: YES
     CODE_SIGN_STYLE: Manual
-    # P0 uses ad-hoc signing; P0b switches to the stable local self-signed identity.
-    CODE_SIGN_IDENTITY: "-"
+    # Stable local self-signed identity (created by scripts/create-signing-cert.sh).
+    # A stable designated requirement keeps the Accessibility grant across rebuilds;
+    # ad-hoc signing would invalidate it on every build.
+    CODE_SIGN_IDENTITY: "zWGestures Local Signing"
+    OTHER_CODE_SIGN_FLAGS: "--timestamp=none"
     DEVELOPMENT_TEAM: ""
     PROVISIONING_PROFILE_SPECIFIER: ""
     CODE_SIGNING_REQUIRED: YES

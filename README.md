@@ -52,8 +52,18 @@ zWGestures 需要「辅助功能」权限才能安装全局事件拦截器和发
 
 ## 签名
 
-开发期使用 ad-hoc 签名。注意：**ad-hoc 签名的 CDHash 每次重新编译都会变化，
-导致 macOS 每次都要求重新授权辅助功能**。P0b 会切换到一把稳定的本机证书。
+zWGestures 用一把本机自签名证书 `zWGestures Local Signing` 签名，由
+`scripts/create-signing-cert.sh` 创建。这样它的**指定代码要求（designated requirement）**
+是稳定的：
+
+```
+designated => identifier "com.zilong.zwgestures" and certificate root = H"845764a2…"
+```
+
+因此「辅助功能」授权在重新编译之后依然有效。ad-hoc 签名（`codesign -s -`）的要求基于
+CDHash，每次编译都会变，会导致每次构建后都要重新授权。
+
+首次签名时 macOS 可能弹出钥匙串授权对话框，点「始终允许」即可。
 
 ## 与 WGestures 的关系
 
