@@ -192,7 +192,8 @@ final class InputCoordinator: @unchecked Sendable {
             stroke: candidate.stroke,
             button: candidate.button,
             modifiers: candidate.modifiers,
-            in: resolved.target
+            in: resolved.target,
+            triggerMatrix: resolved.triggerMatrix
         )
 
         // Diagnose a miss by reporting the closest configured gesture anyway: "nothing
@@ -202,7 +203,8 @@ final class InputCoordinator: @unchecked Sendable {
                 stroke: candidate.stroke,
                 button: candidate.button,
                 modifiers: candidate.modifiers,
-                in: resolved.target
+                in: resolved.target,
+                triggerMatrix: resolved.triggerMatrix
             )
             : nil
 

@@ -52,11 +52,18 @@ public struct GestureRecognizer: Sendable {
         stroke: Stroke,
         button: MouseButton,
         modifiers: [PointerEvent.Kind],
-        in target: WGTarget
+        in target: WGTarget,
+        triggerMatrix: WGTriggerMatrix = .empty
     ) -> RecognitionMatch? {
         guard stroke.pathLength >= settings.minimumStrokeLength else { return nil }
-        let passing = scoredCandidates(stroke: stroke, button: button, modifiers: modifiers, in: target)
-            .filter { $0.distance <= settings.matchThreshold }
+        let passing = scoredCandidates(
+            stroke: stroke,
+            button: button,
+            modifiers: modifiers,
+            in: target,
+            triggerMatrix: triggerMatrix
+        )
+        .filter { $0.distance <= settings.matchThreshold }
         return bestCandidate(in: passing)
     }
 
@@ -67,14 +74,15 @@ public struct GestureRecognizer: Sendable {
         stroke: Stroke,
         button: MouseButton,
         modifiers: [PointerEvent.Kind],
-        in target: WGTarget
+        in target: WGTarget,
+        triggerMatrix: WGTriggerMatrix = .empty
     ) -> [RecognitionMatch] {
         guard stroke.pathLength >= settings.minimumStrokeLength else { return [] }
 
         var candidates: [RecognitionMatch] = []
         for (index, intent) in target.intents.enumerated() {
             guard let definition = intent.strokeStep else { continue }
-            guard isTriggerSatisfied(intent.triggerSteps, button: button) else { continue }
+            guard isTriggerSatisfied(intent.triggerSteps, button: button, matrix: triggerMatrix) else { continue }
             guard areModifiersSatisfied(intent.modifierSteps, recorded: modifiers) else { continue }
 
             let distance = StrokeMatcher.distance(
@@ -100,9 +108,16 @@ public struct GestureRecognizer: Sendable {
         stroke: Stroke,
         button: MouseButton,
         modifiers: [PointerEvent.Kind],
-        in target: WGTarget
+        in target: WGTarget,
+        triggerMatrix: WGTriggerMatrix = .empty
     ) -> RecognitionMatch? {
-        scoredCandidates(stroke: stroke, button: button, modifiers: modifiers, in: target).first
+        scoredCandidates(
+            stroke: stroke,
+            button: button,
+            modifiers: modifiers,
+            in: target,
+            triggerMatrix: triggerMatrix
+        ).first
     }
 
     /// Picks between intents that share a trajectory.
@@ -121,8 +136,13 @@ public struct GestureRecognizer: Sendable {
 
     // MARK: - Eligibility
 
-    /// Whether the steps leading up to the stroke describe the trigger we just saw.
-    private func isTriggerSatisfied(_ steps: [WGStep], button: MouseButton) -> Bool {
+    /// Whether the steps leading up to the stroke describe the trigger we just saw, and whether
+    /// the trigger matrix allows that trigger for this target.
+    private func isTriggerSatisfied(
+        _ steps: [WGStep],
+        button: MouseButton,
+        matrix: WGTriggerMatrix
+    ) -> Bool {
         guard !steps.isEmpty else { return false }
         var sawButton = false
 
@@ -130,7 +150,8 @@ public struct GestureRecognizer: Sendable {
             switch step {
             case .keyDown(let key):
                 guard case .mouse(let candidate) = WGInputToken(key: key.key), candidate == button else {
-                    // Keyboard-as-trigger and scroll-as-trigger are handled in later phases.
+                    // Keyboard-as-trigger and scroll-as-trigger are handled by the edge and
+                    // scroll detector in a later phase.
                     return false
                 }
                 sawButton = true
@@ -141,7 +162,13 @@ public struct GestureRecognizer: Sendable {
                 return false
             }
         }
-        return sawButton
+        guard sawButton else { return false }
+
+        // A gesture whose trigger the user switched off in the 触发方式 matrix must not fire.
+        if let signature = WGTriggerSignature.make(from: steps) {
+            return matrix.allows(signature)
+        }
+        return true
     }
 
     /// Whether every gesture-modifier step actually happened while the stroke was drawn.

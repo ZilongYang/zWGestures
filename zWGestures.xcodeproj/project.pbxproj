@@ -30,6 +30,7 @@
 		7BD238A177C5ED3225C78992 /* WGKeyCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75010A7BD55B495E897BA081 /* WGKeyCode.swift */; };
 		7CDCA875B2CD5785580F23B6 /* WGEdgeCorner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 389CCF3A1A0E88671C79DD3A /* WGEdgeCorner.swift */; };
 		867BEBB34B54E726C2D8BD85 /* PanicShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF7F9BF44FB51C9C5CEA1972 /* PanicShortcut.swift */; };
+		93D50BDED8AD9F1EC9293485 /* WGTriggerMatrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB5A2FA9CBB86A01E460887A /* WGTriggerMatrix.swift */; };
 		946DAC3008D6703095ABAAA8 /* ShellScriptRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 295D267B8197892CBCF5B45C /* ShellScriptRunner.swift */; };
 		960C0E6B6A845CA2A6D7634C /* InputEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571F286DEA2B2AE4976D787E /* InputEngine.swift */; };
 		9F85F6EE80EBF792076DA72E /* WindowProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5376AF66A75D62EF0403C889 /* WindowProbe.swift */; };
@@ -83,6 +84,7 @@
 		E3411F37FC05B72B39D6837A /* LegacyConfigImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyConfigImporter.swift; sourceTree = "<group>"; };
 		E83B1397FEFFA16BBEED4800 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
 		EF7F9BF44FB51C9C5CEA1972 /* PanicShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanicShortcut.swift; sourceTree = "<group>"; };
+		FB5A2FA9CBB86A01E460887A /* WGTriggerMatrix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGTriggerMatrix.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -150,6 +152,7 @@
 				389CCF3A1A0E88671C79DD3A /* WGEdgeCorner.swift */,
 				54FC8A50F77DDF46B3EC6C08 /* WGInputToken.swift */,
 				AC8DBAC8592F6FAEC6C1A76E /* WGPreferences.swift */,
+				FB5A2FA9CBB86A01E460887A /* WGTriggerMatrix.swift */,
 			);
 			path = Config;
 			sourceTree = "<group>";
@@ -365,6 +368,7 @@
 				5BC178E8C5BF03C819D95292 /* WGInputToken.swift in Sources */,
 				7BD238A177C5ED3225C78992 /* WGKeyCode.swift in Sources */,
 				5F271E0433B7609765D9A526 /* WGPreferences.swift in Sources */,
+				93D50BDED8AD9F1EC9293485 /* WGTriggerMatrix.swift in Sources */,
 				49708BA7C9C5006DFBE58DDE /* WebSearchRunner.swift in Sources */,
 				9F85F6EE80EBF792076DA72E /* WindowProbe.swift in Sources */,
 				270F06823612F9887ABA6342 /* main.swift in Sources */,

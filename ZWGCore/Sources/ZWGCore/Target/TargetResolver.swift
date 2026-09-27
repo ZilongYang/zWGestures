@@ -34,6 +34,8 @@ public struct WGResolvedTarget: Sendable, Equatable {
     public var kind: Kind
     /// The application the gesture was aimed at, when one was resolved.
     public var application: WGApplicationIdentity?
+    /// Which trigger inputs this target permits.
+    public var triggerMatrix: WGTriggerMatrix
 
     public var displayName: String {
         switch kind {
@@ -56,15 +58,26 @@ public enum TargetResolver {
         isOverDesktop: Bool = false,
         mode: WGTargetMode = .focused
     ) -> WGResolvedTarget {
+        let chosen: WGTarget
+        let kind: WGResolvedTarget.Kind
+
         if isOverDesktop, let desktop = config.specials.first(where: { $0.kind == .desktop }) {
-            return WGResolvedTarget(target: desktop, kind: .desktop, application: application)
+            chosen = desktop
+            kind = .desktop
+        } else if let application, let match = matchApplication(application, in: config.apps) {
+            chosen = match
+            kind = .application
+        } else {
+            chosen = config.general
+            kind = .general
         }
 
-        if let application, let match = matchApplication(application, in: config.apps) {
-            return WGResolvedTarget(target: match, kind: .application, application: application)
-        }
-
-        return WGResolvedTarget(target: config.general, kind: .general, application: application)
+        return WGResolvedTarget(
+            target: chosen,
+            kind: kind,
+            application: application,
+            triggerMatrix: WGTriggerMatrix.effective(for: chosen, inheriting: config.general)
+        )
     }
 
     /// Finds the application target for `application`.
