@@ -16,6 +16,10 @@ struct InputSnapshot: Sendable, Equatable {
     /// Name of the last recognised gesture, or nil when the last stroke matched nothing.
     var lastGestureName: String?
     var lastGestureDistance: CGFloat?
+    /// Closest configured gesture when the stroke did *not* match — for diagnosing misses.
+    var nearestGestureName: String?
+    var nearestGestureDistance: CGFloat?
+    var strokeLength: CGFloat = 0
     var matchedCount: Int = 0
 }
 
@@ -148,7 +152,18 @@ final class InputCoordinator: @unchecked Sendable {
             in: target
         )
 
-        record(match, candidate: candidate)
+        // Diagnose a miss by reporting the closest configured gesture anyway: "nothing
+        // matched" without a number is impossible to act on.
+        let nearest = match == nil
+            ? recognizer.nearestCandidate(
+                stroke: candidate.stroke,
+                button: candidate.button,
+                modifiers: candidate.modifiers,
+                in: target
+            )
+            : nil
+
+        record(match, nearest: nearest, candidate: candidate)
 
         if let match {
             Log.recog.notice("""
@@ -158,20 +173,29 @@ final class InputCoordinator: @unchecked Sendable {
                 """)
         } else {
             Log.recog.debug("""
-                未识别的手势：\(candidate.stroke.points.count, privacy: .public) 点、\
-                长度 \(candidate.stroke.pathLength, privacy: .public)，回放给系统
+                未识别：\(candidate.stroke.points.count, privacy: .public) 点、\
+                长度 \(candidate.stroke.pathLength, privacy: .public)、\
+                最近的是「\(nearest?.intent.name ?? "无候选", privacy: .public)」\
+                距离 \(nearest?.distance ?? .infinity, privacy: .public)，回放给系统
                 """)
             SyntheticEventPoster.replay(candidate)
         }
     }
 
-    private func record(_ match: RecognitionMatch?, candidate: GestureCandidate) {
+    private func record(
+        _ match: RecognitionMatch?,
+        nearest: RecognitionMatch?,
+        candidate: GestureCandidate
+    ) {
         snapshotLock.withLock {
             var next = snapshotStorage
             next.lastGestureName = match?.intent.name
             next.lastGestureDistance = match?.distance
+            next.nearestGestureName = match == nil ? nearest?.intent.name : nil
+            next.nearestGestureDistance = match == nil ? nearest?.distance : nil
             next.strokeStart = candidate.stroke.startPoint
             next.strokeEnd = candidate.stroke.endPoint
+            next.strokeLength = candidate.stroke.pathLength
             if match != nil { next.matchedCount += 1 }
             snapshotStorage = next
         }

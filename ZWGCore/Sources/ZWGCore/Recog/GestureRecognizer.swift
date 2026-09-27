@@ -55,6 +55,21 @@ public struct GestureRecognizer: Sendable {
         in target: WGTarget
     ) -> RecognitionMatch? {
         guard stroke.pathLength >= settings.minimumStrokeLength else { return nil }
+        let passing = scoredCandidates(stroke: stroke, button: button, modifiers: modifiers, in: target)
+            .filter { $0.distance <= settings.matchThreshold }
+        return bestCandidate(in: passing)
+    }
+
+    /// Every eligible intent and how far its trajectory is from the drawn stroke, nearest
+    /// first. Includes candidates that are too far to match, which is what makes a failed
+    /// recognition diagnosable instead of a mystery.
+    public func scoredCandidates(
+        stroke: Stroke,
+        button: MouseButton,
+        modifiers: [PointerEvent.Kind],
+        in target: WGTarget
+    ) -> [RecognitionMatch] {
+        guard stroke.pathLength >= settings.minimumStrokeLength else { return [] }
 
         var candidates: [RecognitionMatch] = []
         for (index, intent) in target.intents.enumerated() {
@@ -67,8 +82,6 @@ public struct GestureRecognizer: Sendable {
                 definition: definition,
                 sampleCount: settings.sampleCount
             )
-            guard distance <= settings.matchThreshold else { continue }
-
             candidates.append(RecognitionMatch(
                 intent: intent,
                 intentIndex: index,
@@ -76,8 +89,20 @@ public struct GestureRecognizer: Sendable {
                 modifierCount: intent.modifierSteps.count
             ))
         }
+        return candidates.sorted { lhs, rhs in
+            if lhs.distance != rhs.distance { return lhs.distance < rhs.distance }
+            return lhs.intentIndex < rhs.intentIndex
+        }
+    }
 
-        return bestCandidate(in: candidates)
+    /// The closest eligible intent regardless of the threshold — used only for diagnostics.
+    public func nearestCandidate(
+        stroke: Stroke,
+        button: MouseButton,
+        modifiers: [PointerEvent.Kind],
+        in target: WGTarget
+    ) -> RecognitionMatch? {
+        scoredCandidates(stroke: stroke, button: button, modifiers: modifiers, in: target).first
     }
 
     /// Picks between intents that share a trajectory.

@@ -100,7 +100,7 @@ final class DebugHUDWindow {
             strokes      \(snapshot.gestureCount)   replays \(snapshot.replayCount)
             matched      \(snapshot.matchedCount)
             gesture      \(gestureDescription(snapshot))
-            stroke pts   \(snapshot.strokePointCount)
+            stroke pts   \(snapshot.strokePointCount)   长度 \(Int(snapshot.strokeLength))
             panic        \(PanicShortcut.displayName)
             """
     }
@@ -111,7 +111,9 @@ final class DebugHUDWindow {
             return "「\(name)」 距离 \(distance)"
         }
         if snapshot.gestureCount > 0 {
-            return "未识别（已回放）"
+            let nearest = snapshot.nearestGestureName ?? "无候选"
+            let distance = snapshot.nearestGestureDistance.map { String(format: "%.3f", $0) } ?? "-"
+            return "未识别（最近：\(nearest) \(distance)）"
         }
         return "—"
     }

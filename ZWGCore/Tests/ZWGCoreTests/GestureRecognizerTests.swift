@@ -113,6 +113,67 @@ struct RecognitionCalibrationTests {
         return (floor, pair, diagonal)
     }
 
+    /// Measured distances to the vertical retrace `(0,0) → (0,50) → (0,0)`, over a 200-point
+    /// tall loop. This is what fixes the threshold's upper bound.
+    ///
+    /// | 画出来的形状          | 距离   | 阈值 0.10 |
+    /// |----------------------|--------|-----------|
+    /// | 细长环 宽 6–60        | 0.004–0.039 | 命中 |
+    /// | 椭圆 120×200 (宽高 0.6) | 0.079  | 命中 |
+    /// | 椭圆 160×200 (宽高 0.8) | 0.103  | 不命中 |
+    /// | 正圆                  | ≥0.143 | 不命中 |
+    ///
+    /// A true circle must stay unrecognised: where a circle lands depends on where the user
+    /// started drawing it, so accepting it would make the same circle trigger `Web 搜索` or
+    /// `退格` at random. The loop gestures have to be drawn elongated, which is exactly what
+    /// the original app's quick-start teaches.
+    @Test("闭环手势必须画成细长环；圆形不能被接受")
+    func loopShapeToleranceMatchesTheDesign() {
+        let settings = GestureRecognizer().settings
+        let vertical = storedSimple(Unit.loopVertical)
+        let horizontal = storedSimple(Unit.loopHorizontal)
+
+        // 细长环命中
+        for width in [6, 20, 45] as [CGFloat] {
+            let value = loopDistance(width: width, height: 200)
+            #expect(value < settings.matchThreshold, "细长环宽 \(width) 距离 \(value)，应当命中")
+        }
+        // 椭圆稍宽仍可命中
+        #expect(loopDistance(width: 120, height: 200) < settings.matchThreshold)
+
+        // 正圆不应被接受，而且它离两个闭环都不近
+        let circle = circleStroke(diameter: 240)
+        let toVertical = StrokeMatcher.distance(stroke: circle, definition: vertical, sampleCount: 32)
+        let toHorizontal = StrokeMatcher.distance(stroke: circle, definition: horizontal, sampleCount: 32)
+        #expect(min(toVertical, toHorizontal) > settings.matchThreshold)
+        #expect(min(toVertical, toHorizontal) < 0.15, "0.15 的阈值就会把圆形误判给「退格」")
+    }
+
+    private func loopDistance(width: CGFloat, height: CGFloat) -> CGFloat {
+        let oval = polyline([
+            CGPoint(x: 800, y: 600),
+            CGPoint(x: 800 + width / 2, y: 600 + height / 2),
+            CGPoint(x: 800, y: 600 + height),
+            CGPoint(x: 800 - width / 2, y: 600 + height / 2),
+            CGPoint(x: 800, y: 600),
+        ])
+        return StrokeMatcher.distance(
+            stroke: oval,
+            definition: storedSimple(Unit.loopVertical),
+            sampleCount: 32
+        )
+    }
+
+    private func circleStroke(diameter: CGFloat) -> Stroke {
+        polyline((0...64).map { step -> CGPoint in
+            let angle = CGFloat(step) / 64 * 2 * .pi
+            return CGPoint(
+                x: 800 + cos(angle) * diameter / 2,
+                y: 600 + sin(angle) * diameter / 2
+            )
+        })
+    }
+
     @Test("同一形状必然命中，不同形状之间留有安全余量")
     func thresholdSitsBetweenMatchAndConfusion() {
         let settings = GestureRecognizer().settings
