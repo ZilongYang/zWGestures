@@ -15,32 +15,46 @@
 		20BA77DFC9FB80EF291E5C3A /* PointerEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B06777C46F74A73BE3DFAA02 /* PointerEvent.swift */; };
 		270F06823612F9887ABA6342 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E67B92FE1303A703B5885A /* main.swift */; };
 		49CAE6454474546D40CD74E1 /* EventTapController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3216492821234F47E042DD74 /* EventTapController.swift */; };
+		5633593749843878218A20A5 /* WGConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A64E5D44D16632374E7585 /* WGConfig.swift */; };
+		5F271E0433B7609765D9A526 /* WGPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8DBAC8592F6FAEC6C1A76E /* WGPreferences.swift */; };
+		611034544BEA508CCE4CEA83 /* ConfigController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E642F91C963A1195967A57C /* ConfigController.swift */; };
 		6EEAAB5A5C3825293D9C469C /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E83B1397FEFFA16BBEED4800 /* StatusItemController.swift */; };
+		741E9516BCE709CA45B3479C /* WGConfigCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B3261300424B06F6A1DFA1D /* WGConfigCodec.swift */; };
 		75A267C79DF6EBC5ADFC54D0 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = BED6B7EF21C4A63D52847B55 /* Log.swift */; };
+		7CDCA875B2CD5785580F23B6 /* WGEdgeCorner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 389CCF3A1A0E88671C79DD3A /* WGEdgeCorner.swift */; };
 		867BEBB34B54E726C2D8BD85 /* PanicShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF7F9BF44FB51C9C5CEA1972 /* PanicShortcut.swift */; };
 		960C0E6B6A845CA2A6D7634C /* InputEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571F286DEA2B2AE4976D787E /* InputEngine.swift */; };
 		B74F84187764E1C1B2C31B3D /* PermissionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD120B910B3EAAF21113B6A /* PermissionGate.swift */; };
 		D7B14F419F40CAE86D52A8E4 /* DebugHUDWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9064449516F65A9510DD1E /* DebugHUDWindow.swift */; };
 		D8FE20F18E73B88FBDCB0662 /* BuildInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88F93E17ED488092EFF652BE /* BuildInfo.swift */; };
+		E2A29BDBB1334AD17B516FE7 /* ConfigStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABAA2D5526E8980C694B5548 /* ConfigStore.swift */; };
 		E600576F631A200D29E7BE94 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ECC7CDA01EA1FFBEEDD5B97 /* AppDelegate.swift */; };
+		FDF5F36C475F910B6B15D0C9 /* LegacyConfigImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3411F37FC05B72B39D6837A /* LegacyConfigImporter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		0DE58556186EDEF3072856D2 /* zWGestures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = zWGestures.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		126D92BFBFA3E4B274393D35 /* MonotonicClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonotonicClock.swift; sourceTree = "<group>"; };
 		3216492821234F47E042DD74 /* EventTapController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTapController.swift; sourceTree = "<group>"; };
+		389CCF3A1A0E88671C79DD3A /* WGEdgeCorner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGEdgeCorner.swift; sourceTree = "<group>"; };
 		3EFA9271A0175129EFBF9815 /* SyntheticEventPoster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntheticEventPoster.swift; sourceTree = "<group>"; };
+		4B3261300424B06F6A1DFA1D /* WGConfigCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGConfigCodec.swift; sourceTree = "<group>"; };
 		4DD120B910B3EAAF21113B6A /* PermissionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionGate.swift; sourceTree = "<group>"; };
+		4E642F91C963A1195967A57C /* ConfigController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigController.swift; sourceTree = "<group>"; };
 		571F286DEA2B2AE4976D787E /* InputEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputEngine.swift; sourceTree = "<group>"; };
 		58E69FA11F1C5AED1F3E8887 /* InputCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputCoordinator.swift; sourceTree = "<group>"; };
 		65E67B92FE1303A703B5885A /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		6AD84F47ADADCB43601E2F71 /* Stroke.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stroke.swift; sourceTree = "<group>"; };
 		7ECC7CDA01EA1FFBEEDD5B97 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		88F93E17ED488092EFF652BE /* BuildInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildInfo.swift; sourceTree = "<group>"; };
+		ABAA2D5526E8980C694B5548 /* ConfigStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigStore.swift; sourceTree = "<group>"; };
+		AC8DBAC8592F6FAEC6C1A76E /* WGPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGPreferences.swift; sourceTree = "<group>"; };
 		B06777C46F74A73BE3DFAA02 /* PointerEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointerEvent.swift; sourceTree = "<group>"; };
 		BCAA306B3006478FA8B51C30 /* EngineController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineController.swift; sourceTree = "<group>"; };
 		BED6B7EF21C4A63D52847B55 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
+		C2A64E5D44D16632374E7585 /* WGConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGConfig.swift; sourceTree = "<group>"; };
 		CC9064449516F65A9510DD1E /* DebugHUDWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugHUDWindow.swift; sourceTree = "<group>"; };
+		E3411F37FC05B72B39D6837A /* LegacyConfigImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyConfigImporter.swift; sourceTree = "<group>"; };
 		E83B1397FEFFA16BBEED4800 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
 		EF7F9BF44FB51C9C5CEA1972 /* PanicShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanicShortcut.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -89,6 +103,19 @@
 			path = Input;
 			sourceTree = "<group>";
 		};
+		77DF59B90DADCDB32789A412 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				ABAA2D5526E8980C694B5548 /* ConfigStore.swift */,
+				E3411F37FC05B72B39D6837A /* LegacyConfigImporter.swift */,
+				C2A64E5D44D16632374E7585 /* WGConfig.swift */,
+				4B3261300424B06F6A1DFA1D /* WGConfigCodec.swift */,
+				389CCF3A1A0E88671C79DD3A /* WGEdgeCorner.swift */,
+				AC8DBAC8592F6FAEC6C1A76E /* WGPreferences.swift */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
 		79F96F3E14D2C460ABC09B83 /* Input */ = {
 			isa = PBXGroup;
 			children = (
@@ -104,6 +131,7 @@
 			isa = PBXGroup;
 			children = (
 				7ECC7CDA01EA1FFBEEDD5B97 /* AppDelegate.swift */,
+				4E642F91C963A1195967A57C /* ConfigController.swift */,
 				BCAA306B3006478FA8B51C30 /* EngineController.swift */,
 				65E67B92FE1303A703B5885A /* main.swift */,
 				E83B1397FEFFA16BBEED4800 /* StatusItemController.swift */,
@@ -173,6 +201,7 @@
 		F0C99F9994CF28B8C9A84C4B /* ZWGCore */ = {
 			isa = PBXGroup;
 			children = (
+				77DF59B90DADCDB32789A412 /* Config */,
 				6F63765F53F4AF7D32167E14 /* Input */,
 				88F93E17ED488092EFF652BE /* BuildInfo.swift */,
 				BED6B7EF21C4A63D52847B55 /* Log.swift */,
@@ -242,11 +271,14 @@
 			files = (
 				E600576F631A200D29E7BE94 /* AppDelegate.swift in Sources */,
 				D8FE20F18E73B88FBDCB0662 /* BuildInfo.swift in Sources */,
+				611034544BEA508CCE4CEA83 /* ConfigController.swift in Sources */,
+				E2A29BDBB1334AD17B516FE7 /* ConfigStore.swift in Sources */,
 				D7B14F419F40CAE86D52A8E4 /* DebugHUDWindow.swift in Sources */,
 				1B715980C539EFED04C20169 /* EngineController.swift in Sources */,
 				49CAE6454474546D40CD74E1 /* EventTapController.swift in Sources */,
 				0ABBA99ECD0A9BFD2D208516 /* InputCoordinator.swift in Sources */,
 				960C0E6B6A845CA2A6D7634C /* InputEngine.swift in Sources */,
+				FDF5F36C475F910B6B15D0C9 /* LegacyConfigImporter.swift in Sources */,
 				75A267C79DF6EBC5ADFC54D0 /* Log.swift in Sources */,
 				1D96047CAB4FEF028345ECDA /* MonotonicClock.swift in Sources */,
 				867BEBB34B54E726C2D8BD85 /* PanicShortcut.swift in Sources */,
@@ -255,6 +287,10 @@
 				6EEAAB5A5C3825293D9C469C /* StatusItemController.swift in Sources */,
 				03639C7D8FA0755A9DD5944B /* Stroke.swift in Sources */,
 				1AF54D920DBE3BCDAB6868D0 /* SyntheticEventPoster.swift in Sources */,
+				5633593749843878218A20A5 /* WGConfig.swift in Sources */,
+				741E9516BCE709CA45B3479C /* WGConfigCodec.swift in Sources */,
+				7CDCA875B2CD5785580F23B6 /* WGEdgeCorner.swift in Sources */,
+				5F271E0433B7609765D9A526 /* WGPreferences.swift in Sources */,
 				270F06823612F9887ABA6342 /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

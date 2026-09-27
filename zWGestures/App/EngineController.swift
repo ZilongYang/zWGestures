@@ -16,13 +16,18 @@ final class EngineController {
     /// Called whenever `isRunning` or the permission state may have changed.
     var onStateChange: (() -> Void)?
 
-    init() {
-        coordinator = InputCoordinator()
+    init(startDragTimeout: TimeInterval = 0.25) {
+        coordinator = InputCoordinator(settings: EngineSettings(startDragTimeout: startDragTimeout))
         coordinator.onPanic = { [weak self] in
             Task { @MainActor in
                 self?.pause(reason: "急停快捷键 \(PanicShortcut.displayName)")
             }
         }
+    }
+
+    /// Applies the user's preference to the running engine.
+    func apply(startDragTimeout: TimeInterval) {
+        coordinator.engine.settings.startDragTimeout = startDragTimeout
     }
 
     var isPermitted: Bool { PermissionGate.isAccessibilityTrusted }

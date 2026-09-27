@@ -45,6 +45,23 @@ project.yml             XcodeGen 工程定义（zWGestures.xcodeproj 由它生�
 
 `swift test` 在受限 shell 中需要额外的参数，已封装在 `Makefile` 的 `test` 目标里。
 
+## 配置与迁移
+
+zWGestures 把自己的配置放在 `~/Library/Application Support/zWGestures/`：
+
+```
+config.json    手势配置，与原版 gestures.json 格式完全一致
+prefs.json     偏好项，与原版 prefs.json 格式完全一致
+```
+
+首次启动时，如果还没有 `config.json`，会自动从原版目录
+`~/Library/Application Support/com.yingdev.wgestures/<版本>/` 迁移一次，
+并在弹窗里报告迁移了哪些内容。**原版目录只读，绝不改写**；菜单栏里可以随时重新导入。
+
+格式兼容性有回归测试兜底：测试会读取真实配置文件，重新编码后要求 JSON **逐键完全相等**。
+这条测试已经抓出过两个真实缺陷 —— 偏好键名写成了 `LabelExecuted`（正确是
+`LabelColorExecuted`），以及 `SkipVersion: null` 被 `encodeIfPresent` 整条省略。
+
 ## 权限
 
 zWGestures 需要「辅助功能」权限才能安装全局事件拦截器和发送合成按键事件。

@@ -6,8 +6,10 @@ final class StatusItemController: NSObject {
     private let statusItem: NSStatusItem
     private let menu = NSMenu()
 
+    private let configItem = NSMenuItem()
     private let engineItem = NSMenuItem()
     private let pauseItem = NSMenuItem()
+    private let importItem = NSMenuItem()
     private let settingsItem = NSMenuItem()
     private let quickStartItem = NSMenuItem()
     private let debugHUDItem = NSMenuItem()
@@ -16,10 +18,12 @@ final class StatusItemController: NSObject {
     private let quitItem = NSMenuItem()
 
     private let engine: EngineController
+    private let config: ConfigController
     private let debugHUD: DebugHUDWindow
 
-    init(engine: EngineController, debugHUD: DebugHUDWindow) {
+    init(engine: EngineController, config: ConfigController, debugHUD: DebugHUDWindow) {
         self.engine = engine
+        self.config = config
         self.debugHUD = debugHUD
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         super.init()
@@ -43,10 +47,15 @@ final class StatusItemController: NSObject {
     }
 
     private func configureMenu() {
+        configItem.isEnabled = false
         engineItem.isEnabled = false
 
         pauseItem.target = self
         pauseItem.action = #selector(handlePauseResume)
+
+        importItem.title = "从 WGestures 导入配置…"
+        importItem.target = self
+        importItem.action = #selector(handleImport)
 
         settingsItem.title = "打开设置…"
         settingsItem.isEnabled = false
@@ -70,9 +79,11 @@ final class StatusItemController: NSObject {
         quitItem.action = #selector(handleQuit)
         quitItem.keyEquivalent = "q"
 
+        menu.addItem(configItem)
         menu.addItem(engineItem)
         menu.addItem(pauseItem)
         menu.addItem(.separator())
+        menu.addItem(importItem)
         menu.addItem(settingsItem)
         menu.addItem(quickStartItem)
         menu.addItem(debugHUDItem)
@@ -84,6 +95,8 @@ final class StatusItemController: NSObject {
     }
 
     func refresh() {
+        configItem.title = config.status.localizedText
+
         if engine.isRunning {
             engineItem.title = "手势引擎：运行中"
             pauseItem.title = "暂停手势引擎"
@@ -109,6 +122,14 @@ final class StatusItemController: NSObject {
         refresh()
     }
 
+    @objc private func handleImport() {
+        NSApp.activate(ignoringOtherApps: true)
+        config.importLegacy()
+        engine.apply(startDragTimeout: config.preferences.startDragTimeoutSeconds)
+        refresh()
+        config.presentImportSummary()
+    }
+
     @objc private func handleToggleDebugHUD() {
         debugHUD.toggle()
         refresh()
@@ -132,7 +153,8 @@ final class StatusItemController: NSObject {
             .credits: NSAttributedString(
                 string: "原生的 Apple Silicon 鼠标手势工具\n"
                     + "运行架构：\(BuildInfo.architecture)\n"
-                    + "急停快捷键：\(PanicShortcut.displayName)",
+                    + "急停快捷键：\(PanicShortcut.displayName)\n"
+                    + config.status.localizedText,
                 attributes: [.font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)]
             ),
         ])

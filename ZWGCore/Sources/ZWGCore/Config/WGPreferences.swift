@@ -1,0 +1,142 @@
+import Foundation
+
+/// How zWGestures decides which target's gesture set applies.
+public enum WGTargetMode: String, Codable, Sendable, CaseIterable {
+    /// WGestures: 活动的应用程序和窗口
+    case focused = "Focused"
+    /// WGestures: 鼠标指针下方的应用程序和窗口
+    case underCursor = "UnderCursor"
+
+    public var localizedName: String {
+        switch self {
+        case .focused: "活动的应用程序和窗口"
+        case .underCursor: "鼠标指针下方的应用程序和窗口"
+        }
+    }
+}
+
+/// The preference file, matching `prefs.json` key for key.
+public struct WGPreferences: Codable, Equatable, Sendable {
+    public var autoStart: Bool
+    /// WGestures: 手势起始超时, in milliseconds.
+    public var startDragTimeout: Int
+    public var showStartDragTimeoutIndicator: Bool
+    public var showPath: Bool
+    public var showGestureName: Bool
+    public var showStatusIcon: Bool
+    /// Colours in `#AARRGGBB` form, as written by the original app.
+    public var pathColorNormal: String
+    public var pathColorRecognized: String
+    public var labelColorNormal: String
+    /// Key is `LabelColorExecuted` in the original file, not `LabelExecuted` (which is only
+    /// the localisation key).
+    public var labelColorExecuted: String
+    public var targetMode: WGTargetMode
+    public var pathLineWidth: Double
+    /// Vertical position of the gesture-name label, as a fraction of the screen height.
+    public var gesturePos: Double
+    public var skipVersion: String?
+
+    public init(
+        autoStart: Bool = true,
+        startDragTimeout: Int = 250,
+        showStartDragTimeoutIndicator: Bool = true,
+        showPath: Bool = true,
+        showGestureName: Bool = true,
+        showStatusIcon: Bool = true,
+        pathColorNormal: String = "#7F7F7FC4",
+        pathColorRecognized: String = "#20D697E6",
+        labelColorNormal: String = "#60606080",
+        labelColorExecuted: String = "#20D697E6",
+        targetMode: WGTargetMode = .focused,
+        pathLineWidth: Double = 2.25,
+        gesturePos: Double = 0.25,
+        skipVersion: String? = nil
+    ) {
+        self.autoStart = autoStart
+        self.startDragTimeout = startDragTimeout
+        self.showStartDragTimeoutIndicator = showStartDragTimeoutIndicator
+        self.showPath = showPath
+        self.showGestureName = showGestureName
+        self.showStatusIcon = showStatusIcon
+        self.pathColorNormal = pathColorNormal
+        self.pathColorRecognized = pathColorRecognized
+        self.labelColorNormal = labelColorNormal
+        self.labelColorExecuted = labelColorExecuted
+        self.targetMode = targetMode
+        self.pathLineWidth = pathLineWidth
+        self.gesturePos = gesturePos
+        self.skipVersion = skipVersion
+    }
+
+    public enum CodingKeys: String, CodingKey {
+        case autoStart = "AutoStart"
+        case startDragTimeout = "StartDragTimeout"
+        case showStartDragTimeoutIndicator = "ShowStartDragTimeoutIndicator"
+        case showPath = "ShowPath"
+        case showGestureName = "ShowGestureName"
+        case showStatusIcon = "ShowStatusIcon"
+        case pathColorNormal = "PathColorNormal"
+        case pathColorRecognized = "PathColorRecognized"
+        case labelColorNormal = "LabelColorNormal"
+        case labelColorExecuted = "LabelColorExecuted"
+        case targetMode = "TargetMode"
+        case pathLineWidth = "PathLineWidth"
+        case gesturePos = "GesturePos"
+        case skipVersion = "SkipVersion"
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let defaults = WGPreferences()
+        autoStart = try container.decodeIfPresent(Bool.self, forKey: .autoStart) ?? defaults.autoStart
+        startDragTimeout = try container.decodeIfPresent(Int.self, forKey: .startDragTimeout) ?? defaults.startDragTimeout
+        showStartDragTimeoutIndicator = try container
+            .decodeIfPresent(Bool.self, forKey: .showStartDragTimeoutIndicator) ?? defaults.showStartDragTimeoutIndicator
+        showPath = try container.decodeIfPresent(Bool.self, forKey: .showPath) ?? defaults.showPath
+        showGestureName = try container.decodeIfPresent(Bool.self, forKey: .showGestureName) ?? defaults.showGestureName
+        showStatusIcon = try container.decodeIfPresent(Bool.self, forKey: .showStatusIcon) ?? defaults.showStatusIcon
+        pathColorNormal = try container.decodeIfPresent(String.self, forKey: .pathColorNormal) ?? defaults.pathColorNormal
+        pathColorRecognized = try container
+            .decodeIfPresent(String.self, forKey: .pathColorRecognized) ?? defaults.pathColorRecognized
+        labelColorNormal = try container.decodeIfPresent(String.self, forKey: .labelColorNormal) ?? defaults.labelColorNormal
+        labelColorExecuted = try container
+            .decodeIfPresent(String.self, forKey: .labelColorExecuted) ?? defaults.labelColorExecuted
+        targetMode = try container.decodeIfPresent(WGTargetMode.self, forKey: .targetMode) ?? defaults.targetMode
+        pathLineWidth = try container.decodeIfPresent(Double.self, forKey: .pathLineWidth) ?? defaults.pathLineWidth
+        gesturePos = try container.decodeIfPresent(Double.self, forKey: .gesturePos) ?? defaults.gesturePos
+        skipVersion = try container.decodeIfPresent(String.self, forKey: .skipVersion)
+    }
+
+    /// Written explicitly rather than synthesised, because the original always emits every
+    /// key — including `SkipVersion: null` — and `encodeIfPresent` would silently drop the
+    /// nulls.
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(autoStart, forKey: .autoStart)
+        try container.encode(startDragTimeout, forKey: .startDragTimeout)
+        try container.encode(showStartDragTimeoutIndicator, forKey: .showStartDragTimeoutIndicator)
+        try container.encode(showPath, forKey: .showPath)
+        try container.encode(showGestureName, forKey: .showGestureName)
+        try container.encode(showStatusIcon, forKey: .showStatusIcon)
+        try container.encode(pathColorNormal, forKey: .pathColorNormal)
+        try container.encode(pathColorRecognized, forKey: .pathColorRecognized)
+        try container.encode(labelColorNormal, forKey: .labelColorNormal)
+        try container.encode(labelColorExecuted, forKey: .labelColorExecuted)
+        try container.encode(targetMode, forKey: .targetMode)
+        try container.encode(pathLineWidth, forKey: .pathLineWidth)
+        try container.encode(gesturePos, forKey: .gesturePos)
+        if let skipVersion {
+            try container.encode(skipVersion, forKey: .skipVersion)
+        } else {
+            try container.encodeNil(forKey: .skipVersion)
+        }
+    }
+}
+
+extension WGPreferences {
+    /// The engine's start-drag timeout in seconds.
+    public var startDragTimeoutSeconds: TimeInterval {
+        TimeInterval(startDragTimeout) / 1000
+    }
+}

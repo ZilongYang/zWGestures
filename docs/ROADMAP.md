@@ -10,7 +10,7 @@
 | P0 | 工程骨架：git、XcodeGen、Info.plist、菜单栏 App、arm64 验证 | ✅ 完成 |
 | P0b | 稳定的本机代码签名证书（避免每次重编都要重授辅助功能） | ✅ 完成 |
 | P1 | 输入引擎：EventTap 生命周期、抑制/回放、起始超时、禁用自恢复、PanicGuard | ✅ 代码完成，待实机验证 |
-| P2 | 配置层：完整 `Codable` 模型、旧配置导入器、偏好项 | ⏳ |
+| P2 | 配置层：完整 `Codable` 模型、旧配置导入器、偏好项 | ✅ 完成（导入与原文件逐键一致） |
 | P3 | 识别层：简单手势、任意形状（DTW）、序列匹配 | ⏳ |
 | P4 | 执行层：`KeySeqCommand` / `WebSearchCommand` / `ShellScriptCommand` / `SystemFunctionKeyCommand`，目标解析 | ⏳ |
 | P5 | 边角与滚轮触发、轨迹可视化 Overlay、菜单栏完整化、开机自启 | ⏳ |
