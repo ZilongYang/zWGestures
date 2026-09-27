@@ -2,12 +2,19 @@ import Foundation
 
 /// Decodes the `EdgeCorner.Value` bit mask used by `MoveToEdgeCornerStep`.
 ///
-/// ⚠️ **The exact mapping is not yet confirmed against the original app.** What *is* derived
-/// from data is the structure: the four single-bit values 1, 2, 4 and 8 are the screen edges,
-/// and every observed corner value (3, 6, 12, 9) is the bitwise OR of two *adjacent* edges
-/// (1|2, 2|4, 4|8, 8|1). That fixes the cyclic order top → right → bottom → left, but leaves
-/// two mirror-image interpretations; this file picks one. `docs/ROADMAP.md` tracks the
-/// experiment that will settle it, and `make`ing the change here is all that is needed.
+/// The mapping is confirmed against the original app's own quick-start artwork, which draws each
+/// edge and corner gesture with a position marker:
+///
+/// | 配置值 | 手势      | 快捷入门图上的标记                  |
+/// |--------|-----------|-------------------------------------|
+/// | 1      | 音量+/−   | 监视器图标**顶部**的黑条 = 上边缘   |
+/// | 4      | 亮度+/−   | 监视器图标**底部**的黑条 = 下边缘   |
+/// | 9      | 切换任务  | 屏幕**左上角**的角括号 = 上\|左     |
+/// | 8      | 终端      | 左边缘（竖环起点的方块标记）        |
+/// | 2      | 活动监视器 | 右边缘（与终端构成镜像对）          |
+///
+/// The four single-bit values are the edges; every corner value is the OR of two *adjacent*
+/// edges (3, 6, 12, 9), which is what fixes the cyclic order top → right → bottom → left.
 public struct WGEdgeCornerMask: OptionSet, Sendable, Hashable {
     public let rawValue: Int
 

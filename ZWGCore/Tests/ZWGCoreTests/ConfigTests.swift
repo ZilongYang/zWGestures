@@ -272,7 +272,20 @@ struct WGEdgeCornerTests {
         #expect(!WGEdgeCornerMask(rawValue: 16).isValid)
     }
 
-    @Test("边角有自己的中文名")
+    @Test("边角位掩码与原版快捷入门图逐一对照")
+    func edgeMaskMatchesTheOriginalArtwork() {
+        // 音量（EDGE1）的卡片在监视器图标顶部画黑条 -> 上边缘
+        #expect(WGEdgeCornerMask(rawValue: 1) == .top)
+        // 亮度（EDGE4）的卡片在监视器图标底部画黑条 -> 下边缘
+        #expect(WGEdgeCornerMask(rawValue: 4) == .bottom)
+        // 切换任务（EDGE9）的卡片角括号在屏幕左上角 -> 9 = 1|8 = 上|左，故 8 = 左
+        #expect(WGEdgeCornerMask(rawValue: 9) == [.top, .left])
+        #expect(WGEdgeCornerMask(rawValue: 8) == .left)
+        // 终端（EDGE8）与活动监视器（EDGE2）是互为镜像的一对
+        #expect(WGEdgeCornerMask(rawValue: 2) == .right)
+    }
+
+    @Test("边角也有自己的中文名")
     func hasLocalizedNames() {
         #expect(WGEdgeCornerMask(rawValue: 3).localizedName == "屏幕右上角")
         #expect(WGEdgeCornerMask(rawValue: 9).localizedName == "屏幕左上角")

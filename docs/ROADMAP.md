@@ -67,9 +67,10 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
 
 这些细节无法从配置文件推断，需要在 P1/P3 用小实验定论，必要时与运行中的原版对照：
 
-1. **`EdgeCorner.Value` 位掩码映射** —— 已确定 4 个单值 1/2/4/8 互为相邻环
-   （因为 3/6/9/12 都是对角，且 1|2=3、2|4=6、4|8=12、8|1=9），
-   即 `{Top,Right,Bottom,Left}` 或 `{Top,Left,Bottom,Right}` 两种镜像解二选一。
+1. **`EdgeCorner.Value` 位掩码映射** —— ✅ 已确认：**Top=1, Right=2, Bottom=4, Left=8**。
+   依据原版自带快捷入门图（音量卡片=监视器顶部黑条、亮度卡片=底部黑条、
+   切换任务卡片=屏幕左上角角括号、终端/活动监视器=左右镜像对）。
+   已固化为 `ConfigTests.edgeMaskMatchesTheOriginalArtwork`。
 2. **后缀修饰步骤的按压时机** —— `剪切=[右↑, 左键]` 与 `拷贝=[右↑]` 的区别在于
    后缀步骤；该按键必须在画线前、画线中还是画完后仍按住？
 3. **`VSCROLL:n` 的量级分档阈值**（原版记录了 1/11/12/13 等原始滚动量）。
