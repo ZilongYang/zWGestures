@@ -227,11 +227,14 @@ public struct WGStrokeStep: Codable, Equatable, Sendable {
     /// `true` for a straight/simple stroke stored on the 50-unit grid; `false` for an
     /// arbitrary shape stored as raw screen coordinates.
     public var isSimple: Bool
-    /// Flat `x, y, x, y, …` list. **Stored in reverse drawing order**: the final pair is
-    /// always the starting point `(0, 0)`.
+    /// Flat `x, y, x, y, …` list, **in drawing order** — the first pair is where the stroke
+    /// starts, which is exactly the point WGestures draws its trigger symbol on.
     ///
-    /// Coordinates follow screen orientation — y grows downwards — for both stroke kinds, so
-    /// no axis flip is needed when comparing against a live `CGEvent.location`.
+    /// The stored coordinates use the mathematical convention with **y growing upwards**,
+    /// while `CGEvent.location` (and therefore `Stroke`) uses screen coordinates with y
+    /// growing downwards. No axis flip is needed for `IsSimple = false` strokes, whose points
+    /// are already raw screen coordinates — but simple strokes must be flipped, which is what
+    /// `drawingOrderPoints` does.
     public var points: [Int]
 
     public init(isSimple: Bool, points: [Int]) {
@@ -244,12 +247,17 @@ public struct WGStrokeStep: Codable, Equatable, Sendable {
         case points = "P"
     }
 
-    /// The trajectory in drawing order, as `(x, y)` pairs.
+    /// The trajectory as points in screen orientation (y downwards), ready to be compared with
+    /// a live `Stroke`.
+    ///
+    /// Simple strokes are stored on a grid with y upwards, so y is negated here. Arbitrary
+    /// shapes are already screen coordinates and are passed through.
     public var drawingOrderPoints: [CGPoint] {
-        let pairs = stride(from: 0, to: points.count - 1, by: 2).map {
-            CGPoint(x: CGFloat(points[$0]), y: CGFloat(points[$0 + 1]))
+        let pairs = stride(from: 0, to: points.count - 1, by: 2).map { index in
+            CGPoint(x: CGFloat(points[index]), y: CGFloat(points[index + 1]))
         }
-        return pairs.reversed()
+        guard isSimple else { return pairs }
+        return pairs.map { CGPoint(x: $0.x, y: -$0.y) }
     }
 }
 
@@ -506,5 +514,33 @@ public enum WGIdentifier {
 
     public static func make(length: Int = 22) -> String {
         String((0..<length).map { _ in alphabet.randomElement() ?? "A" })
+    }
+}
+
+// MARK: - Direction description
+
+extension WGStrokeStep {
+    /// Human-readable direction sequence in drawing order, e.g. `下→右`.
+    ///
+    /// Directions are named from the user's point of view on screen. Used by tests and later by
+    /// the settings UI; it is the cheapest way to check an encoding change against the
+    /// gestures a user actually recognises.
+    public var directionDescription: String {
+        let path = drawingOrderPoints
+        guard path.count >= 2 else { return "（单点）" }
+
+        var parts: [String] = []
+        for (from, to) in zip(path, path.dropFirst()) {
+            let dx = to.x - from.x
+            let dy = to.y - from.y
+            let horizontal = dx > 0 ? "右" : (dx < 0 ? "左" : "")
+            let vertical = dy > 0 ? "下" : (dy < 0 ? "上" : "")
+            let piece = vertical + horizontal
+            guard !piece.isEmpty else { continue }
+            if parts.last != piece { parts.append(piece) }
+        }
+
+        let isClosed = path.count > 2 && path.first == path.last
+        return parts.joined(separator: "→") + (isClosed ? "（闭环）" : "")
     }
 }

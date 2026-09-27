@@ -6,13 +6,14 @@ import Testing
 
 // MARK: - Fixtures
 
-/// Builds a stored `StrokeStep` from a shape expressed in *drawing order*, applying the real
-/// encoding rule (reverse the points, flag as simple). Hand-writing the raw arrays produced a
-/// mirrored fixture once already, so the rule lives in one place instead.
+/// Builds a stored `StrokeStep` from a shape expressed in *drawing order* using screen
+/// coordinates, applying the real encoding rule: `P` is written in drawing order and its y axis
+/// points upwards, so screen y is negated. Writing the raw arrays by hand produced a mirrored
+/// fixture once already, so the rule lives in one place instead.
 private func storedSimple(_ drawingOrder: [CGPoint]) -> WGStrokeStep {
     WGStrokeStep(
         isSimple: true,
-        points: drawingOrder.reversed().flatMap { [Int($0.x), Int($0.y)] }
+        points: drawingOrder.flatMap { [Int($0.x), Int(-$0.y)] }
     )
 }
 
@@ -49,10 +50,11 @@ private enum Unit {
     static let leftThenDown: [CGPoint] = [.zero, CGPoint(x: -50, y: 0), CGPoint(x: -50, y: 50)]
 
     /// The trajectory of the reference configuration's `重新载入` gesture, in drawing order.
+    /// `P` for arbitrary shapes is exactly this list.
     static let reloadCurve: [CGPoint] = [
-        CGPoint(x: 1203, y: 575),
-        CGPoint(x: 1069, y: 395),
         CGPoint(x: 969, y: 546),
+        CGPoint(x: 1069, y: 395),
+        CGPoint(x: 1203, y: 575),
     ]
 
     static let all: [(String, [CGPoint])] = [
@@ -261,15 +263,12 @@ struct SimpleStrokeRecognitionTests {
 @Suite("识别：手写形状")
 struct ArbitraryShapeRecognitionTests {
     private var definition: WGStrokeStep {
-        // `P` holds the reversed point list, exactly as the original app writes it.
-        WGStrokeStep(
-            isSimple: false,
-            points: Unit.reloadCurve.reversed().flatMap { [Int($0.x), Int($0.y)] }
-        )
+        // Arbitrary shapes are stored as the raw screen-coordinate point list, in drawing order.
+        WGStrokeStep(isSimple: false, points: Unit.reloadCurve.flatMap { [Int($0.x), Int($0.y)] })
     }
 
-    @Test("配置里的点列确实按倒序存储")
-    func definitionIsStoredReversed() {
+    @Test("任意形状的点列就是原始屏幕坐标，顺序即绘制顺序")
+    func definitionIsTheRawPointList() {
         #expect(definition.points == [969, 546, 1069, 395, 1203, 575])
         #expect(definition.drawingOrderPoints == Unit.reloadCurve)
     }

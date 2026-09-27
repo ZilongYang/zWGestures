@@ -153,14 +153,17 @@ struct WGConfigCodecTests {
 
 @Suite("配置：轨迹编码")
 struct WGStrokeEncodingTests {
-    @Test("P 是倒序存储的：最后一个点才是笔画起点")
-    func pointsAreReversed() throws {
+    @Test("P 就是绘制顺序：第一对点才是笔画起点")
+    func firstPointIsTheStart() throws {
         let config = try decodeFixture()
         let copy = try #require(config.general.intents[0].strokeStep)
         #expect(copy.points == [0, -50, 0, 0])
         #expect(copy.isSimple)
-        // [0,-50] 是终点、[0,0] 是起点 => 绘制顺序为 (0,0) -> (0,-50) 即向上
-        #expect(copy.drawingOrderPoints == [CGPoint(x: 0, y: 0), CGPoint(x: 0, y: -50)])
+        // 存储用的 y 轴向上为正，转成屏幕坐标要取反：起点 (0,-50) 变成屏幕上的下方
+        #expect(copy.drawingOrderPoints == [CGPoint(x: 0, y: 50), CGPoint(x: 0, y: 0)])
+        #expect(copy.directionDescription == "上")
+        // 快捷入门图里「拷贝」的圆圈（起笔点）画在箭头下方
+        #expect(copy.drawingOrderPoints.first!.y > copy.drawingOrderPoints.last!.y)
     }
 
     @Test("闭合轨迹的首尾点相同")
@@ -171,13 +174,14 @@ struct WGStrokeEncodingTests {
         #expect(points.first == points.last)
     }
 
-    @Test("任意形状手势保存的是原始屏幕坐标")
+    @Test("任意形状手势保存的是原始屏幕坐标，既不倒序也不翻转 y")
     func arbitraryShapeKeepsRawCoordinates() throws {
         let config = try decodeFixture()
         let stroke = try #require(config.apps[0].intents[0].strokeStep)
         #expect(!stroke.isSimple)
         #expect(stroke.points.count == 6)
-        #expect(stroke.drawingOrderPoints.first == CGPoint(x: 1203, y: 575))
+        #expect(stroke.drawingOrderPoints.first == CGPoint(x: 969, y: 546))
+        #expect(stroke.drawingOrderPoints.allSatisfy { $0.y > 0 }, "屏幕坐标的 y 一定是正数")
     }
 
     @Test("能区分出触发前缀、轨迹与后缀修饰步骤")
