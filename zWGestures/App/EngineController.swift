@@ -30,6 +30,11 @@ final class EngineController {
         coordinator.engine.settings.startDragTimeout = startDragTimeout
     }
 
+    /// Publishes the gesture set the engine matches against.
+    func applyRecognition(config: WGConfig) {
+        coordinator.updateRecognition(target: config.general)
+    }
+
     var isPermitted: Bool { PermissionGate.isAccessibilityTrusted }
 
     /// Starts the engine if Accessibility has been granted, otherwise waits for the grant.

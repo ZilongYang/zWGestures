@@ -35,6 +35,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         config.start()
         engine.apply(startDragTimeout: config.preferences.startDragTimeoutSeconds)
+        engine.applyRecognition(config: config.config)
 
         if ProcessInfo.processInfo.environment["ZWG_DEBUG_HUD"] == "1" {
             debugHUD.show()

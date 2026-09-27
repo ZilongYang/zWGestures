@@ -13,6 +13,10 @@ struct InputSnapshot: Sendable, Equatable {
     var replayCount: Int = 0
     var timeoutCount: Int = 0
     var tapStatus: String = "stopped"
+    /// Name of the last recognised gesture, or nil when the last stroke matched nothing.
+    var lastGestureName: String?
+    var lastGestureDistance: CGFloat?
+    var matchedCount: Int = 0
 }
 
 /// Wires the event tap to the gesture engine and carries out the engine's decisions.
@@ -25,6 +29,11 @@ final class InputCoordinator: @unchecked Sendable {
 
     private let snapshotLock = NSLock()
     private var snapshotStorage = InputSnapshot()
+
+    /// Written from the main thread, read on the tap thread.
+    private let recognitionLock = NSLock()
+    private var recognizer = GestureRecognizer()
+    private var recognitionTarget = WGTarget.makeGeneral()
 
     /// Tap-thread state.
     private var pendingTimer: CFRunLoopTimer?
@@ -42,6 +51,17 @@ final class InputCoordinator: @unchecked Sendable {
     }
 
     var isRunning: Bool { tap.status.isRunning }
+
+    /// Publishes the gesture set the engine should match against.
+    ///
+    /// Target resolution (per-application overrides) lands with the target resolver; for now
+    /// the general target is used.
+    func updateRecognition(target: WGTarget, settings: RecognitionSettings = RecognitionSettings()) {
+        recognitionLock.withLock {
+            recognitionTarget = target
+            recognizer = GestureRecognizer(settings: settings)
+        }
+    }
 
     // MARK: - Lifecycle
 
@@ -111,15 +131,49 @@ final class InputCoordinator: @unchecked Sendable {
             SyntheticEventPoster.post(events)
 
         case .gestureCompleted(let candidate):
-            // P1 has no recogniser yet, so every finished stroke is replayed. Without this,
-            // right-button drags would be swallowed and the app underneath would misbehave.
+            handleCompletedGesture(candidate)
+        }
+    }
+
+    /// A finished stroke either matches a configured gesture or is handed back to the app.
+    ///
+    /// Replaying an unmatched stroke matters: without it a right-button drag would simply
+    /// vanish, and the context menu or text selection the user expected would never appear.
+    private func handleCompletedGesture(_ candidate: GestureCandidate) {
+        let (recognizer, target) = recognitionLock.withLock { (self.recognizer, self.recognitionTarget) }
+        let match = recognizer.recognize(
+            stroke: candidate.stroke,
+            button: candidate.button,
+            modifiers: candidate.modifiers,
+            in: target
+        )
+
+        record(match, candidate: candidate)
+
+        if let match {
+            Log.recog.notice("""
+                命中手势「\(match.intent.name, privacy: .public)」\
+                （距离 \(match.distance, privacy: .public)，\
+                \(candidate.stroke.points.count, privacy: .public) 个轨迹点）
+                """)
+        } else {
             Log.recog.debug("""
-                stroke finished: \(candidate.stroke.points.count, privacy: .public) points, \
-                length \(candidate.stroke.pathLength, privacy: .public) pt, \
-                duration \(candidate.endedAt - candidate.startedAt, privacy: .public) s, \
-                modifiers \(candidate.modifiers.count, privacy: .public)
+                未识别的手势：\(candidate.stroke.points.count, privacy: .public) 点、\
+                长度 \(candidate.stroke.pathLength, privacy: .public)，回放给系统
                 """)
             SyntheticEventPoster.replay(candidate)
+        }
+    }
+
+    private func record(_ match: RecognitionMatch?, candidate: GestureCandidate) {
+        snapshotLock.withLock {
+            var next = snapshotStorage
+            next.lastGestureName = match?.intent.name
+            next.lastGestureDistance = match?.distance
+            next.strokeStart = candidate.stroke.startPoint
+            next.strokeEnd = candidate.stroke.endPoint
+            if match != nil { next.matchedCount += 1 }
+            snapshotStorage = next
         }
     }
 

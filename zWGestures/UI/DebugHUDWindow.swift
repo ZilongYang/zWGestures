@@ -97,11 +97,22 @@ final class DebugHUDWindow {
             tap          \(snapshot.tapStatus)
             last effect  \(snapshot.lastEffect)
             events       \(snapshot.eventCount)   timeouts \(snapshot.timeoutCount)
-            gestures     \(snapshot.gestureCount)   replays \(snapshot.replayCount)
+            strokes      \(snapshot.gestureCount)   replays \(snapshot.replayCount)
+            matched      \(snapshot.matchedCount)
+            gesture      \(gestureDescription(snapshot))
             stroke pts   \(snapshot.strokePointCount)
-            from  \(Int(snapshot.strokeStart.x)),\(Int(snapshot.strokeStart.y))
-            to    \(Int(snapshot.strokeEnd.x)),\(Int(snapshot.strokeEnd.y))
             panic        \(PanicShortcut.displayName)
             """
+    }
+
+    private func gestureDescription(_ snapshot: InputSnapshot) -> String {
+        if let name = snapshot.lastGestureName {
+            let distance = snapshot.lastGestureDistance.map { String(format: "%.3f", $0) } ?? "-"
+            return "「\(name)」 距离 \(distance)"
+        }
+        if snapshot.gestureCount > 0 {
+            return "未识别（已回放）"
+        }
+        return "—"
     }
 }

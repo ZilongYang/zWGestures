@@ -126,6 +126,7 @@ final class StatusItemController: NSObject {
         NSApp.activate(ignoringOtherApps: true)
         config.importLegacy()
         engine.apply(startDragTimeout: config.preferences.startDragTimeoutSeconds)
+        engine.applyRecognition(config: config.config)
         refresh()
         config.presentImportSummary()
     }

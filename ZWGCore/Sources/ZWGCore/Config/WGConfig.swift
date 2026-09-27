@@ -228,7 +228,10 @@ public struct WGStrokeStep: Codable, Equatable, Sendable {
     /// arbitrary shape stored as raw screen coordinates.
     public var isSimple: Bool
     /// Flat `x, y, x, y, …` list. **Stored in reverse drawing order**: the final pair is
-    /// always the starting point `(0, 0)`, and for simple strokes y grows upwards.
+    /// always the starting point `(0, 0)`.
+    ///
+    /// Coordinates follow screen orientation — y grows downwards — for both stroke kinds, so
+    /// no axis flip is needed when comparing against a live `CGEvent.location`.
     public var points: [Int]
 
     public init(isSimple: Bool, points: [Int]) {

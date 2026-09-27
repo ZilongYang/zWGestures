@@ -36,10 +36,12 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
 ### 轨迹编码（已用快捷入门示意图交叉验证）
 
 - `IsSimple = true`：`P` 是扁平点数组，**倒序存储**——最后一个点恒为笔画起点 `(0,0)`，
-  坐标 **y 轴向上为正**，网格单位 **50**。校验：`Copy=[0,-50,0,0]`→↑、
-  `Paste=[0,50,0,0]`→↓、`Web Search=[0,0,0,50,0,0]`→闭合竖环、
+  网格单位 **50**。坐标就是屏幕坐标系（**y 轴向下为正**）：`Copy=[0,-50,0,0]` 倒序后是
+  `(0,0)→(0,-50)`，而快捷入门图显示拷贝是向上的箭头，所以 `-y` 即屏幕上方。
+  校验：`Paste=[0,50,0,0]`→↓、`Web Search=[0,0,0,50,0,0]`→闭合竖环、
   `Backspace=[0,0,-50,0,0,0]`→闭合横环、`Fullscreen`/`Minimize` 互为镜像。
-- `IsSimple = false`：`P` 是原始屏幕坐标点列，需要归一化 + DTW 匹配。
+- `IsSimple = false`：`P` 是原始屏幕坐标点列，与 `CGEvent.location` 同一坐标系，
+  同样无需翻转。
 
 ### 系统功能键
 
