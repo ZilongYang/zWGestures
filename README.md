@@ -9,6 +9,14 @@
 
 后续阶段见 `docs/ROADMAP.md`。
 
+## 文档
+
+| 文件 | 内容 |
+|---|---|
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | **计划与进度**，接手开发从这里开始读 |
+| [`docs/PLAN.md`](docs/PLAN.md) | 2026-09-28 批准的那份实施方案**原样存档**（只作历史参考，不再更新） |
+| `README.md` | 本文件：构建命令、工程结构、开发约定 |
+
 ## 环境要求
 
 - macOS 14 Sonoma 或更高（开发机为 macOS 27 + Xcode 26.6）
