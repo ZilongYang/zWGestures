@@ -88,6 +88,27 @@ struct InputEngineStartDragTimeoutTests {
         #expect(engine.startDragTimeoutFired(now: t0 + 0.4).effect == .suppress)
     }
 
+    @Test("过期的定时器不能打断后来的一次按下")
+    func staleTimeoutDoesNotCutShortANewPress() {
+        let engine = InputEngine()
+        _ = engine.handle(down(.right, 100, 100, at: t0))
+        // 第一次按下已经被判定为普通点击
+        _ = engine.startDragTimeoutFired(now: t0 + 0.3, expectingPressStartedAt: t0)
+        #expect(engine.state == .passthrough(.right))
+        _ = engine.handle(up(.right, 100, 100, at: t0 + 0.4))
+
+        // 第二次按下
+        _ = engine.handle(down(.right, 200, 200, at: t0 + 1.0))
+        // 属于第一次按下的旧定时器此刻才触发，必须被忽略
+        let decision = engine.startDragTimeoutFired(now: t0 + 1.05, expectingPressStartedAt: t0)
+        #expect(decision.effect == .suppress)
+        #expect(decision.state.name == "pending")
+
+        // 属于第二次按下的定时器正常工作
+        let real = engine.startDragTimeoutFired(now: t0 + 1.3, expectingPressStartedAt: t0 + 1.0)
+        #expect(real.state == .passthrough(.right))
+    }
+
     @Test("未移动即抬起：在原按下点补发完整的 down + up")
     func quickClickReplaysPressAndRelease() {
         let engine = InputEngine()

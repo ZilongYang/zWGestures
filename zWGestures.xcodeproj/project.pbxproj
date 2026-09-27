@@ -11,9 +11,9 @@
 		0ABBA99ECD0A9BFD2D208516 /* InputCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58E69FA11F1C5AED1F3E8887 /* InputCoordinator.swift */; };
 		1AF54D920DBE3BCDAB6868D0 /* SyntheticEventPoster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EFA9271A0175129EFBF9815 /* SyntheticEventPoster.swift */; };
 		1B715980C539EFED04C20169 /* EngineController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCAA306B3006478FA8B51C30 /* EngineController.swift */; };
+		1D96047CAB4FEF028345ECDA /* MonotonicClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 126D92BFBFA3E4B274393D35 /* MonotonicClock.swift */; };
 		20BA77DFC9FB80EF291E5C3A /* PointerEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B06777C46F74A73BE3DFAA02 /* PointerEvent.swift */; };
 		270F06823612F9887ABA6342 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E67B92FE1303A703B5885A /* main.swift */; };
-		495730476C509A7ECDEFB868 /* MachTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5591B8CB10F4E2DBEF69E817 /* MachTime.swift */; };
 		49CAE6454474546D40CD74E1 /* EventTapController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3216492821234F47E042DD74 /* EventTapController.swift */; };
 		6EEAAB5A5C3825293D9C469C /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E83B1397FEFFA16BBEED4800 /* StatusItemController.swift */; };
 		75A267C79DF6EBC5ADFC54D0 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = BED6B7EF21C4A63D52847B55 /* Log.swift */; };
@@ -27,10 +27,10 @@
 
 /* Begin PBXFileReference section */
 		0DE58556186EDEF3072856D2 /* zWGestures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = zWGestures.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		126D92BFBFA3E4B274393D35 /* MonotonicClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonotonicClock.swift; sourceTree = "<group>"; };
 		3216492821234F47E042DD74 /* EventTapController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTapController.swift; sourceTree = "<group>"; };
 		3EFA9271A0175129EFBF9815 /* SyntheticEventPoster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntheticEventPoster.swift; sourceTree = "<group>"; };
 		4DD120B910B3EAAF21113B6A /* PermissionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionGate.swift; sourceTree = "<group>"; };
-		5591B8CB10F4E2DBEF69E817 /* MachTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MachTime.swift; sourceTree = "<group>"; };
 		571F286DEA2B2AE4976D787E /* InputEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputEngine.swift; sourceTree = "<group>"; };
 		58E69FA11F1C5AED1F3E8887 /* InputCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputCoordinator.swift; sourceTree = "<group>"; };
 		65E67B92FE1303A703B5885A /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
@@ -82,7 +82,7 @@
 			isa = PBXGroup;
 			children = (
 				571F286DEA2B2AE4976D787E /* InputEngine.swift */,
-				5591B8CB10F4E2DBEF69E817 /* MachTime.swift */,
+				126D92BFBFA3E4B274393D35 /* MonotonicClock.swift */,
 				B06777C46F74A73BE3DFAA02 /* PointerEvent.swift */,
 				6AD84F47ADADCB43601E2F71 /* Stroke.swift */,
 			);
@@ -248,7 +248,7 @@
 				0ABBA99ECD0A9BFD2D208516 /* InputCoordinator.swift in Sources */,
 				960C0E6B6A845CA2A6D7634C /* InputEngine.swift in Sources */,
 				75A267C79DF6EBC5ADFC54D0 /* Log.swift in Sources */,
-				495730476C509A7ECDEFB868 /* MachTime.swift in Sources */,
+				1D96047CAB4FEF028345ECDA /* MonotonicClock.swift in Sources */,
 				867BEBB34B54E726C2D8BD85 /* PanicShortcut.swift in Sources */,
 				B74F84187764E1C1B2C31B3D /* PermissionGate.swift in Sources */,
 				20BA77DFC9FB80EF291E5C3A /* PointerEvent.swift in Sources */,

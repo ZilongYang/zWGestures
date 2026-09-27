@@ -47,6 +47,10 @@ final class EventTapController: @unchecked Sendable {
     /// Called on the tap thread right after the system disabled the tap.
     var onSystemDisable: (@Sendable () -> Void)?
 
+    /// Called on the tap thread just before it exits, so that owners can release
+    /// run-loop-bound resources (timers, sources) from the thread that owns them.
+    var onTapThreadTeardown: (@Sendable () -> Void)?
+
     var status: Status { lock.withLock { statusStorage } }
 
     /// Mouse, scroll and keyboard events.
@@ -158,6 +162,8 @@ final class EventTapController: @unchecked Sendable {
     }
 
     private func removeTapOnCurrentThread() {
+        onTapThreadTeardown?()
+
         let (tap, source) = lock.withLock { (self.tap, self.source) }
 
         if let tap {

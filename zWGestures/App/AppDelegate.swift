@@ -31,6 +31,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         PermissionGate.logCurrentState()
+        if !PermissionGate.isAccessibilityTrusted {
+            // Show the system prompt offering to open the Accessibility pane. The engine
+            // starts by itself as soon as the checkbox is ticked (see EngineController).
+            PermissionGate.requestAccessibility()
+        }
         engine.startIfPermitted()
     }
 

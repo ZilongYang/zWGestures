@@ -229,8 +229,18 @@ public final class InputEngine {
     }
 
     /// Called when the start-drag timeout elapses. Only meaningful while `pending`.
-    public func startDragTimeoutFired(now: TimeInterval) -> EngineDecision {
+    ///
+    /// - Parameter expectedPressStartedAt: the press this timer was armed for. A late timer
+    ///   that arrives after a *different* press has begun must not cut that press short, so
+    ///   pass the value captured when the timer was scheduled.
+    public func startDragTimeoutFired(
+        now: TimeInterval,
+        expectingPressStartedAt expected: TimeInterval? = nil
+    ) -> EngineDecision {
         guard case .pending(let press) = state else {
+            return decision(.suppress)
+        }
+        if let expected, press.startedAt != expected {
             return decision(.suppress)
         }
 

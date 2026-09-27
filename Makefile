@@ -18,7 +18,7 @@ XCODEBUILD := xcodebuild -project zWGestures.xcodeproj -scheme zWGestures -confi
 	-clonedSourcePackagesDirPath $(DERIVED)/SourcePackages \
 	-packageCachePath $(DERIVED)/PackageCache
 
-.PHONY: all gen unlock-signing build test run clean info
+
 
 all: build
 
@@ -42,6 +42,12 @@ test:
 ## Launch the built app
 run: build
 	open "$(APP)"
+
+## Launch the built app with the debug HUD open
+run-debug: build
+	open --env ZWG_DEBUG_HUD=1 "$(APP)"
+
+.PHONY: all gen unlock-signing build test run run-debug clean info
 
 clean:
 	rm -rf $(DERIVED) ZWGCore/.build

@@ -11,6 +11,7 @@ struct InputSnapshot: Sendable, Equatable {
     var eventCount: Int = 0
     var gestureCount: Int = 0
     var replayCount: Int = 0
+    var timeoutCount: Int = 0
     var tapStatus: String = "stopped"
 }
 
@@ -25,7 +26,9 @@ final class InputCoordinator: @unchecked Sendable {
     private let snapshotLock = NSLock()
     private var snapshotStorage = InputSnapshot()
 
-    private var scheduledPressStartedAt: TimeInterval?
+    /// Tap-thread state.
+    private var pendingTimer: CFRunLoopTimer?
+    private var armedPressStartedAt: TimeInterval?
 
     /// Invoked on the tap thread when the emergency-stop shortcut is pressed.
     var onPanic: (@Sendable () -> Void)?
@@ -52,8 +55,13 @@ final class InputCoordinator: @unchecked Sendable {
         tap.onSystemDisable = { [weak self] in
             // The tap was off for a while, so a button release may have been missed. Drop the
             // in-flight state rather than replaying a gesture that never finished.
-            self?.engine.reset()
-            self?.updateSnapshot(with: .suppress, state: self?.engine.state ?? .idle)
+            guard let self else { return }
+            self.cancelPendingTimer()
+            self.engine.reset()
+            self.updateSnapshot(with: .suppress, state: self.engine.state)
+        }
+        tap.onTapThreadTeardown = { [weak self] in
+            self?.cancelPendingTimer()
         }
 
         let installed = tap.start()
@@ -78,6 +86,7 @@ final class InputCoordinator: @unchecked Sendable {
         // it works even while a gesture is in flight.
         if event.type == .keyDown, PanicShortcut.matches(event) {
             Log.app.error("panic shortcut pressed; stopping the input engine")
+            cancelPendingTimer()
             engine.reset()
             onPanic?()
             return nil
@@ -88,7 +97,7 @@ final class InputCoordinator: @unchecked Sendable {
         let decision = engine.handle(pointerEvent)
         perform(decision.effect)
         updateSnapshot(with: decision.effect, state: decision.state)
-        scheduleStartDragTimeoutIfNeeded(for: decision.state)
+        rescheduleStartDragTimeout(for: decision.state)
 
         return decision.effect == .passThrough ? event : nil
     }
@@ -107,40 +116,81 @@ final class InputCoordinator: @unchecked Sendable {
             Log.recog.debug("""
                 stroke finished: \(candidate.stroke.points.count, privacy: .public) points, \
                 length \(candidate.stroke.pathLength, privacy: .public) pt, \
+                duration \(candidate.endedAt - candidate.startedAt, privacy: .public) s, \
                 modifiers \(candidate.modifiers.count, privacy: .public)
                 """)
             SyntheticEventPoster.replay(candidate)
         }
     }
 
-    private func scheduleStartDragTimeoutIfNeeded(for state: EngineState) {
+    // MARK: - Start-drag timeout
+    //
+    // The timer lives on the tap thread's run loop. Two rules keep it honest:
+    //
+    // 1. The delay is always *relative* to the moment it is armed. Wall-clock or mach-time
+    //    arithmetic against `event.timestamp` is never used, because that timestamp is not on
+    //    a known time base.
+    // 2. Each timer remembers which press it belongs to, so a late fire cannot cut short a
+    //    later press.
+
+    private func rescheduleStartDragTimeout(for state: EngineState) {
         guard case .pending(let press) = state else {
-            scheduledPressStartedAt = nil
+            cancelPendingTimer()
             return
         }
-        guard scheduledPressStartedAt != press.startedAt else { return }
-        scheduledPressStartedAt = press.startedAt
+        guard armedPressStartedAt != press.startedAt else { return }
 
-        let deadline = press.startedAt + engine.settings.startDragTimeout
-        let delay = max(0, deadline - MachTime.now)
+        cancelPendingTimer()
+        armedPressStartedAt = press.startedAt
 
-        DispatchQueue.global(qos: .userInteractive).asyncAfter(deadline: .now() + delay) { [weak self] in
-            guard let self else { return }
-            self.tap.performOnTapThread { [weak self] in
-                guard let self else { return }
-                let decision = self.engine.startDragTimeoutFired(now: MachTime.now)
-                self.perform(decision.effect)
-                self.updateSnapshot(with: decision.effect, state: decision.state)
-            }
+        let fireDate = CFAbsoluteTimeGetCurrent() + engine.settings.startDragTimeout
+        let timer = CFRunLoopTimerCreateWithHandler(
+            kCFAllocatorDefault,
+            fireDate,
+            0, // one-shot
+            0,
+            0
+        ) { [weak self] _ in
+            self?.startDragTimeoutFired()
         }
+        pendingTimer = timer
+        CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer, .defaultMode)
     }
 
-    private func updateSnapshot(with effect: EngineEffect, state: EngineState) {
+    private func cancelPendingTimer() {
+        if let pendingTimer {
+            CFRunLoopTimerInvalidate(pendingTimer)
+        }
+        pendingTimer = nil
+        armedPressStartedAt = nil
+    }
+
+    private func startDragTimeoutFired() {
+        pendingTimer = nil
+        let armed = armedPressStartedAt
+        armedPressStartedAt = nil
+
+        let decision = engine.startDragTimeoutFired(
+            now: MonotonicClock.now,
+            expectingPressStartedAt: armed
+        )
+        perform(decision.effect)
+        updateSnapshot(with: decision.effect, state: decision.state, isTimeout: true)
+    }
+
+    // MARK: - Snapshot
+
+    private func updateSnapshot(
+        with effect: EngineEffect,
+        state: EngineState,
+        isTimeout: Bool = false
+    ) {
         snapshotLock.withLock {
             var next = snapshotStorage
             next.eventCount += 1
             next.stateName = state.name
             next.tapStatus = Self.describe(tap.status)
+            if isTimeout { next.timeoutCount += 1 }
             switch effect {
             case .passThrough:
                 next.lastEffect = "passThrough"
@@ -178,7 +228,9 @@ final class InputCoordinator: @unchecked Sendable {
 
     static func pointerEvent(from event: CGEvent) -> PointerEvent? {
         let location = event.location
-        let timestamp = MachTime.seconds(event.timestamp)
+        // Stamp with our own monotonic clock rather than `event.timestamp`: see
+        // `MonotonicClock` for why the Quartz timestamp must not be mixed with other clocks.
+        let timestamp = MonotonicClock.now
 
         switch event.type {
         case .leftMouseDown:
