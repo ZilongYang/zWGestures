@@ -126,6 +126,7 @@ final class StatusItemController: NSObject {
         NSApp.activate(ignoringOtherApps: true)
         config.importLegacy()
         engine.apply(startDragTimeout: config.preferences.startDragTimeoutSeconds)
+        engine.apply(overlayStyle: OverlayStyle(preferences: config.preferences))
         engine.apply(config: config.config, targetMode: config.preferences.targetMode)
         refresh()
         config.presentImportSummary()

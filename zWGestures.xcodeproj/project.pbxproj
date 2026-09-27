@@ -24,6 +24,7 @@
 		5F271E0433B7609765D9A526 /* WGPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8DBAC8592F6FAEC6C1A76E /* WGPreferences.swift */; };
 		611034544BEA508CCE4CEA83 /* ConfigController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E642F91C963A1195967A57C /* ConfigController.swift */; };
 		6EEAAB5A5C3825293D9C469C /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E83B1397FEFFA16BBEED4800 /* StatusItemController.swift */; };
+		6FEBE184B064CDA902641F36 /* StrokeOverlayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6637F3B28D985F981FE71EC7 /* StrokeOverlayController.swift */; };
 		70892C1BD3EA6010C5F65EEE /* StrokeNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C390F8040B68014AF2B56727 /* StrokeNormalizer.swift */; };
 		741E9516BCE709CA45B3479C /* WGConfigCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B3261300424B06F6A1DFA1D /* WGConfigCodec.swift */; };
 		75A267C79DF6EBC5ADFC54D0 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = BED6B7EF21C4A63D52847B55 /* Log.swift */; };
@@ -37,7 +38,9 @@
 		AAA7D11E8C47A9C5D9E08DE0 /* CommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92CBA6DC86C7A9DB15273C50 /* CommandExecutor.swift */; };
 		B74F84187764E1C1B2C31B3D /* PermissionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD120B910B3EAAF21113B6A /* PermissionGate.swift */; };
 		BE0AB9F149CF95824F4041B9 /* TargetResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D609A7BD92EC1F5F4BA9BF0 /* TargetResolver.swift */; };
+		C050C9CB5FC43CADF7E4B46A /* WGColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6AB7125FAF11D6211A6791A /* WGColor.swift */; };
 		D487BF881310D3FF47DB3C22 /* KeyEventPoster.swift in Sources */ = {isa = PBXBuildFile; fileRef = A81491D8DC7F824A57EA9A34 /* KeyEventPoster.swift */; };
+		D6338B5C06987A4DB7D2993D /* OverlayState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F550AB1F613BC1B599471EFE /* OverlayState.swift */; };
 		D7B14F419F40CAE86D52A8E4 /* DebugHUDWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9064449516F65A9510DD1E /* DebugHUDWindow.swift */; };
 		D8FE20F18E73B88FBDCB0662 /* BuildInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88F93E17ED488092EFF652BE /* BuildInfo.swift */; };
 		DEBD2C91305267F6D14EFAEA /* WGActionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39CB8AC93BED2227B3EB998 /* WGActionContext.swift */; };
@@ -63,6 +66,7 @@
 		571F286DEA2B2AE4976D787E /* InputEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputEngine.swift; sourceTree = "<group>"; };
 		58E69FA11F1C5AED1F3E8887 /* InputCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputCoordinator.swift; sourceTree = "<group>"; };
 		65E67B92FE1303A703B5885A /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		6637F3B28D985F981FE71EC7 /* StrokeOverlayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeOverlayController.swift; sourceTree = "<group>"; };
 		6AD84F47ADADCB43601E2F71 /* Stroke.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stroke.swift; sourceTree = "<group>"; };
 		72CE5E7190D3810B837000B3 /* WGCommandPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGCommandPlanner.swift; sourceTree = "<group>"; };
 		75010A7BD55B495E897BA081 /* WGKeyCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGKeyCode.swift; sourceTree = "<group>"; };
@@ -76,6 +80,7 @@
 		AC8DBAC8592F6FAEC6C1A76E /* WGPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGPreferences.swift; sourceTree = "<group>"; };
 		B06777C46F74A73BE3DFAA02 /* PointerEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointerEvent.swift; sourceTree = "<group>"; };
 		B39CB8AC93BED2227B3EB998 /* WGActionContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGActionContext.swift; sourceTree = "<group>"; };
+		B6AB7125FAF11D6211A6791A /* WGColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGColor.swift; sourceTree = "<group>"; };
 		BCAA306B3006478FA8B51C30 /* EngineController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineController.swift; sourceTree = "<group>"; };
 		BED6B7EF21C4A63D52847B55 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		C2A64E5D44D16632374E7585 /* WGConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGConfig.swift; sourceTree = "<group>"; };
@@ -84,6 +89,7 @@
 		E3411F37FC05B72B39D6837A /* LegacyConfigImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyConfigImporter.swift; sourceTree = "<group>"; };
 		E83B1397FEFFA16BBEED4800 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
 		EF7F9BF44FB51C9C5CEA1972 /* PanicShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanicShortcut.swift; sourceTree = "<group>"; };
+		F550AB1F613BC1B599471EFE /* OverlayState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayState.swift; sourceTree = "<group>"; };
 		FB5A2FA9CBB86A01E460887A /* WGTriggerMatrix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGTriggerMatrix.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -190,6 +196,15 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		87D8FB3F2185EF3110FAD515 /* Overlay */ = {
+			isa = PBXGroup;
+			children = (
+				F550AB1F613BC1B599471EFE /* OverlayState.swift */,
+				B6AB7125FAF11D6211A6791A /* WGColor.swift */,
+			);
+			path = Overlay;
+			sourceTree = "<group>";
+		};
 		88DFCD2DF1301AF6B4739325 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -224,6 +239,7 @@
 		BCD7E238C8871C4F93ED5241 /* Overlay */ = {
 			isa = PBXGroup;
 			children = (
+				6637F3B28D985F981FE71EC7 /* StrokeOverlayController.swift */,
 			);
 			path = Overlay;
 			sourceTree = "<group>";
@@ -267,6 +283,7 @@
 				782AF96029B0E18286914E04 /* Action */,
 				77DF59B90DADCDB32789A412 /* Config */,
 				6F63765F53F4AF7D32167E14 /* Input */,
+				87D8FB3F2185EF3110FAD515 /* Overlay */,
 				5E460AE5900A25361D6B25CE /* Recog */,
 				DFFA8358CEA7D9569D9ECAAD /* Target */,
 				88F93E17ED488092EFF652BE /* BuildInfo.swift */,
@@ -351,6 +368,7 @@
 				FDF5F36C475F910B6B15D0C9 /* LegacyConfigImporter.swift in Sources */,
 				75A267C79DF6EBC5ADFC54D0 /* Log.swift in Sources */,
 				1D96047CAB4FEF028345ECDA /* MonotonicClock.swift in Sources */,
+				D6338B5C06987A4DB7D2993D /* OverlayState.swift in Sources */,
 				867BEBB34B54E726C2D8BD85 /* PanicShortcut.swift in Sources */,
 				B74F84187764E1C1B2C31B3D /* PermissionGate.swift in Sources */,
 				20BA77DFC9FB80EF291E5C3A /* PointerEvent.swift in Sources */,
@@ -358,9 +376,11 @@
 				6EEAAB5A5C3825293D9C469C /* StatusItemController.swift in Sources */,
 				03639C7D8FA0755A9DD5944B /* Stroke.swift in Sources */,
 				70892C1BD3EA6010C5F65EEE /* StrokeNormalizer.swift in Sources */,
+				6FEBE184B064CDA902641F36 /* StrokeOverlayController.swift in Sources */,
 				1AF54D920DBE3BCDAB6868D0 /* SyntheticEventPoster.swift in Sources */,
 				BE0AB9F149CF95824F4041B9 /* TargetResolver.swift in Sources */,
 				DEBD2C91305267F6D14EFAEA /* WGActionContext.swift in Sources */,
+				C050C9CB5FC43CADF7E4B46A /* WGColor.swift in Sources */,
 				58FD4C71B2ABD3CB65755E7E /* WGCommandPlanner.swift in Sources */,
 				5633593749843878218A20A5 /* WGConfig.swift in Sources */,
 				741E9516BCE709CA45B3479C /* WGConfigCodec.swift in Sources */,

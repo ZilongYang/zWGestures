@@ -79,6 +79,15 @@ final class InputCoordinator: @unchecked Sendable {
     private var pressTarget: WGResolvedTarget?
     private var pressWindowID: Int?
 
+    /// Published for the on-screen trail. Read from the main thread while drawing.
+    private let overlayLock = NSLock()
+    private var overlayStorage = OverlayState()
+    private var completionCount = 0
+    /// Live recognition while drawing, so the name appears before the button is released.
+    private var lastPreviewAt: TimeInterval = 0
+    private var previewName: String?
+    private static let previewInterval: TimeInterval = 0.05
+
     /// Invoked on the tap thread when the emergency-stop shortcut is pressed.
     var onPanic: (@Sendable () -> Void)?
 
@@ -95,6 +104,11 @@ final class InputCoordinator: @unchecked Sendable {
     }
 
     var isRunning: Bool { tap.status.isRunning }
+
+    /// The trail to draw, safe to read from the main thread.
+    func overlayState() -> OverlayState {
+        overlayLock.withLock { overlayStorage }
+    }
 
     /// Publishes the gesture sets, the targeting mode and the application directory.
     func updateRecognition(_ context: RecognitionContext, settings: RecognitionSettings = RecognitionSettings()) {
@@ -119,6 +133,7 @@ final class InputCoordinator: @unchecked Sendable {
             guard let self else { return }
             self.cancelPendingTimer()
             self.engine.reset()
+            self.clearTrail()
             self.updateSnapshot(with: .suppress, state: self.engine.state)
         }
         tap.onTapThreadTeardown = { [weak self] in
@@ -149,6 +164,7 @@ final class InputCoordinator: @unchecked Sendable {
             Log.app.error("panic shortcut pressed; stopping the input engine")
             cancelPendingTimer()
             engine.reset()
+            clearTrail()
             onPanic?()
             return nil
         }
@@ -159,6 +175,7 @@ final class InputCoordinator: @unchecked Sendable {
         perform(decision.effect)
         updateSnapshot(with: decision.effect, state: decision.state)
         captureTargetIfNeeded(for: decision.state)
+        publishTrail(state: decision.state, effect: decision.effect)
         rescheduleStartDragTimeout(for: decision.state)
 
         return decision.effect == .passThrough ? event : nil
@@ -209,6 +226,7 @@ final class InputCoordinator: @unchecked Sendable {
             : nil
 
         record(match, nearest: nearest, candidate: candidate, resolved: resolved)
+        publishCompletion(candidate, name: match?.intent.name)
 
         if let match {
             Log.recog.notice("""
@@ -328,6 +346,80 @@ final class InputCoordinator: @unchecked Sendable {
     /// Records that a command ran, for the debug HUD. Safe to call from any thread.
     func noteExecuted(_ summary: String) {
         snapshotLock.withLock { snapshotStorage.lastExecuted = summary }
+    }
+
+    // MARK: - On-screen trail
+
+    /// Publishes what the overlay should draw.
+    ///
+    /// The live gesture name is computed *before* taking `overlayLock`, so the lock order stays
+    /// one-way (`overlayLock` may take nothing, `recognitionLock` may take nothing) and the two
+    /// can never deadlock.
+    private func publishTrail(state: EngineState, effect: EngineEffect) {
+        if case .drawing(let gesture) = state {
+            let name = previewName(for: gesture)
+            overlayLock.withLock {
+                overlayStorage = OverlayState(
+                    phase: .drawing,
+                    points: gesture.stroke.points,
+                    gestureName: name,
+                    completionSequence: completionCount
+                )
+            }
+            return
+        }
+
+        // A finished stroke has already been published by `handleCompletedGesture`.
+        if case .gestureCompleted = effect { return }
+
+        overlayLock.withLock {
+            if overlayStorage.phase != .idle {
+                overlayStorage = OverlayState(phase: .idle, completionSequence: completionCount)
+            }
+        }
+    }
+
+    /// Recognises the in-progress stroke at a low rate so the label updates live without
+    /// spending the whole event budget on matching.
+    private func previewName(for gesture: DrawingGesture) -> String? {
+        let now = MonotonicClock.now
+        guard now - lastPreviewAt >= Self.previewInterval else { return previewName }
+        lastPreviewAt = now
+
+        let (recognizer, context) = recognitionLock.withLock { (self.recognizer, self.recognitionContext) }
+        let resolved = pressTarget ?? resolveTarget(at: gesture.stroke.startPoint, in: context)
+        previewName = recognizer.recognize(
+            stroke: gesture.stroke,
+            button: gesture.button,
+            modifiers: gesture.modifiers,
+            in: resolved.target,
+            triggerMatrix: resolved.triggerMatrix
+        )?.intent.name
+        return previewName
+    }
+
+    private func publishCompletion(_ candidate: GestureCandidate, name: String?) {
+        overlayLock.withLock {
+            completionCount += 1
+            overlayStorage = OverlayState(
+                phase: name == nil ? .unmatched : .matched,
+                points: candidate.stroke.points,
+                gestureName: name,
+                completionSequence: completionCount
+            )
+        }
+        lastPreviewAt = 0
+        previewName = nil
+    }
+
+    /// Clears the trail, e.g. when the emergency stop fires or the tap is torn down.
+    private func clearTrail() {
+        overlayLock.withLock {
+            completionCount += 1
+            overlayStorage = OverlayState(phase: .idle, completionSequence: completionCount)
+        }
+        lastPreviewAt = 0
+        previewName = nil
     }
 
     // MARK: - Start-drag timeout

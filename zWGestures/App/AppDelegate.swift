@@ -42,6 +42,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         config.start()
         appDirectory.start()
         engine.apply(startDragTimeout: config.preferences.startDragTimeoutSeconds)
+        engine.apply(overlayStyle: OverlayStyle(preferences: config.preferences))
         engine.apply(config: config.config, targetMode: config.preferences.targetMode)
 
         if ProcessInfo.processInfo.environment["ZWG_DEBUG_HUD"] == "1" {

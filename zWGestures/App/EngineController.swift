@@ -16,6 +16,8 @@ final class EngineController {
     private let appDirectory: AppDirectory
     private var config = WGConfig()
     private var targetMode: WGTargetMode = .focused
+    private var overlayStyle = OverlayStyle()
+    private let overlay: StrokeOverlayController
 
     private var permissionTask: Task<Void, Never>?
     private let pollInterval = Duration.seconds(2)
@@ -28,6 +30,7 @@ final class EngineController {
     init(appDirectory: AppDirectory, startDragTimeout: TimeInterval = 0.25) {
         self.appDirectory = appDirectory
         coordinator = InputCoordinator(settings: EngineSettings(startDragTimeout: startDragTimeout))
+        overlay = StrokeOverlayController(coordinator: coordinator)
         coordinator.onPanic = { [weak self] in
             Task { @MainActor in
                 self?.pause(reason: "急停快捷键 \(PanicShortcut.displayName)")
@@ -41,6 +44,12 @@ final class EngineController {
         appDirectory.onChange = { [weak self] in
             self?.pushRecognitionContext()
         }
+    }
+
+    /// Applies the look of the trail from the imported preferences.
+    func apply(overlayStyle: OverlayStyle) {
+        self.overlayStyle = overlayStyle
+        overlay.apply(style: overlayStyle)
     }
 
     private func run(_ outcome: GestureOutcome) {
@@ -91,7 +100,9 @@ final class EngineController {
         stopPermissionPolling()
         isRunning = coordinator.start()
         lastFailureReason = isRunning ? nil : "事件拦截器安装失败"
-        if !isRunning {
+        if isRunning {
+            overlay.start()
+        } else {
             startPermissionPolling()
         }
         onStateChange?()
@@ -99,6 +110,7 @@ final class EngineController {
 
     func pause(reason: String) {
         Log.app.notice("暂停手势引擎：\(reason, privacy: .public)")
+        overlay.stop()
         coordinator.stop()
         isRunning = false
         onStateChange?()
@@ -110,6 +122,7 @@ final class EngineController {
 
     func stop() {
         stopPermissionPolling()
+        overlay.stop()
         coordinator.stop()
         isRunning = false
     }
