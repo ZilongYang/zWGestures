@@ -194,10 +194,12 @@ final class InputCoordinator: @unchecked Sendable {
         }
     }
 
-    /// A finished stroke either matches a configured gesture or is handed back to the app.
+    /// A finished stroke either matches a configured gesture or is simply discarded.
     ///
-    /// Replaying an unmatched stroke matters: without it a right-button drag would simply
-    /// vanish, and the context menu or text selection the user expected would never appear.
+    /// Restraint matters here: once a stroke has passed the drag threshold the user was drawing a
+    /// gesture, so an unrecognised one must not fall through as a context-menu-triggering drag.
+    /// Ordinary clicks are unaffected — those never reach this method, they are replayed by the
+    /// engine's `.replay` effect when the press turns out to be a plain click.
     private func handleCompletedGesture(_ candidate: GestureCandidate) {
         let (recognizer, context) = recognitionLock.withLock { (self.recognizer, self.recognitionContext) }
         let resolved = pressTarget ?? resolveTarget(at: candidate.stroke.startPoint, in: context)
@@ -247,9 +249,17 @@ final class InputCoordinator: @unchecked Sendable {
                 长度 \(candidate.stroke.pathLength, privacy: .public)、\
                 目标 \(resolved.displayName, privacy: .public)、\
                 最近的是「\(nearest?.intent.name ?? "无候选", privacy: .public)」\
-                距离 \(nearest?.distance ?? .infinity, privacy: .public)，回放给系统
+                距离 \(nearest?.distance ?? .infinity, privacy: .public)
                 """)
-            SyntheticEventPoster.replay(candidate)
+            // Deliberately does **not** replay the drag back to the system.
+            //
+            // A stroke that got this far moved past the drag threshold, so the user was drawing
+            // a gesture, not clicking. Replaying it would drop a context menu on screen for a
+            // gesture that simply was not recognised. A press that never became a gesture — no
+            // movement, or held still past the start-drag timeout — still replays as a normal
+            // click, which is handled by the engine's `.replay` effect and is unaffected by this.
+            //
+            // The trail still fades out, so an unrecognised gesture is visibly acknowledged.
         }
     }
 

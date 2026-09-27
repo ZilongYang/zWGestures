@@ -27,8 +27,11 @@ enum SyntheticEventPoster {
         }
     }
 
-    /// Replays a completed gesture that was not recognised, so the app underneath still
-    /// receives the press, the drag and the release.
+    /// Replays a completed gesture as a real drag.
+    ///
+    /// Currently unused: an unrecognised gesture is intentionally *not* replayed, so that drawing
+    /// a gesture never leaves a context menu behind. Kept because the edge-trigger work may need
+    /// it to roll an edge-started gesture back into a normal one.
     static func replay(_ candidate: GestureCandidate) {
         var events: [PointerEvent] = [
             PointerEvent(kind: .down(candidate.button), location: candidate.stroke.startPoint, timestamp: candidate.startedAt)
