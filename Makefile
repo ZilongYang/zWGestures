@@ -36,14 +36,14 @@ unlock-signing:
 build: gen unlock-signing
 	$(XCODEBUILD) build
 
-## Regenerate the app icon. VARIANT=corner|swoosh picks the subject stroke.
+## Regenerate the app icon. VARIANT=corner (default) | swoosh picks the subject stroke.
 ##
 ## The module cache must live inside the workspace: a restricted shell cannot write the default
 ## one under /var/folders, and the failure reads like a compiler bug rather than a sandbox denial.
 icon:
 	CLANG_MODULE_CACHE_PATH="$(CURDIR)/build/swift-module-cache" \
 	SWIFT_MODULECACHE_OVERRIDE="$(CURDIR)/build/swift-module-cache" \
-	swift scripts/make-app-icon.swift $(or $(VARIANT),swoosh)
+	swift scripts/make-app-icon.swift $(or $(VARIANT),corner)
 
 ## Source-level guards that unit tests cannot express (see docs/ROADMAP.md §8)
 lint:

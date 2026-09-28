@@ -130,8 +130,8 @@ prefs.json     偏好项，与原版 prefs.json 格式完全一致
 `zWGestures/Resources/AppIcon.icns` 由脚本生成，不手工维护：
 
 ```bash
-make icon                  # 默认斜向弧线（VARIANT=swoosh）
-make icon VARIANT=corner   # 折线「下→右」（配置里真实存在的 Close 手势）
+make icon                  # 默认折线「下→右」（配置里真实存在的 Close 手势）
+make icon VARIANT=swoosh    # 换成斜向弧线（备选，见 docs/icon/alternative-swoosh.png）
 ```
 
 `scripts/make-app-icon.swift` 用 CoreGraphics 按 macOS 图标网格（1024 画布上 824×824、
