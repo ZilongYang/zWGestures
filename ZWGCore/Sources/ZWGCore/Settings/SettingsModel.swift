@@ -497,6 +497,38 @@ public final class SettingsModel: ObservableObject {
             : nil
     }
 
+    /// Copies the gesture at `index` and puts the copy **right after the original**.
+    ///
+    /// Adjacent placement is deliberate: the list order is the priority order, so a copy sits next
+    /// to the gesture it came from and the user can immediately change its shape or move it.
+    ///
+    /// - Returns: the new gesture's index, or `nil` when `index` is not valid.
+    @discardableResult
+    public func duplicateIntent(at index: Int) -> Int? {
+        guard let targetIndex = targetIndex(),
+              let target = config.target(at: targetIndex),
+              target.intents.indices.contains(index)
+        else { return nil }
+
+        var copy = target.intents[index]
+        copy.name = Self.uniqueName(basedOn: copy.name, taken: target.intents.map(\.name))
+        config.mutateTarget(at: targetIndex) { target in
+            target.intents.insert(copy, at: index + 1)
+        }
+        return index + 1
+    }
+
+    /// `"Copy"` → `"Copy 副本"`, then `"Copy 副本 2"`, … so a name is never duplicated.
+    static func uniqueName(basedOn name: String, taken: [String]) -> String {
+        let existing = Set(taken)
+        let base = "\(name) 副本"
+        guard existing.contains(base) else { return base }
+        for number in 2...999 where !existing.contains("\(base) \(number)") {
+            return "\(base) \(number)"
+        }
+        return "\(base) \(UUID().uuidString.prefix(4))"
+    }
+
     /// Discards every pending edit and goes back to the last loaded/saved configuration.
     public func revert() {
         config = savedConfig

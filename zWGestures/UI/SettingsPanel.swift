@@ -58,6 +58,8 @@ struct SettingsPanel: View {
     let onAddAppTarget: (Bool) -> Void
     /// Removes a whole gesture set.
     let onRemoveTarget: (SettingsModel.Selection) -> Void
+    /// Copies the gesture at that index, placing the copy right after it.
+    let onDuplicateGesture: (Int) -> Void
     /// Lets the window show the standard macOS "edited" dot in its close button.
     let onDirtyChange: (Bool) -> Void
 
@@ -360,6 +362,7 @@ struct SettingsPanel: View {
                                 isDropTarget: dropTargetRowId == row.id,
                                 onToggleEnabled: { onSetEnabled(row.id, $0) },
                                 onShowSource: { model.selection = .general },
+                                onDuplicate: { onDuplicateGesture(row.id) },
                                 onEdit: { onEdit(row.id, row.name) },
                                 onDelete: { onDelete(row.id, row.name) },
                                 onEditGesture: { onEditGesture(row.id, row.name) },
@@ -488,6 +491,8 @@ private struct GestureRowView: View {
     let onToggleEnabled: (Bool) -> Void
     /// Selects the general set, for a row inherited from it.
     let onShowSource: () -> Void
+    /// Copies this gesture.
+    let onDuplicate: () -> Void
     let onEdit: () -> Void
     let onDelete: () -> Void
     let onEditGesture: () -> Void
@@ -545,6 +550,8 @@ private struct GestureRowView: View {
                     Button("跳到「全局」修改这条") { onShowSource() }
                 } else {
                     Button("编辑手势…") { onEditGesture() }
+                    Button("复制手势") { onDuplicate() }
+                        .help("复制一份放在这条后面，再改形状或动作")
                     Divider()
                     if row.isEnabled {
                         Button("禁用这条手势") { onToggleEnabled(false) }

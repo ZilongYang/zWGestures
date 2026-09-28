@@ -83,6 +83,15 @@ struct GestureEditorSheet: View {
                 newShapeColumn
             }
 
+            modifierRow
+            Text("""
+                手势修饰键是画这个形状的同时额外做的动作：同一条轨迹可以用它区分多个命令 \
+                （例如「拷贝」与「剪切」都是向上，按住左键触发的是「剪切」）。
+                """)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
             // Two gestures with the same shape fight for the same input; the list order decides
             // which one wins, so this is advice rather than a refusal.
             if let conflict = model.shapeConflictDescription {
@@ -99,6 +108,51 @@ struct GestureEditorSheet: View {
                 .padding(10)
                 .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
             }
+        }
+    }
+
+    /// The 手势修饰键 of this gesture, editable.
+    private var modifierRow: some View {
+        HStack(spacing: 6) {
+            Text("修饰键")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            if model.modifiers.isEmpty {
+                Text("（无 —— 画出这个形状就触发）")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            } else {
+                ForEach(model.modifiers, id: \.key) { modifier in
+                    HStack(spacing: 4) {
+                        Text(modifier.localizedName)
+                            .font(.caption2)
+                        Button {
+                            model.removeModifier(modifier)
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.caption2)
+                        }
+                        .buttonStyle(.plain)
+                        .help("移除这个修饰键")
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(.quaternary, in: Capsule())
+                }
+            }
+
+            Spacer()
+
+            Menu("添加修饰键") {
+                ForEach(WGModifierKind.allCases, id: \.key) { kind in
+                    Button(kind.localizedName) { model.addModifier(kind) }
+                        .disabled(!model.canAddModifier(kind))
+                }
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .help("按住的鼠标键或滚轮方向；列表里已有的会变灰")
         }
     }
 

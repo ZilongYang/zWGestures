@@ -39,9 +39,11 @@ public final class GestureEditorModel: ObservableObject {
     /// A newly drawn shape, shown in the right column. `nil` means "keep the current shape".
     @Published public private(set) var pendingStroke: WGStrokeStep?
 
-    /// The steps before and after the stroke, kept from the gesture being edited.
+    /// The steps before the stroke, kept from the gesture being edited (the trigger).
     private let leadingSteps: [WGStep]
-    private let trailingSteps: [WGStep]
+    /// The 手势修饰键 after the stroke. Editable: this is what lets a new gesture say "same shape,
+    /// but while also holding the left button".
+    @Published private var trailingSteps: [WGStep]
 
     /// The other gestures of the same set, used to refuse a shape that is already taken.
     private let siblings: [WGIntent]
@@ -76,6 +78,47 @@ public final class GestureEditorModel: ObservableObject {
         } else {
             leadingSteps = Self.defaultTriggerSteps
             trailingSteps = []
+        }
+    }
+
+    // MARK: - 手势修饰键
+
+    /// The gesture modifiers that are currently part of this gesture.
+    ///
+    /// A step this build cannot offer (a horizontal scroll, say) is dropped from the list rather
+    /// than shown as something uneditable — but it is **kept in `gestureSteps`**, so opening and
+    /// saving a gesture never silently deletes a step somebody else wrote.
+    public var modifiers: [WGModifierKind] {
+        trailingSteps.compactMap { step in
+            guard let key = step.keyDown?.key else { return nil }
+            return WGModifierKind(key: key)
+        }
+    }
+
+    /// Whether adding `kind` would change anything.
+    public func canAddModifier(_ kind: WGModifierKind) -> Bool {
+        !modifiers.contains(kind)
+    }
+
+    /// Adds a 手势修饰键.
+    ///
+    /// - Returns: `false` when it is already present, so a menu can simply disable that entry.
+    ///
+    /// The step is appended after the existing ones. WGestures describes these as presses made
+    /// *while* drawing, and this build accepts them any time before the button is released — the
+    /// exact timing has never been checked against the original (ROADMAP §7), so nothing here
+    /// depends on it.
+    @discardableResult
+    public func addModifier(_ kind: WGModifierKind) -> Bool {
+        guard canAddModifier(kind) else { return false }
+        trailingSteps.append(kind.step)
+        return true
+    }
+
+    public func removeModifier(_ kind: WGModifierKind) {
+        trailingSteps.removeAll { step in
+            guard let key = step.keyDown?.key else { return false }
+            return key == kind.key
         }
     }
 

@@ -215,3 +215,179 @@ struct SettingsModelGestureWriteTests {
         #expect(model.editedConfig.general.intents.count == 1)
     }
 }
+
+@MainActor
+@Suite("设置：手势修饰键与复制手势")
+struct GestureModifierTests {
+    private func pasteEnter() -> WGIntent {
+        // 真实形态：右键触发 → 向下笔画 → 左键修饰（这就是「粘贴并回车」能与「粘贴」共存的原因）
+        WGIntent(
+            name: "Paste & Enter",
+            gesture: [
+                .keyDown(WGKeyDownStep(key: "MOUSE:1")),
+                .stroke(WGStrokeStep(isSimple: true, points: [0, 0, 0, -50])),
+                .keyDown(WGKeyDownStep(key: "MOUSE:0")),
+            ],
+            command: copyCommand
+        )
+    }
+
+    @Test("读出现有的手势修饰键")
+    func readsExistingModifiers() {
+        let model = GestureEditorModel(mode: .existing(index: 0), intent: pasteEnter())
+        #expect(model.modifiers == [.mouseButton(.left)])
+        #expect(!model.canAddModifier(.mouseButton(.left)), "已经有了就不能重复加")
+        #expect(model.canAddModifier(.mouseButton(.right)))
+        #expect(model.canAddModifier(.scrollUp))
+    }
+
+    @Test("新增修饰键：追加在笔画之后，且不可重复")
+    func addsModifiers() {
+        let model = GestureEditorModel(mode: .existing(index: 0), intent: pasteEnter())
+        #expect(model.addModifier(.scrollUp))
+        #expect(model.modifiers == [.mouseButton(.left), .scrollUp])
+        #expect(model.addModifier(.scrollUp) == false, "同一修饰键不能加两次")
+
+        // 步骤顺序必须是 [触发, 笔画, 修饰键…]，否则识别器的 triggerSteps/modifierSteps 会读错。
+        let steps = model.intent.gesture
+        #expect(steps.count == 4)
+        #expect(steps[0].keyDown?.key == "MOUSE:1")
+        #expect(steps[1].isStroke)
+        #expect(steps[2].keyDown?.key == "MOUSE:0")
+        #expect(steps[3].keyDown?.key == "VSCROLL:1")
+
+        // 删掉一个。
+        model.removeModifier(.mouseButton(.left))
+        #expect(model.modifiers == [.scrollUp])
+        #expect(model.intent.gesture.count == 3)
+    }
+
+    @Test("修饰键的量级用 1（与真实配置一致）")
+    func usesTheSameScrollMagnitudeAsTheRealConfig() {
+        #expect(WGModifierKind.scrollUp.key == "VSCROLL:1")
+        #expect(WGModifierKind.scrollDown.key == "VSCROLL:-1")
+        #expect(WGModifierKind.mouseButton(.left).key == "MOUSE:0")
+        #expect(WGModifierKind.mouseButton(.center).key == "MOUSE:2")
+        #expect(WGModifierKind.scrollUp.localizedName == "向上滚动")
+        #expect(WGModifierKind.mouseButton(.left).localizedName == "鼠标左键")
+    }
+
+    @Test("横向滚动不提供：识别器会把 HSCROLL 拿竖向位移来比对")
+    func doesNotOfferHorizontalScroll() {
+        // 已知问题（ROADMAP §7）：areModifiersSatisfied 对 HSCROLL 也只看 deltaY，
+        // 于是横向修饰键会被竖向滚动错误满足。界面里不提供，解析也要拒绝。
+        #expect(WGModifierKind(key: "HSCROLL:1") == nil)
+        #expect(WGModifierKind(key: "HSCROLL:-1") == nil)
+        #expect(WGModifierKind.allCases.count == MouseButton.allCases.count + 2)
+        #expect(!WGModifierKind.allCases.map(\.key).contains { $0.hasPrefix("HSCROLL") })
+    }
+
+    @Test("本版本不认识的修饰键步骤不会被静默删掉")
+    func preservesStepsItCannotEdit() {
+        // 一个 HSCROLL 修饰键（原版可能就是这种）+ 一个我们认识的。
+        let intent = WGIntent(
+            name: "旧的",
+            gesture: [
+                .keyDown(WGKeyDownStep(key: "MOUSE:1")),
+                .stroke(WGStrokeStep(isSimple: true, points: [0, 0, 50, 0])),
+                .keyDown(WGKeyDownStep(key: "HSCROLL:1")),
+                .keyDown(WGKeyDownStep(key: "MOUSE:2")),
+            ],
+            command: copyCommand
+        )
+        let model = GestureEditorModel(mode: .existing(index: 0), intent: intent)
+        // 只列出能编辑的那一个……
+        #expect(model.modifiers == [.mouseButton(.center)])
+        // ……但保存时必须原样带回 HSCROLL 那一步。
+        let steps = model.intent.gesture
+        #expect(steps.count == 4)
+        #expect(steps[2].keyDown?.key == "HSCROLL:1")
+        #expect(steps[3].keyDown?.key == "MOUSE:2")
+    }
+}
+
+@MainActor
+@Suite("设置：复制手势")
+struct DuplicateIntentTests {
+    private func makeModel() -> SettingsModel {
+        SettingsModel(config: WGConfig(general: WGTarget(
+            kind: .general,
+            id: "general-id",
+            name: "General",
+            intents: [
+                WGIntent(
+                    name: "Copy",
+                    gesture: [
+                        .keyDown(WGKeyDownStep(key: "MOUSE:1")),
+                        .stroke(WGStrokeStep(isSimple: true, points: [0, 0, 0, 50])),
+                    ],
+                    command: copyCommand
+                ),
+                WGIntent(
+                    name: "Paste",
+                    gesture: [
+                        .keyDown(WGKeyDownStep(key: "MOUSE:1")),
+                        .stroke(WGStrokeStep(isSimple: true, points: [0, 0, 0, -50])),
+                    ],
+                    command: copyCommand
+                ),
+            ]
+        )))
+    }
+
+    @Test("复制出来的手势紧跟在原手势后面，名字不重复")
+    func duplicatesRightAfterTheOriginal() throws {
+        let model = makeModel()
+        #expect(model.duplicateIntent(at: 0) == 1)
+        #expect(model.rows.map(\.name) == ["Copy", "Copy 副本", "Paste"])
+        #expect(model.isDirty)
+
+        // 内容一致（形状、动作、修饰键），只是名字不同。
+        let original = try #require(model.intent(at: 0))
+        let copy = try #require(model.intent(at: 1))
+        #expect(copy.gesture == original.gesture)
+        #expect(copy.command == original.command)
+        #expect(copy.name != original.name)
+
+        // 再复制一次要产生不同的名字。
+        #expect(model.duplicateIntent(at: 0) == 1)
+        #expect(model.rows.map(\.name) == ["Copy", "Copy 副本 2", "Copy 副本", "Paste"])
+    }
+
+    @Test("越界或选中目标无效时拒绝")
+    func refusesInvalidIndexes() {
+        let model = makeModel()
+        #expect(model.duplicateIntent(at: 9) == nil)
+        let stale = SettingsModel(
+            config: WGConfig(general: WGTarget(kind: .general, id: "g", name: "General")),
+            selection: .app(id: "not-there")
+        )
+        #expect(stale.duplicateIntent(at: 0) == nil)
+        #expect(!stale.isDirty)
+    }
+
+    @Test("复制只作用于当前手势集")
+    func duplicatesOnlyInTheSelectedTarget() throws {
+        var config = makeModel().editedConfig
+        config.apps = [WGTarget(
+            kind: .app,
+            id: "brave",
+            name: "Brave",
+            bundleId: "com.brave.Browser",
+            intents: [
+                WGIntent(
+                    name: "保存",
+                    gesture: [
+                        .keyDown(WGKeyDownStep(key: "MOUSE:1")),
+                        .stroke(WGStrokeStep(isSimple: true, points: [0, 0, 50, 0])),
+                    ],
+                    command: copyCommand
+                )
+            ]
+        )]
+        let model = SettingsModel(config: config, selection: .app(id: "brave"))
+        #expect(model.duplicateIntent(at: 0) == 1)
+        #expect(model.editedConfig.apps[0].intents.map(\.name) == ["保存", "保存 副本"])
+        #expect(model.editedConfig.general.intents.map(\.name) == ["Copy", "Paste"], "全局不该被动到")
+    }
+}

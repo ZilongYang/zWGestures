@@ -32,6 +32,7 @@
 		70892C1BD3EA6010C5F65EEE /* StrokeNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C390F8040B68014AF2B56727 /* StrokeNormalizer.swift */; };
 		741E9516BCE709CA45B3479C /* WGConfigCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B3261300424B06F6A1DFA1D /* WGConfigCodec.swift */; };
 		75A267C79DF6EBC5ADFC54D0 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = BED6B7EF21C4A63D52847B55 /* Log.swift */; };
+		7B436B422C1C59B67A507FB0 /* WGModifierKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539C0147342363EA2357D96B /* WGModifierKind.swift */; };
 		7B898BD27EB38D7EB8D583BF /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F92AEC05105E2560C739F2 /* SettingsWindowController.swift */; };
 		7BD238A177C5ED3225C78992 /* WGKeyCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75010A7BD55B495E897BA081 /* WGKeyCode.swift */; };
 		7CDCA875B2CD5785580F23B6 /* WGEdgeCorner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 389CCF3A1A0E88671C79DD3A /* WGEdgeCorner.swift */; };
@@ -85,6 +86,7 @@
 		4DD120B910B3EAAF21113B6A /* PermissionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionGate.swift; sourceTree = "<group>"; };
 		4E642F91C963A1195967A57C /* ConfigController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigController.swift; sourceTree = "<group>"; };
 		5376AF66A75D62EF0403C889 /* WindowProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowProbe.swift; sourceTree = "<group>"; };
+		539C0147342363EA2357D96B /* WGModifierKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGModifierKind.swift; sourceTree = "<group>"; };
 		54FC8A50F77DDF46B3EC6C08 /* WGInputToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGInputToken.swift; sourceTree = "<group>"; };
 		571F286DEA2B2AE4976D787E /* InputEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputEngine.swift; sourceTree = "<group>"; };
 		58E69FA11F1C5AED1F3E8887 /* InputCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputCoordinator.swift; sourceTree = "<group>"; };
@@ -284,6 +286,7 @@
 				8CEF04421F6DB728B8874E30 /* GestureEditorModel.swift */,
 				402DB23B894FB84DD7A2A859 /* PreferencesModel.swift */,
 				EDF7450D4D95AE0D3DF2B5F3 /* SettingsModel.swift */,
+				539C0147342363EA2357D96B /* WGModifierKind.swift */,
 				F66A3DC1C6690D07CDB62CDF /* WGStrokeConflict.swift */,
 				B19306A631224A6F39956037 /* WGStrokeRecorder.swift */,
 			);
@@ -473,6 +476,7 @@
 				5BC178E8C5BF03C819D95292 /* WGInputToken.swift in Sources */,
 				EE4116EB8761F60759F845B4 /* WGIntentDisplay.swift in Sources */,
 				7BD238A177C5ED3225C78992 /* WGKeyCode.swift in Sources */,
+				7B436B422C1C59B67A507FB0 /* WGModifierKind.swift in Sources */,
 				5F271E0433B7609765D9A526 /* WGPreferences.swift in Sources */,
 				A818D9E18687807FC919C00D /* WGStrokeConflict.swift in Sources */,
 				C5E35053643C3C55C6F56620 /* WGStrokeRecorder.swift in Sources */,

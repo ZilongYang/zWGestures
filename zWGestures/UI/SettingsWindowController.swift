@@ -86,6 +86,10 @@ final class SettingsWindowController {
             onRemoveTarget: { [weak self] selection in
                 self?.confirmRemoveTarget(selection)
             },
+            onDuplicateGesture: { [weak self] index in
+                guard let newIndex = self?.coordinator.model.duplicateIntent(at: index) else { return }
+                Log.ui.notice("已复制手势到第 \(newIndex, privacy: .public) 条")
+            },
             onDirtyChange: { [weak self] isDirty in
                 // The standard macOS cue: a dot in the close button while edits are pending.
                 self?.window?.isDocumentEdited = isDirty
