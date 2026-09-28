@@ -60,7 +60,6 @@ final class StrokeRecordingOverlay {
         self.canvas = canvas
         window.makeKeyAndOrderFront(nil)
         window.makeFirstResponder(canvas)
-        Log.ui.notice("开始全屏录制手势形状")
     }
 
     func end() {
@@ -68,7 +67,6 @@ final class StrokeRecordingOverlay {
         self.window = nil
         canvas = nil
         window.orderOut(nil)
-        Log.ui.notice("结束全屏录制手势形状")
     }
 }
 

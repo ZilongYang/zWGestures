@@ -42,7 +42,7 @@ final class SettingsWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "zWGestures 设置（构建 \(BuildInfo.buildStamp)）"
+        window.title = "zWGestures 设置"
         window.isReleasedWhenClosed = false
         window.contentView = NSHostingView(rootView: makePanel())
         window.center()
@@ -88,7 +88,7 @@ final class SettingsWindowController {
             },
             onDuplicateGesture: { [weak self] index in
                 guard let newIndex = self?.coordinator.model.duplicateIntent(at: index) else { return }
-                Log.ui.notice("已复制手势到第 \(newIndex, privacy: .public) 条")
+                Log.ui.debug("已复制手势到第 \(newIndex, privacy: .public) 条")
             },
             onDirtyChange: { [weak self] isDirty in
                 // The standard macOS cue: a dot in the close button while edits are pending.
@@ -166,7 +166,7 @@ final class SettingsWindowController {
                 let applied = self.coordinator.model.apply(intent: intent, at: existingIndex)
                 let shape = intent.strokeStep?.directionDescription ?? "无"
                 let outcome = existingIndex == nil ? "新增" : "修改"
-                Log.ui.notice("""
+                Log.ui.debug("""
                     手势编辑器已提交：\(outcome, privacy: .public)，形状「\(shape, privacy: .public)」，\
                     动作 \(intent.command.typeName, privacy: .public)，成功 \(applied, privacy: .public)
                     """)
@@ -185,10 +185,6 @@ final class SettingsWindowController {
         commandSheet = sheetWindow
         coordinator.beginShapeEditing()
         window.beginSheet(sheetWindow)
-        // Logged so that "the click did nothing" can be told apart from "the sheet failed to
-        // appear": if this line is missing, the click never reached the editor.
-        let subject = existingIndex.map { "第 \($0) 条" } ?? "新建"
-        Log.ui.notice("打开手势编辑器：\(subject, privacy: .public)")
     }
 
     private func dismissGestureEditor() {
@@ -216,7 +212,6 @@ final class SettingsWindowController {
             onDraw: { points in editor.recordStroke(screenPoints: points) },
             onCancel: { [weak self] in
                 self?.shapeRecorder = nil
-                Log.ui.notice("用户取消了全屏录制手势形状")
             }
         )
     }
@@ -309,7 +304,7 @@ final class SettingsWindowController {
         switch coordinator.model.addApplicationTarget(candidate) {
         case .success(let selection):
             coordinator.model.selection = selection
-            Log.ui.notice("""
+            Log.ui.debug("""
                 已添加应用手势集：\(candidate.name, privacy: .public) \
                 (\(candidate.bundleId ?? candidate.path ?? "?", privacy: .public))
                 """)
