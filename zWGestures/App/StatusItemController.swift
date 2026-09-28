@@ -13,6 +13,7 @@ final class StatusItemController: NSObject {
     private let settingsItem = NSMenuItem()
     private let quickStartItem = NSMenuItem()
     private let debugHUDItem = NSMenuItem()
+    private let loginItemToggle = NSMenuItem()
     private let permissionItem = NSMenuItem()
     private let aboutItem = NSMenuItem()
     private let quitItem = NSMenuItem()
@@ -20,11 +21,21 @@ final class StatusItemController: NSObject {
     private let engine: EngineController
     private let config: ConfigController
     private let debugHUD: DebugHUDWindow
+    private let settings: SettingsWindowController
+    private let loginItem: LoginItem
 
-    init(engine: EngineController, config: ConfigController, debugHUD: DebugHUDWindow) {
+    init(
+        engine: EngineController,
+        config: ConfigController,
+        debugHUD: DebugHUDWindow,
+        settings: SettingsWindowController,
+        loginItem: LoginItem
+    ) {
         self.engine = engine
         self.config = config
         self.debugHUD = debugHUD
+        self.settings = settings
+        self.loginItem = loginItem
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         super.init()
 
@@ -58,7 +69,9 @@ final class StatusItemController: NSObject {
         importItem.action = #selector(handleImport)
 
         settingsItem.title = "打开设置…"
-        settingsItem.isEnabled = false
+        settingsItem.target = self
+        settingsItem.action = #selector(handleOpenSettings)
+        settingsItem.keyEquivalent = ","
 
         quickStartItem.title = "打开快速入门"
         quickStartItem.isEnabled = false
@@ -66,6 +79,9 @@ final class StatusItemController: NSObject {
         debugHUDItem.title = "显示调试面板"
         debugHUDItem.target = self
         debugHUDItem.action = #selector(handleToggleDebugHUD)
+
+        loginItemToggle.target = self
+        loginItemToggle.action = #selector(handleToggleLoginItem)
 
         permissionItem.target = self
         permissionItem.action = #selector(handlePermissionItem)
@@ -88,6 +104,7 @@ final class StatusItemController: NSObject {
         menu.addItem(quickStartItem)
         menu.addItem(debugHUDItem)
         menu.addItem(.separator())
+        menu.addItem(loginItemToggle)
         menu.addItem(permissionItem)
         menu.addItem(.separator())
         menu.addItem(aboutItem)
@@ -112,6 +129,13 @@ final class StatusItemController: NSObject {
         }
 
         debugHUDItem.state = debugHUD.isVisible ? .on : .off
+
+        // Read the system, not `prefs.json`: the switch can be revoked in System Settings.
+        let loginStatus = loginItem.status
+        loginItemToggle.title = loginStatus.localizedText
+        loginItemToggle.state = loginStatus.isOn ? .on : .off
+        loginItemToggle.toolTip = Bundle.main.bundlePath
+
         permissionItem.title = engine.isPermitted
             ? "辅助功能权限：已授权"
             : "辅助功能权限：未授权（点击前往授权）"
@@ -130,6 +154,42 @@ final class StatusItemController: NSObject {
         engine.apply(config: config.config, targetMode: config.preferences.targetMode)
         refresh()
         config.presentImportSummary()
+    }
+
+    @objc private func handleToggleLoginItem() {
+        let wantEnabled = !loginItem.isEnabled
+        let failure = loginItem.setEnabled(wantEnabled)
+        // Only mirror a switch that the system actually accepted.
+        if failure == nil {
+            config.update(autoStart: wantEnabled)
+        }
+        refresh()
+
+        if let failure {
+            NSApp.activate(ignoringOtherApps: true)
+            let alert = NSAlert()
+            alert.messageText = wantEnabled ? "无法开启开机自启" : "无法关闭开机自启"
+            alert.alertStyle = .warning
+            alert.informativeText = """
+                \(failure)
+
+                当前应用路径：
+                \(Bundle.main.bundlePath)
+
+                登录项记录的是应用路径，请把 zWGestures.app 放到一个固定的位置\
+                （例如 /Applications），再重试。
+                """
+            alert.addButton(withTitle: "好")
+            alert.runModal()
+        } else if loginItem.status == .requiresApproval {
+            // macOS 需要用户在「登录项」里手动放行，直接把面板打开。
+            loginItem.openLoginItemsSettings()
+        }
+    }
+
+    @objc private func handleOpenSettings() {
+        settings.show()
+        refresh()
     }
 
     @objc private func handleToggleDebugHUD() {

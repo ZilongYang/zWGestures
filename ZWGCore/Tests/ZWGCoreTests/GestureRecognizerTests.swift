@@ -331,17 +331,18 @@ struct ArbitraryShapeRecognitionTests {
 
 /// Mirrors the shape of the real configuration: `拷贝` and `剪切` share an up-stroke and are
 /// told apart only by the extra left-button press.
+func simpleIntent(_ name: String, _ drawingOrder: [CGPoint], modifiers: [WGStep] = []) -> WGIntent {
+    WGIntent(
+        name: name,
+        gesture: [
+            .keyDown(WGKeyDownStep(key: "MOUSE:1")),
+            .stroke(storedSimple(drawingOrder)),
+        ] + modifiers,
+        command: .keySequence(WGKeySequenceCommand(isSystemHotKey: false, keys: ["Command", "ANSI_C"]))
+    )
+}
+
 private func makeTarget() -> WGTarget {
-    func simpleIntent(_ name: String, _ drawingOrder: [CGPoint], modifiers: [WGStep] = []) -> WGIntent {
-        WGIntent(
-            name: name,
-            gesture: [
-                .keyDown(WGKeyDownStep(key: "MOUSE:1")),
-                .stroke(storedSimple(drawingOrder)),
-            ] + modifiers,
-            command: .keySequence(WGKeySequenceCommand(isSystemHotKey: false, keys: ["Command", "ANSI_C"]))
-        )
-    }
 
     return WGTarget(
         kind: .general,
@@ -426,5 +427,195 @@ struct TargetMatchingTests {
         #expect(GestureRecognizer().recognize(
             stroke: live(Unit.downThenRight), button: .right, modifiers: [], in: makeTarget()
         ) == nil)
+    }
+
+    /// 两条同形、同修饰键的手势抢同一个输入时，**列表靠前的那条生效** —— 这是设置界面里
+    /// 「上移 / 下移」之所以有意义的依据。用户明确要求「按照排序前面的优先」。
+    @Test("同形冲突时列表靠前的优先")
+    func earlierEntryWinsACollision() throws {
+        func upStroke(_ name: String) -> WGIntent {
+            WGIntent(
+                name: name,
+                gesture: [
+                    .keyDown(WGKeyDownStep(key: "MOUSE:1")),
+                    .stroke(storedSimple(Unit.up)),
+                ],
+                command: .keySequence(WGKeySequenceCommand(isSystemHotKey: false, keys: ["Command", "ANSI_C"]))
+            )
+        }
+
+        // 先放「后来的」，再放「更早的」——名字与顺序解耦，避免靠名字猜顺序。
+        let laterFirst = WGTarget(kind: .general, name: "General", intents: [upStroke("Winner"), upStroke("Loser")])
+        let match = try #require(GestureRecognizer().recognize(
+            stroke: live(Unit.up), button: .right, modifiers: [], in: laterFirst
+        ))
+        #expect(match.name == "Winner")
+
+        // 交换顺序后胜者跟着换。
+        let swapped = WGTarget(kind: .general, name: "General", intents: [upStroke("Loser"), upStroke("Winner")])
+        let swappedMatch = try #require(GestureRecognizer().recognize(
+            stroke: live(Unit.up), button: .right, modifiers: [], in: swapped
+        ))
+        #expect(swappedMatch.name == "Loser")
+    }
+
+    /// 修饰键的优先级高于列表顺序：否则把「剪切」排到「拷贝」后面就会抢走"按住左键"的输入。
+    @Test("修饰键更具体的优先，顺序不能推翻它")
+    func specificModifiersBeatOrder() throws {
+        let target = WGTarget(
+            kind: .general,
+            name: "General",
+            intents: [
+                WGIntent(
+                    name: "Cut",
+                    gesture: [
+                        .keyDown(WGKeyDownStep(key: "MOUSE:1")),
+                        .stroke(storedSimple(Unit.up)),
+                        .keyDown(WGKeyDownStep(key: "MOUSE:0")),
+                    ],
+                    command: .keySequence(WGKeySequenceCommand(isSystemHotKey: false, keys: ["Command", "ANSI_X"]))
+                ),
+                makeTarget().intents[0], // Copy：同为向上，不带修饰键，且排在后面
+            ]
+        )
+        // 按住左键：两条都符合条件，但 Cut 更具体 → Cut 赢。
+        let withModifier = try #require(GestureRecognizer().recognize(
+            stroke: live(Unit.up),
+            button: .right,
+            modifiers: [.down(.left)],
+            in: target
+        ))
+        #expect(withModifier.name == "Cut")
+
+        // 不按左键：Copy 是唯一符合条件的。
+        let plain = try #require(GestureRecognizer().recognize(
+            stroke: live(Unit.up), button: .right, modifiers: [], in: target
+        ))
+        #expect(plain.name == "Copy")
+    }
+
+    @Test("禁用的手势永远不参与匹配，即使它是唯一符合条件的一条")
+    func disabledGesturesNeverMatch() throws {
+        var target = makeTarget()
+        // 只留下一条手势，禁用它 —— 这时识别必须返回 nil，而不是「退而求其次」。
+        let only = target.intents[0]
+        target.intents = [WGIntent(
+            name: only.name,
+            executeOnRecognize: only.executeOnRecognize,
+            gesture: only.gesture,
+            command: only.command,
+            enabled: false
+        )]
+        #expect(GestureRecognizer().recognize(
+            stroke: live(Unit.up), button: .right, modifiers: [], in: target
+        ) == nil)
+
+        // 诊断用的候选列表也应当为空 —— 否则调试面板会报「最近的是某条已禁用的手势」。
+        #expect(GestureRecognizer().scoredCandidates(
+            stroke: live(Unit.up), button: .right, modifiers: [], in: target
+        ).isEmpty)
+
+        // 重新启用后就恢复命中。
+        target.intents[0].enabled = true
+        let match = try #require(GestureRecognizer().recognize(
+            stroke: live(Unit.up), button: .right, modifiers: [], in: target
+        ))
+        #expect(match.name == "Copy")
+    }
+
+    @Test("禁用一条重复形状后，另一条就能正常生效")
+    func disablingOneOfTwoDuplicatesLetsTheOtherWin() throws {
+        func up(_ name: String, enabled: Bool) -> WGIntent {
+            WGIntent(
+                name: name,
+                gesture: [
+                    .keyDown(WGKeyDownStep(key: "MOUSE:1")),
+                    .stroke(storedSimple(Unit.up)),
+                ],
+                command: .keySequence(WGKeySequenceCommand(isSystemHotKey: false, keys: ["Command", "ANSI_C"])),
+                enabled: enabled
+            )
+        }
+        // 两条同形，靠前的那条被禁用 → 生效的是后面那条（顺序优先的规则只在启用的之间比）。
+        let target = WGTarget(kind: .general, name: "General", intents: [
+            up("Disabled", enabled: false),
+            up("Live", enabled: true),
+        ])
+        let match = try #require(GestureRecognizer().recognize(
+            stroke: live(Unit.up), button: .right, modifiers: [], in: target
+        ))
+        #expect(match.name == "Live")
+    }
+
+    /// 用户实际遇到并提出的问题：给某个应用配了 1 条手势后，那个应用里**其余全局手势都不见了**。
+    /// 现在应用手势集是**叠加**在全局之上的：自己的优先，其余继承。
+    @Test("应用手势集叠加在全局之上：自己的优先，未定义的手势仍继承全局")
+    func applicationGesturesOverlayTheGeneralSet() throws {
+        // 全局：向上=Copy，向下=Paste。
+        let general = WGTarget(
+            kind: .general,
+            id: "general",
+            name: "General",
+            intents: [
+                simpleIntent("Copy", Unit.up),
+                simpleIntent("Paste", Unit.down),
+            ]
+        )
+        // 应用：只加了一条「向右=Save」，并开着一个重复的「向上=App Copy」用来验证优先级。
+        let appTarget = WGTarget(
+            kind: .app,
+            id: "app",
+            name: "Brave",
+            bundleId: "com.brave.Browser",
+            path: "/Applications/Brave Browser.app",
+            intents: [
+                simpleIntent("App Copy", Unit.up),
+                simpleIntent("Save", Unit.right),
+            ]
+        )
+        let config = WGConfig(general: general, apps: [appTarget])
+        let application = WGApplicationIdentity(
+            pid: 42,
+            bundleIdentifier: "com.brave.Browser",
+            executablePath: "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+            localizedName: "Brave"
+        )
+        let resolved = TargetResolver.resolve(config: config, application: application)
+        #expect(resolved.kind == .application)
+        let recognizer = GestureRecognizer()
+
+        // ① 应用自己定义的手势命中它自己的那条（同形状时靠前的赢）。
+        let up = try #require(recognizer.recognize(
+            stroke: live(Unit.up), button: .right, modifiers: [], in: resolved.target,
+            triggerMatrix: resolved.triggerMatrix
+        ))
+        #expect(up.name == "App Copy", "应用自己的同形状手势必须优先于全局的")
+
+        // ② 应用没定义的手势仍然继承全局 —— 这就是之前缺失的行为。
+        let down = try #require(recognizer.recognize(
+            stroke: live(Unit.down), button: .right, modifiers: [], in: resolved.target,
+            triggerMatrix: resolved.triggerMatrix
+        ))
+        #expect(down.name == "Paste")
+
+        // ③ 应用自己的新形状也能命中。
+        let right = try #require(recognizer.recognize(
+            stroke: live(Unit.right), button: .right, modifiers: [], in: resolved.target,
+            triggerMatrix: resolved.triggerMatrix
+        ))
+        #expect(right.name == "Save")
+
+        // ④ 关掉继承后，只剩应用自己的两条：全局的 Paste 不再可用。
+        var replaced = config
+        replaced.apps[0].inheritsGlobal = false
+        let replacing = TargetResolver.resolve(config: replaced, application: application)
+        #expect(recognizer.recognize(
+            stroke: live(Unit.down), button: .right, modifiers: [], in: replacing.target,
+            triggerMatrix: replacing.triggerMatrix
+        ) == nil, "关掉继承后不该再命中全局手势")
+        #expect(recognizer.recognize(
+            stroke: live(Unit.right), button: .right, modifiers: [], in: replacing.target,
+            triggerMatrix: replacing.triggerMatrix
+        )?.name == "Save")
     }
 }

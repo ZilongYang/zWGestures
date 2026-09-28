@@ -89,6 +89,24 @@ public struct WGTarget: Codable, Equatable, Sendable, Identifiable {
     public var intents: [WGIntent]
     /// Overrides of the general trigger matrix. An empty list means "inherit everything".
     public var triggers: [WGTrigger]
+    /// Whether this target's gestures are used **in addition to** the general ones, with its own
+    /// taking priority.
+    ///
+    /// An application gesture set is normally an overlay: an app that defines one gesture still
+    /// wants copy, paste and the rest. Replacing the general set outright is occasionally useful
+    /// (an app where only that one gesture should work at all), which is why it stays switchable.
+    ///
+    /// **Extension of this project, like `WGIntent.enabled`.** WGestures 2.3.3 has no such key, so
+    /// it is written **only when it differs from the default for that kind** — app targets default
+    /// to inheriting, everything else to replacing, which keeps existing files byte-identical when
+    /// re-encoded (guarded by `ConfigTests`).
+    public var inheritsGlobal: Bool
+
+    /// The default for a kind: application sets overlay the general one; anything else keeps the
+    /// original replace semantics.
+    public static func defaultInheritsGlobal(for kind: WGTargetKind) -> Bool {
+        kind == .app
+    }
 
     public init(
         kind: WGTargetKind,
@@ -97,7 +115,8 @@ public struct WGTarget: Codable, Equatable, Sendable, Identifiable {
         bundleId: String? = nil,
         path: String? = nil,
         intents: [WGIntent] = [],
-        triggers: [WGTrigger] = []
+        triggers: [WGTrigger] = [],
+        inheritsGlobal: Bool? = nil
     ) {
         self.kind = kind
         self.id = id
@@ -106,6 +125,7 @@ public struct WGTarget: Codable, Equatable, Sendable, Identifiable {
         self.path = path
         self.intents = intents
         self.triggers = triggers
+        self.inheritsGlobal = inheritsGlobal ?? Self.defaultInheritsGlobal(for: kind)
     }
 
     public static func makeGeneral() -> WGTarget {
@@ -120,6 +140,7 @@ public struct WGTarget: Codable, Equatable, Sendable, Identifiable {
         case path = "Path"
         case intents = "Intents"
         case triggers = "Triggers"
+        case inheritsGlobal = "InheritGlobal"
     }
 
     public init(from decoder: Decoder) throws {
@@ -131,6 +152,8 @@ public struct WGTarget: Codable, Equatable, Sendable, Identifiable {
         path = try container.decodeIfPresent(String.self, forKey: .path)
         intents = try container.decodeIfPresent([WGIntent].self, forKey: .intents) ?? []
         triggers = try container.decodeIfPresent([WGTrigger].self, forKey: .triggers) ?? []
+        inheritsGlobal = try container.decodeIfPresent(Bool.self, forKey: .inheritsGlobal)
+            ?? Self.defaultInheritsGlobal(for: kind)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -147,6 +170,11 @@ public struct WGTarget: Codable, Equatable, Sendable, Identifiable {
         try container.encode(name, forKey: .name)
         try container.encode(intents, forKey: .intents)
         try container.encode(triggers, forKey: .triggers)
+        // Omitted while it matches the default, so re-encoding an existing file stays key-for-key
+        // identical (ConfigTests guards this).
+        if inheritsGlobal != Self.defaultInheritsGlobal(for: kind) {
+            try container.encode(inheritsGlobal, forKey: .inheritsGlobal)
+        }
     }
 }
 
@@ -178,12 +206,29 @@ public struct WGIntent: Codable, Equatable, Sendable {
     /// Trigger press, then the stroke, then any gesture-modifier steps.
     public var gesture: [WGStep]
     public var command: WGCommand
+    /// Whether this gesture fires at all. A disabled gesture keeps its stroke, command and position
+    /// in the list; the recogniser simply never considers it.
+    ///
+    /// **This is an extension of this project, not part of the original file format.** WGestures
+    /// 2.3.3 has no per-gesture switch (only the trigger matrix), so the key is written **only when
+    /// the gesture is disabled** — an enabled gesture emits exactly the original's keys, which is
+    /// what keeps `ConfigTests`' "re-encoded file is key-for-key identical" guard passing. The
+    /// original app would ignore the extra key and still fire such a gesture; acceptable now that
+    /// this project replaces it, and recorded in docs/ROADMAP.md.
+    public var enabled: Bool
 
-    public init(name: String, executeOnRecognize: Bool = false, gesture: [WGStep], command: WGCommand) {
+    public init(
+        name: String,
+        executeOnRecognize: Bool = false,
+        gesture: [WGStep],
+        command: WGCommand,
+        enabled: Bool = true
+    ) {
         self.name = name
         self.executeOnRecognize = executeOnRecognize
         self.gesture = gesture
         self.command = command
+        self.enabled = enabled
     }
 
     public enum CodingKeys: String, CodingKey {
@@ -191,6 +236,31 @@ public struct WGIntent: Codable, Equatable, Sendable {
         case executeOnRecognize = "ExecuteOnRecognize"
         case gesture = "Gesture"
         case command = "Command"
+        case enabled = "Enabled"
+    }
+
+    /// Written by hand so that a missing `Enabled` key means "enabled" — which is the case for every
+    /// configuration that exists today.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decode(String.self, forKey: .name)
+        executeOnRecognize = try container.decodeIfPresent(Bool.self, forKey: .executeOnRecognize) ?? false
+        gesture = try container.decodeIfPresent([WGStep].self, forKey: .gesture) ?? []
+        command = try container.decode(WGCommand.self, forKey: .command)
+        enabled = try container.decodeIfPresent(Bool.self, forKey: .enabled) ?? true
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(executeOnRecognize, forKey: .executeOnRecognize)
+        try container.encode(gesture, forKey: .gesture)
+        try container.encode(command, forKey: .command)
+        // Omitted while enabled: the original file has no such key, and the round-trip guard in
+        // ConfigTests requires key-for-key equality with it.
+        if !enabled {
+            try container.encode(false, forKey: .enabled)
+        }
     }
 
     /// The steps before the stroke: the trigger itself and any leading conditions.
@@ -315,6 +385,11 @@ public enum WGStep: Codable, Equatable, Sendable {
 
     public var keyDown: WGKeyDownStep? {
         if case .keyDown(let step) = self { return step }
+        return nil
+    }
+
+    public var strokeStep: WGStrokeStep? {
+        if case .stroke(let step) = self { return step }
         return nil
     }
 

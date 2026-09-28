@@ -342,6 +342,20 @@ struct WGPreferencesTests {
         let data = try WGConfigCodec.encodePreferences(original)
         #expect(try WGConfigCodec.decodePreferences(data) == original)
     }
+
+    /// 菜单栏的开机自启开关会把这个字段写回 `prefs.json`，所以要保证它能原样往返。
+    @Test("AutoStart 能原样解码并写回，不被默认值顶掉")
+    func preservesAutoStart() throws {
+        let off = try WGConfigCodec.decodePreferences(Data(#"{ "AutoStart": false }"#.utf8))
+        #expect(off.autoStart == false)
+
+        let written = try WGConfigCodec.encodePreferences(off)
+        let dictionary = try #require(
+            try JSONSerialization.jsonObject(with: written) as? [String: Any]
+        )
+        #expect(dictionary["AutoStart"] as? Bool == false, "AutoStart 必须写出 false 而不是被省略")
+        #expect(try WGConfigCodec.decodePreferences(written).autoStart == false)
+    }
 }
 
 @Suite("配置：版本目录选择")
@@ -407,5 +421,327 @@ struct LegacyImportTests {
 
     private func loadJSON(from data: Data) throws -> NSDictionary {
         try #require(JSONSerialization.jsonObject(with: data) as? NSDictionary)
+    }
+}
+
+@Suite("配置：按手势禁用（本项目扩展字段）")
+struct IntentEnabledTests {
+    private func intent(enabled: Bool) -> WGIntent {
+        WGIntent(
+            name: "Copy",
+            gesture: [
+                .keyDown(WGKeyDownStep(key: "MOUSE:1")),
+                .stroke(WGStrokeStep(isSimple: true, points: [0, 0, 0, 50])),
+            ],
+            command: .keySequence(WGKeySequenceCommand(isSystemHotKey: false, keys: ["Command", "ANSI_C"])),
+            enabled: enabled
+        )
+    }
+
+    @Test("启用的手势不写 Enabled，和原版文件逐键一致")
+    func enabledIntentsOmitTheKey() throws {
+        let data = try WGConfigCodec.encode(WGConfig(general: WGTarget(
+            kind: .general, id: "g", name: "General", intents: [intent(enabled: true)]
+        )))
+        let json = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let general = try #require(json["General"] as? [String: Any])
+        let intents = try #require(general["Intents"] as? [[String: Any]])
+        let first = try #require(intents.first)
+        #expect(first["Enabled"] == nil, "启用状态不写键，否则真实配置往返就不再逐键一致")
+        #expect(Set(first.keys) == ["Name", "ExecuteOnRecognize", "Gesture", "Command"])
+    }
+
+    @Test("禁用的手势写出 Enabled: false，并能读回")
+    func disabledIntentsRoundTrip() throws {
+        let original = WGConfig(general: WGTarget(
+            kind: .general, id: "g", name: "General", intents: [intent(enabled: false)]
+        ))
+        let data = try WGConfigCodec.encode(original)
+        let json = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let general = try #require(json["General"] as? [String: Any])
+        let intents = try #require(general["Intents"] as? [[String: Any]])
+        #expect(try #require(intents.first)["Enabled"] as? Bool == false)
+
+        #expect(try WGConfigCodec.decode(data).config == original)
+    }
+
+    @Test("缺少 Enabled 键当作启用（所有现存配置都是这样）")
+    func missingKeyMeansEnabled() throws {
+        let json = """
+        { "General": { "Id": "g", "Name": "General", "Intents": [
+          { "Name": "Copy", "ExecuteOnRecognize": false,
+            "Gesture": [ { "$type": "KeyDownStep", "Key": "MOUSE:1" },
+                         { "$type": "StrokeStep", "IsSimple": true, "P": [0, 0, 0, 50] } ],
+            "Command": { "$type": "KeySeqCommand", "IsSystemHotKey": false, "Keys": ["Command", "ANSI_C"] } } ],
+          "Triggers": [] }, "Groups": [], "Apps": [], "Specials": [] }
+        """
+        let config = try WGConfigCodec.decode(Data(json.utf8)).config
+        #expect(config.general.intents.first?.enabled == true)
+    }
+}
+
+@Suite("配置：保存前自动备份")
+struct ConfigStoreBackupTests {
+    private func makeStore() throws -> ConfigStore {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("zwg-backup-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        return ConfigStore(directory: directory)
+    }
+
+    private func config(named name: String) -> WGConfig {
+        WGConfig(general: WGTarget(kind: .general, id: "g", name: name))
+    }
+
+    @Test("第一次保存没有旧文件，所以不产生备份")
+    func firstSaveHasNothingToBackUp() throws {
+        let store = try makeStore()
+        try store.saveConfig(config(named: "一"))
+        #expect(store.backups(for: "config").isEmpty)
+    }
+
+    @Test("第二次保存会先备份上一份内容")
+    func backsUpThePreviousContents() throws {
+        let store = try makeStore()
+        try store.saveConfig(config(named: "旧"))
+        try store.saveConfig(config(named: "新"))
+
+        let backups = store.backups(for: "config")
+        #expect(backups.count == 1)
+        let restored = try WGConfigCodec.decode(try Data(contentsOf: try #require(backups.first))).config
+        #expect(restored.general.name == "旧", "备份里必须是被覆盖掉的上一版")
+        #expect(try store.loadConfig().config.general.name == "新")
+    }
+
+    @Test("备份放在子目录里，不影响加载与首次导入判断")
+    func backupsDoNotDisturbLoading() throws {
+        let store = try makeStore()
+        try store.saveConfig(config(named: "一"))
+        try store.saveConfig(config(named: "二"))
+        #expect(store.hasConfig)
+        #expect(try store.loadConfig().config.general.name == "二")
+        // 备份目录里的是完整的配置文件，但名字不是 config.json，不会被误当成主配置。
+        #expect(store.backupsDirectory.lastPathComponent == "Backups")
+        #expect(FileManager.default.fileExists(atPath: store.configURL.path))
+    }
+
+    @Test("同一秒内连续保存不会互相覆盖备份")
+    func sameSecondSavesKeepBothBackups() throws {
+        let store = try makeStore()
+        for name in ["一", "二", "三"] {
+            try store.saveConfig(config(named: name))
+        }
+        // 三次保存 → 两份备份（第一次无旧文件），即使它们的时间戳相同也必须都在。
+        #expect(store.backups(for: "config").count == 2)
+    }
+
+    @Test("备份数量上限为 10，淘汰最旧的")
+    func prunesOldBackups() throws {
+        let store = try makeStore()
+        for index in 0..<15 {
+            try store.saveConfig(config(named: "第\(index)版"))
+        }
+        let backups = store.backups(for: "config")
+        #expect(backups.count == ConfigStore.backupLimit)
+
+        // 15 次保存产生 14 份备份（第 0–13 版），保留最新的 10 份 = 第 4–13 版。
+        // 逐份读内容检查 —— 只数数量看不出「是不是删错了哪一份」。
+        var names: [String] = []
+        for url in backups {
+            names.append(try WGConfigCodec.decode(try Data(contentsOf: url)).config.general.name)
+        }
+        #expect(names.first == "第13版", "最新的一份备份必须是被覆盖掉的上一版，实际 \(names.first ?? "nil")")
+        #expect(names.last == "第4版", "保留的下界应是第 4 版，实际 \(names.last ?? "nil")")
+        #expect(!names.contains("第3版"), "更旧的必须被淘汰")
+        // 名字序 = 时间序（这正是零填充后缀要保证的）。
+        #expect(backups.map(\.lastPathComponent) == backups.map(\.lastPathComponent).sorted(by: >))
+    }
+
+    @Test("偏好文件也各自独立备份")
+    func preferencesGetTheirOwnBackups() throws {
+        let store = try makeStore()
+        try store.savePreferences(WGPreferences(startDragTimeout: 250))
+        #expect(store.backups(for: "prefs").isEmpty)
+        try store.savePreferences(WGPreferences(startDragTimeout: 400))
+        #expect(store.backups(for: "prefs").count == 1)
+        #expect(store.backups(for: "config").isEmpty, "两类备份不能混在一起")
+        #expect(store.loadPreferences().startDragTimeout == 400)
+    }
+}
+
+@Suite("配置：颜色格式往返")
+struct WGColorHexRoundTripTests {
+    @Test("解析后原样写回，大小写与位数都不变")
+    func roundTripsTheOriginalFormat() {
+        for hex in ["#7F7F7FC4", "#20D697E6", "#60606080", "#00000000", "#FFFFFFFF"] {
+            let color = try? #require(WGColor(hex: hex))
+            #expect(color?.hexString == hex, "\(hex) 往返后变了：\(color?.hexString ?? "nil")")
+        }
+    }
+
+    @Test("六位形式按不透明处理，写回为八位")
+    func sixDigitFormGetsFullAlpha() throws {
+        let color = try #require(WGColor(hex: "20D697"))
+        #expect(color.alpha == 1)
+        #expect(color.hexString == "#20D697FF")
+    }
+
+    @Test("非法输入返回 nil，而不是崩掉覆盖层")
+    func rejectsGarbage() {
+        #expect(WGColor(hex: "") == nil)
+        #expect(WGColor(hex: "#12345") == nil)
+        #expect(WGColor(hex: "不是颜色") == nil)
+    }
+
+    @Test("越界的通道值会被夹住，不会写出非法十六进制")
+    func clampsOutOfRangeChannels() {
+        #expect(WGColor(red: 2, green: -1, blue: 0.5, alpha: 5).hexString == "#FF0080FF")
+    }
+}
+
+@MainActor
+@Suite("设置：偏好编辑模型")
+struct PreferencesModelTests {
+    /// 和用户真实 prefs.json 同形，但带一个非默认值便于区分「改过」与「没改」。
+    private func makePreferences() -> WGPreferences {
+        WGPreferences(
+            autoStart: true,
+            startDragTimeout: 250,
+            showPath: true,
+            showGestureName: true,
+            showStatusIcon: true,
+            pathColorNormal: "#7F7F7FC4",
+            pathColorRecognized: "#20D697E6",
+            labelColorNormal: "#60606080",
+            labelColorExecuted: "#20D697E6",
+            targetMode: .focused,
+            pathLineWidth: 2.25,
+            gesturePos: 0.25,
+            skipVersion: "9.9"
+        )
+    }
+
+    @Test("刚载入时没有改动，往返字段完全一致")
+    func loadingIsNotADirtyState() {
+        let model = PreferencesModel(preferences: makePreferences())
+        #expect(!model.isDirty)
+        #expect(model.editedPreferences == makePreferences(), "载入后立刻写回必须与原值一模一样")
+        #expect(model.canSave)
+    }
+
+    @Test("改一项就算有改动，改回原值又变干净")
+    func tracksDirtyStatePerField() {
+        let model = PreferencesModel(preferences: makePreferences())
+
+        model.startDragTimeout = 400
+        #expect(model.isDirty)
+        model.startDragTimeout = 250
+        #expect(!model.isDirty)
+
+        model.targetMode = .underCursor
+        #expect(model.isDirty)
+        model.targetMode = .focused
+        #expect(!model.isDirty)
+
+        model.showPath = false
+        model.showGestureName = false
+        #expect(model.isDirty)
+        model.showPath = true
+        model.showGestureName = true
+        #expect(!model.isDirty)
+
+        model.pathLineWidth = 4
+        model.gesturePos = 0.6
+        #expect(model.isDirty)
+        model.pathLineWidth = 2.25
+        model.gesturePos = 0.25
+        #expect(!model.isDirty)
+    }
+
+    /// 关键：`AutoStart` 归系统（登录项）管，`SkipVersion` 是原版遗留，面板都不编辑，
+    /// 但保存时**必须原样带回去**，否则会把手改的字段抹掉。
+    @Test("面板不编辑的字段在写回时原样保留")
+    func preservesFieldsThePaneDoesNotEdit() {
+        let model = PreferencesModel(preferences: makePreferences())
+        model.showPath = false
+        let written = model.editedPreferences
+        #expect(written.autoStart == true)
+        #expect(written.skipVersion == "9.9")
+        #expect(written.showStatusIcon == true, "未实现的开关也要原样保留，不能因为面板没有就写回默认值")
+        #expect(written.showStartDragTimeoutIndicator == true)
+        #expect(written.showPath == false)
+    }
+
+    @Test("颜色只在用户改动时才重写其十六进制串")
+    func coloursAreOnlyRewrittenWhenChanged() {
+        let model = PreferencesModel(preferences: makePreferences())
+        #expect(model.pathColorNormalHex == "#7F7F7FC4", "未改动就保持原字符串")
+        // 解析出来的是同一个颜色。
+        #expect(model.pathColorNormal.hexString == "#7F7F7FC4")
+
+        model.pathColorRecognized = WGColor(red: 1, green: 0, blue: 0, alpha: 1)
+        #expect(model.pathColorRecognizedHex == "#FF0000FF")
+        #expect(model.isDirty)
+    }
+
+    @Test("非法的手写值会被拦下，而不是写回一个坏文件")
+    func validatesHandEditedValues() {
+        var broken = makePreferences()
+        broken.startDragTimeout = 5_000
+        #expect(PreferencesModel(preferences: broken).canSave == false)
+        #expect(PreferencesModel(preferences: broken).validationError?.contains("起始超时") == true)
+
+        var narrow = makePreferences()
+        narrow.pathLineWidth = 0.1
+        #expect(PreferencesModel(preferences: narrow).canSave == false)
+
+        var offscreen = makePreferences()
+        offscreen.gesturePos = 3
+        #expect(PreferencesModel(preferences: offscreen).canSave == false)
+
+        // 颜色坏掉时不崩，界面上退回一个可显示的灰色……
+        var badColour = makePreferences()
+        badColour.pathColorNormal = "#ZZZ"
+        let model = PreferencesModel(preferences: badColour)
+        #expect(model.canSave, "颜色有问题不该阻止保存其它项")
+        #expect(model.pathColorNormal.alpha > 0.7, "解析失败要退回一个可显示的默认色，而不是崩掉")
+        // ……但**绝不能在用户没碰它的时候改写原字符串**：那等于悄悄改掉用户手写的文件。
+        model.showPath = false
+        #expect(model.editedPreferences.pathColorNormal == "#ZZZ", "没改的颜色必须原样带回去")
+    }
+
+    @Test("revert 丢弃改动，markSaved 把当前状态定为基准")
+    func revertAndMarkSaved() {
+        let model = PreferencesModel(preferences: makePreferences())
+        model.startDragTimeout = 800
+        #expect(model.isDirty)
+
+        model.revert()
+        #expect(!model.isDirty)
+        #expect(model.startDragTimeout == 250)
+
+        model.startDragTimeout = 800
+        model.markSaved()
+        #expect(!model.isDirty)
+        #expect(model.editedPreferences.startDragTimeout == 800)
+    }
+
+    @Test("重新载入会回到磁盘上的值")
+    func reloadsFromDisk() {
+        let model = PreferencesModel(preferences: makePreferences())
+        model.startDragTimeout = 800
+        model.showPath = false
+
+        model.load(preferences: makePreferences())
+        #expect(model.startDragTimeout == 250)
+        #expect(model.showPath)
+        #expect(!model.isDirty)
+    }
+
+    @Test("线宽取整到 1/4，保持 prefs.json 可读")
+    func roundsLineWidth() {
+        #expect(PreferencesModel.roundedLineWidth(2.26) == 2.25)
+        #expect(PreferencesModel.roundedLineWidth(2.9) == 3.0)
+        #expect(PreferencesModel.roundedLineWidth(2.25) == 2.25)
     }
 }

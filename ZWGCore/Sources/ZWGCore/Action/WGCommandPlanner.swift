@@ -127,34 +127,8 @@ public enum WGCommandPlanner {
     }
 
     /// The name shown in the UI for a command, for gesture lists and the debug HUD.
+    /// Forwards to `WGCommand.summary` so the settings list and this log line always agree.
     public static func summary(of command: WGCommand) -> String {
-        switch command {
-        case .keySequence(let sequence):
-            let rendered = sequence.steps.map { step in
-                step.map(renderKeyName).joined(separator: "+")
-            }
-            return rendered.joined(separator: " ")
-        case .systemFunctionKey(let function):
-            return function.function?.localizedName ?? "系统功能键 \(function.selectedIndex)"
-        case .shellScript(let script):
-            let firstLine = script.script.split(separator: "\n").first.map(String.init) ?? ""
-            return firstLine.isEmpty ? "Shell 脚本" : "Shell: \(firstLine)"
-        case .webSearch(let search):
-            return "Web 搜索"
-        case .unknown(let type):
-            return "不支持的命令 \(type)"
-        }
-    }
-
-    private static func renderKeyName(_ name: String) -> String {
-        switch name {
-        case "Command": return "⌘"
-        case "Shift": return "⇧"
-        case "Control": return "⌃"
-        case "Option": return "⌥"
-        default:
-            if name.hasPrefix("ANSI_") { return String(name.dropFirst("ANSI_".count)) }
-            return name
-        }
+        command.summary
     }
 }

@@ -122,7 +122,7 @@ struct TargetResolverTests {
 @Suite("目标解析：与真实配置对照")
 struct RealConfigurationTargetTests {
     @Test(
-        "真实配置里的 Finder 目标能被 Finder 命中，范围只有 3 条手势",
+        "真实配置里的 Finder：自身 3 条手势排在最前，其余继承全局",
         .enabled(if: LegacyConfigImporter.locateVersionDirectory() != nil)
     )
     func resolvesRealFinderTarget() throws {
@@ -132,12 +132,48 @@ struct RealConfigurationTargetTests {
         let resolved = TargetResolver.resolve(config: config, application: finder)
         #expect(resolved.kind == .application)
         #expect(resolved.target.name == "Finder")
-        #expect(resolved.target.intents.count == 3)
-        #expect(resolved.target.intents.map(\.name).sorted() == ["Close All", "Eject", "Move To Trash"])
 
-        // 任何别的应用都走全局
+        // **应用自己的手势排在最前面** —— 顺序就是优先级（见 GestureRecognizer.bestCandidate），
+        // 所以同形状时应用自己的赢，这正是「优先自己程序下的手势」的实现方式。
+        // 注意：真实配置里的 Finder 目标**只有 Path、没有 BundleId**（见 matchApplication 的注释），
+        // 所以这里按数组取，不能按 bundleId 找。
+        let own = try #require(config.apps.first)
+        let ownCount = own.intents.count
+        #expect(ownCount == 3)
+        #expect(own.bundleId == nil, "真实配置的 Finder 目标本来就没有 BundleId")
+        // 顺序就是文件里的顺序，且必须排在继承来的之前。
+        #expect(resolved.target.intents.prefix(ownCount).map(\.name) == ["Close All", "Move To Trash", "Eject"])
+
+        // 其余继承全局：3 + 49。
+        #expect(resolved.inheritedIntentCount == config.general.intents.count)
+        #expect(resolved.target.intents.count == ownCount + config.general.intents.count)
+        #expect(
+            resolved.target.intents.suffix(from: ownCount).map(\.name)
+                == config.general.intents.map(\.name)
+        )
+        // 关键的可用性结果：在 Finder 里「拷贝」这类全局手势仍然在。
+        #expect(resolved.target.intents.contains { $0.name == "Copy" })
+
+        // 关掉继承就退回「只用自己的 3 条」。
+        var replaced = config
+        replaced.apps[0].inheritsGlobal = false
+        let replacing = TargetResolver.resolve(config: replaced, application: finder)
+        #expect(replacing.target.intents.count == ownCount)
+        #expect(replacing.inheritedIntentCount == 0)
+
+        // 任何别的应用都走全局，且不存在继承合并。
         let other = TargetResolver.resolve(config: config, application: vscode)
         #expect(other.kind == .general)
-        #expect(other.target.intents.count == 49)
+        #expect(other.target.intents.count == config.general.intents.count)
+        #expect(other.inheritedIntentCount == 0)
     }
+
+    @Test("桌面这类特殊目标默认不继承（保持原有的替换语义）")
+    func specialTargetsDoNotInheritByDefault() {
+        let desktop = WGTarget(kind: .desktop, name: "Desktop")
+        #expect(desktop.inheritsGlobal == false)
+        #expect(WGTarget(kind: .general, name: "General").inheritsGlobal == false)
+        #expect(WGTarget(kind: .app, name: "Safari").inheritsGlobal, "新建的应用目标默认继承全局")
+    }
+
 }

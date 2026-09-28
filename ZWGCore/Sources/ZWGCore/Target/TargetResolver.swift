@@ -30,12 +30,16 @@ public struct WGResolvedTarget: Sendable, Equatable {
         case desktop
     }
 
+    /// The gesture set to match against. For an inheriting target this is the target's **own**
+    /// gestures followed by the general ones.
     public var target: WGTarget
     public var kind: Kind
     /// The application the gesture was aimed at, when one was resolved.
     public var application: WGApplicationIdentity?
     /// Which trigger inputs this target permits.
     public var triggerMatrix: WGTriggerMatrix
+    /// How many of `target.intents` came from the general set, for diagnostics and tests.
+    public var inheritedIntentCount: Int = 0
 
     public var displayName: String {
         switch kind {
@@ -51,6 +55,11 @@ public struct WGResolvedTarget: Sendable, Equatable {
 /// The lookup order mirrors the original app: a special target for the desktop wins, then an
 /// application target, then the general fallback. Groups are not implemented yet — no
 /// configuration encountered so far uses them, and their on-disk shape is unknown.
+///
+/// A matched target normally **overlays** the general set: its own gestures come first (so they win
+/// when the same shape is defined in both) and everything the app does not define still works —
+/// an app that adds one gesture must not lose copy, paste and the rest. `WGTarget.inheritsGlobal`
+/// turns that off for targets that should replace the general set outright.
 public enum TargetResolver {
     public static func resolve(
         config: WGConfig,
@@ -72,11 +81,22 @@ public enum TargetResolver {
             kind = .general
         }
 
+        // Overlay the general set for inheriting targets. The merge happens here rather than in the
+        // recogniser so that everything downstream — matching, the debug panel, the trigger matrix —
+        // keeps working on a single "effective target" unchanged.
+        var effective = chosen
+        var inherited = 0
+        if kind != .general, chosen.inheritsGlobal {
+            inherited = config.general.intents.count
+            effective.intents = chosen.intents + config.general.intents
+        }
+
         return WGResolvedTarget(
-            target: chosen,
+            target: effective,
             kind: kind,
             application: application,
-            triggerMatrix: WGTriggerMatrix.effective(for: chosen, inheriting: config.general)
+            triggerMatrix: WGTriggerMatrix.effective(for: chosen, inheriting: config.general),
+            inheritedIntentCount: inherited
         )
     }
 

@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		017415BD017A63532BD9B460 /* StrokeCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36D317132AFEBDEA4B4C7CF /* StrokeCanvasView.swift */; };
 		03639C7D8FA0755A9DD5944B /* Stroke.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AD84F47ADADCB43601E2F71 /* Stroke.swift */; };
+		0396B8E74274465ED68367FC /* KeyCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B940BA59992E1C557CEF9EE7 /* KeyCaptureView.swift */; };
 		0ABBA99ECD0A9BFD2D208516 /* InputCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58E69FA11F1C5AED1F3E8887 /* InputCoordinator.swift */; };
 		1ADA97FF6B1AB8935CE567FB /* GestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37BF10BA5362196075C3E339 /* GestureRecognizer.swift */; };
 		1AF54D920DBE3BCDAB6868D0 /* SyntheticEventPoster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EFA9271A0175129EFBF9815 /* SyntheticEventPoster.swift */; };
@@ -20,25 +22,38 @@
 		4AA1EB92D31866167A674BCA /* AppDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F467548A3AD0F152969DB2 /* AppDirectory.swift */; };
 		5633593749843878218A20A5 /* WGConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A64E5D44D16632374E7585 /* WGConfig.swift */; };
 		58FD4C71B2ABD3CB65755E7E /* WGCommandPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72CE5E7190D3810B837000B3 /* WGCommandPlanner.swift */; };
+		5A09BE81C4EBCBD5316C2CD5 /* CommandEditorModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82FE1ABE7E82BDBEFC20BF62 /* CommandEditorModel.swift */; };
 		5BC178E8C5BF03C819D95292 /* WGInputToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54FC8A50F77DDF46B3EC6C08 /* WGInputToken.swift */; };
 		5F271E0433B7609765D9A526 /* WGPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8DBAC8592F6FAEC6C1A76E /* WGPreferences.swift */; };
 		611034544BEA508CCE4CEA83 /* ConfigController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E642F91C963A1195967A57C /* ConfigController.swift */; };
+		62FA2C071BB766A1EF54510E /* CommandSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91F75EFA3ED12D76C1FDEC55 /* CommandSectionView.swift */; };
 		6EEAAB5A5C3825293D9C469C /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E83B1397FEFFA16BBEED4800 /* StatusItemController.swift */; };
 		6FEBE184B064CDA902641F36 /* StrokeOverlayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6637F3B28D985F981FE71EC7 /* StrokeOverlayController.swift */; };
 		70892C1BD3EA6010C5F65EEE /* StrokeNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C390F8040B68014AF2B56727 /* StrokeNormalizer.swift */; };
 		741E9516BCE709CA45B3479C /* WGConfigCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B3261300424B06F6A1DFA1D /* WGConfigCodec.swift */; };
 		75A267C79DF6EBC5ADFC54D0 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = BED6B7EF21C4A63D52847B55 /* Log.swift */; };
+		7B898BD27EB38D7EB8D583BF /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F92AEC05105E2560C739F2 /* SettingsWindowController.swift */; };
 		7BD238A177C5ED3225C78992 /* WGKeyCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75010A7BD55B495E897BA081 /* WGKeyCode.swift */; };
 		7CDCA875B2CD5785580F23B6 /* WGEdgeCorner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 389CCF3A1A0E88671C79DD3A /* WGEdgeCorner.swift */; };
+		7F10A2E67E113975A5CFC8B2 /* PreferencesModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 402DB23B894FB84DD7A2A859 /* PreferencesModel.swift */; };
 		867BEBB34B54E726C2D8BD85 /* PanicShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF7F9BF44FB51C9C5CEA1972 /* PanicShortcut.swift */; };
+		8BB1D3773C46133ECCFD8099 /* GestureEditorModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CEF04421F6DB728B8874E30 /* GestureEditorModel.swift */; };
+		9175658C2B51C4294638F32D /* PreferencesPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4230562FD31D09A980A24E4F /* PreferencesPane.swift */; };
 		93D50BDED8AD9F1EC9293485 /* WGTriggerMatrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB5A2FA9CBB86A01E460887A /* WGTriggerMatrix.swift */; };
 		946DAC3008D6703095ABAAA8 /* ShellScriptRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 295D267B8197892CBCF5B45C /* ShellScriptRunner.swift */; };
 		960C0E6B6A845CA2A6D7634C /* InputEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571F286DEA2B2AE4976D787E /* InputEngine.swift */; };
 		9F85F6EE80EBF792076DA72E /* WindowProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5376AF66A75D62EF0403C889 /* WindowProbe.swift */; };
+		A1EAC0817279C44D9055EDE0 /* GestureEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2108BDB4F7EC5DACCFBE36D5 /* GestureEditorSheet.swift */; };
+		A2F440A774855DEAA0FC65AB /* LoginItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B885A75F3BC161718E5B612C /* LoginItem.swift */; };
+		A818D9E18687807FC919C00D /* WGStrokeConflict.swift in Sources */ = {isa = PBXBuildFile; fileRef = F66A3DC1C6690D07CDB62CDF /* WGStrokeConflict.swift */; };
 		AAA7D11E8C47A9C5D9E08DE0 /* CommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92CBA6DC86C7A9DB15273C50 /* CommandExecutor.swift */; };
 		B74F84187764E1C1B2C31B3D /* PermissionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD120B910B3EAAF21113B6A /* PermissionGate.swift */; };
 		BE0AB9F149CF95824F4041B9 /* TargetResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D609A7BD92EC1F5F4BA9BF0 /* TargetResolver.swift */; };
 		C050C9CB5FC43CADF7E4B46A /* WGColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6AB7125FAF11D6211A6791A /* WGColor.swift */; };
+		C3A1F703445244BC14EB67CF /* SettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF7450D4D95AE0D3DF2B5F3 /* SettingsModel.swift */; };
+		C5E35053643C3C55C6F56620 /* WGStrokeRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19306A631224A6F39956037 /* WGStrokeRecorder.swift */; };
+		CF97F75586014CBBB7401C2A /* SettingsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59F35C5941E2A29C2E7C4758 /* SettingsCoordinator.swift */; };
+		CFB2298BF386B1D420CE0542 /* AddAppTargetSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3381CA578E424AE9B72DA30F /* AddAppTargetSheet.swift */; };
 		D487BF881310D3FF47DB3C22 /* KeyEventPoster.swift in Sources */ = {isa = PBXBuildFile; fileRef = A81491D8DC7F824A57EA9A34 /* KeyEventPoster.swift */; };
 		D6338B5C06987A4DB7D2993D /* OverlayState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F550AB1F613BC1B599471EFE /* OverlayState.swift */; };
 		D7B14F419F40CAE86D52A8E4 /* DebugHUDWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9064449516F65A9510DD1E /* DebugHUDWindow.swift */; };
@@ -46,6 +61,9 @@
 		DEBD2C91305267F6D14EFAEA /* WGActionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39CB8AC93BED2227B3EB998 /* WGActionContext.swift */; };
 		E2A29BDBB1334AD17B516FE7 /* ConfigStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABAA2D5526E8980C694B5548 /* ConfigStore.swift */; };
 		E600576F631A200D29E7BE94 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ECC7CDA01EA1FFBEEDD5B97 /* AppDelegate.swift */; };
+		EA0DEA35FE0CAAD9344F1664 /* StrokeRecordingOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB9215AF0628743AECBEF27C /* StrokeRecordingOverlay.swift */; };
+		EE4116EB8761F60759F845B4 /* WGIntentDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C7D665A6E9A709EFF4A1D19 /* WGIntentDisplay.swift */; };
+		EEC10BE290ACF7CC365CCDDF /* SettingsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B03BAF5A7173629D283714E /* SettingsPanel.swift */; };
 		FDF5F36C475F910B6B15D0C9 /* LegacyConfigImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3411F37FC05B72B39D6837A /* LegacyConfigImporter.swift */; };
 /* End PBXBuildFile section */
 
@@ -53,11 +71,16 @@
 		04F467548A3AD0F152969DB2 /* AppDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDirectory.swift; sourceTree = "<group>"; };
 		0DE58556186EDEF3072856D2 /* zWGestures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = zWGestures.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		126D92BFBFA3E4B274393D35 /* MonotonicClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonotonicClock.swift; sourceTree = "<group>"; };
+		1B03BAF5A7173629D283714E /* SettingsPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPanel.swift; sourceTree = "<group>"; };
+		2108BDB4F7EC5DACCFBE36D5 /* GestureEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureEditorSheet.swift; sourceTree = "<group>"; };
 		295D267B8197892CBCF5B45C /* ShellScriptRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellScriptRunner.swift; sourceTree = "<group>"; };
 		3216492821234F47E042DD74 /* EventTapController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTapController.swift; sourceTree = "<group>"; };
+		3381CA578E424AE9B72DA30F /* AddAppTargetSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddAppTargetSheet.swift; sourceTree = "<group>"; };
 		37BF10BA5362196075C3E339 /* GestureRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureRecognizer.swift; sourceTree = "<group>"; };
 		389CCF3A1A0E88671C79DD3A /* WGEdgeCorner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGEdgeCorner.swift; sourceTree = "<group>"; };
 		3EFA9271A0175129EFBF9815 /* SyntheticEventPoster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntheticEventPoster.swift; sourceTree = "<group>"; };
+		402DB23B894FB84DD7A2A859 /* PreferencesModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesModel.swift; sourceTree = "<group>"; };
+		4230562FD31D09A980A24E4F /* PreferencesPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesPane.swift; sourceTree = "<group>"; };
 		4B3261300424B06F6A1DFA1D /* WGConfigCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGConfigCodec.swift; sourceTree = "<group>"; };
 		4DD120B910B3EAAF21113B6A /* PermissionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionGate.swift; sourceTree = "<group>"; };
 		4E642F91C963A1195967A57C /* ConfigController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigController.swift; sourceTree = "<group>"; };
@@ -65,32 +88,45 @@
 		54FC8A50F77DDF46B3EC6C08 /* WGInputToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGInputToken.swift; sourceTree = "<group>"; };
 		571F286DEA2B2AE4976D787E /* InputEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputEngine.swift; sourceTree = "<group>"; };
 		58E69FA11F1C5AED1F3E8887 /* InputCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputCoordinator.swift; sourceTree = "<group>"; };
+		59F35C5941E2A29C2E7C4758 /* SettingsCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsCoordinator.swift; sourceTree = "<group>"; };
+		5C7D665A6E9A709EFF4A1D19 /* WGIntentDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGIntentDisplay.swift; sourceTree = "<group>"; };
 		65E67B92FE1303A703B5885A /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		6637F3B28D985F981FE71EC7 /* StrokeOverlayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeOverlayController.swift; sourceTree = "<group>"; };
 		6AD84F47ADADCB43601E2F71 /* Stroke.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stroke.swift; sourceTree = "<group>"; };
 		72CE5E7190D3810B837000B3 /* WGCommandPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGCommandPlanner.swift; sourceTree = "<group>"; };
 		75010A7BD55B495E897BA081 /* WGKeyCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGKeyCode.swift; sourceTree = "<group>"; };
 		7ECC7CDA01EA1FFBEEDD5B97 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		82FE1ABE7E82BDBEFC20BF62 /* CommandEditorModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandEditorModel.swift; sourceTree = "<group>"; };
 		88F93E17ED488092EFF652BE /* BuildInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildInfo.swift; sourceTree = "<group>"; };
 		89448E399658487F235019DB /* WebSearchRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchRunner.swift; sourceTree = "<group>"; };
+		8CEF04421F6DB728B8874E30 /* GestureEditorModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureEditorModel.swift; sourceTree = "<group>"; };
 		8D609A7BD92EC1F5F4BA9BF0 /* TargetResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetResolver.swift; sourceTree = "<group>"; };
+		91F75EFA3ED12D76C1FDEC55 /* CommandSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandSectionView.swift; sourceTree = "<group>"; };
 		92CBA6DC86C7A9DB15273C50 /* CommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandExecutor.swift; sourceTree = "<group>"; };
 		A81491D8DC7F824A57EA9A34 /* KeyEventPoster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEventPoster.swift; sourceTree = "<group>"; };
 		ABAA2D5526E8980C694B5548 /* ConfigStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigStore.swift; sourceTree = "<group>"; };
 		AC8DBAC8592F6FAEC6C1A76E /* WGPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGPreferences.swift; sourceTree = "<group>"; };
 		B06777C46F74A73BE3DFAA02 /* PointerEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointerEvent.swift; sourceTree = "<group>"; };
+		B19306A631224A6F39956037 /* WGStrokeRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGStrokeRecorder.swift; sourceTree = "<group>"; };
 		B39CB8AC93BED2227B3EB998 /* WGActionContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGActionContext.swift; sourceTree = "<group>"; };
 		B6AB7125FAF11D6211A6791A /* WGColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGColor.swift; sourceTree = "<group>"; };
+		B885A75F3BC161718E5B612C /* LoginItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItem.swift; sourceTree = "<group>"; };
+		B940BA59992E1C557CEF9EE7 /* KeyCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyCaptureView.swift; sourceTree = "<group>"; };
 		BCAA306B3006478FA8B51C30 /* EngineController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineController.swift; sourceTree = "<group>"; };
 		BED6B7EF21C4A63D52847B55 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		C2A64E5D44D16632374E7585 /* WGConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGConfig.swift; sourceTree = "<group>"; };
+		C36D317132AFEBDEA4B4C7CF /* StrokeCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeCanvasView.swift; sourceTree = "<group>"; };
 		C390F8040B68014AF2B56727 /* StrokeNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeNormalizer.swift; sourceTree = "<group>"; };
 		CC9064449516F65A9510DD1E /* DebugHUDWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugHUDWindow.swift; sourceTree = "<group>"; };
+		E1F92AEC05105E2560C739F2 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		E3411F37FC05B72B39D6837A /* LegacyConfigImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyConfigImporter.swift; sourceTree = "<group>"; };
 		E83B1397FEFFA16BBEED4800 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
+		EDF7450D4D95AE0D3DF2B5F3 /* SettingsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModel.swift; sourceTree = "<group>"; };
 		EF7F9BF44FB51C9C5CEA1972 /* PanicShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanicShortcut.swift; sourceTree = "<group>"; };
 		F550AB1F613BC1B599471EFE /* OverlayState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayState.swift; sourceTree = "<group>"; };
+		F66A3DC1C6690D07CDB62CDF /* WGStrokeConflict.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGStrokeConflict.swift; sourceTree = "<group>"; };
 		FB5A2FA9CBB86A01E460887A /* WGTriggerMatrix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGTriggerMatrix.swift; sourceTree = "<group>"; };
+		FB9215AF0628743AECBEF27C /* StrokeRecordingOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeRecordingOverlay.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -151,6 +187,7 @@
 		77DF59B90DADCDB32789A412 /* Config */ = {
 			isa = PBXGroup;
 			children = (
+				9AF9D227D4697B3D69411D51 /* Display */,
 				ABAA2D5526E8980C694B5548 /* ConfigStore.swift */,
 				E3411F37FC05B72B39D6837A /* LegacyConfigImporter.swift */,
 				C2A64E5D44D16632374E7585 /* WGConfig.swift */,
@@ -190,6 +227,7 @@
 				7ECC7CDA01EA1FFBEEDD5B97 /* AppDelegate.swift */,
 				4E642F91C963A1195967A57C /* ConfigController.swift */,
 				BCAA306B3006478FA8B51C30 /* EngineController.swift */,
+				B885A75F3BC161718E5B612C /* LoginItem.swift */,
 				65E67B92FE1303A703B5885A /* main.swift */,
 				E83B1397FEFFA16BBEED4800 /* StatusItemController.swift */,
 			);
@@ -213,12 +251,43 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		9AF9D227D4697B3D69411D51 /* Display */ = {
+			isa = PBXGroup;
+			children = (
+				5C7D665A6E9A709EFF4A1D19 /* WGIntentDisplay.swift */,
+			);
+			path = Display;
+			sourceTree = "<group>";
+		};
 		B347625EA2E78D2855919D1A /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				3381CA578E424AE9B72DA30F /* AddAppTargetSheet.swift */,
+				91F75EFA3ED12D76C1FDEC55 /* CommandSectionView.swift */,
 				CC9064449516F65A9510DD1E /* DebugHUDWindow.swift */,
+				2108BDB4F7EC5DACCFBE36D5 /* GestureEditorSheet.swift */,
+				B940BA59992E1C557CEF9EE7 /* KeyCaptureView.swift */,
+				4230562FD31D09A980A24E4F /* PreferencesPane.swift */,
+				59F35C5941E2A29C2E7C4758 /* SettingsCoordinator.swift */,
+				1B03BAF5A7173629D283714E /* SettingsPanel.swift */,
+				E1F92AEC05105E2560C739F2 /* SettingsWindowController.swift */,
+				C36D317132AFEBDEA4B4C7CF /* StrokeCanvasView.swift */,
+				FB9215AF0628743AECBEF27C /* StrokeRecordingOverlay.swift */,
 			);
 			path = UI;
+			sourceTree = "<group>";
+		};
+		B858D19D5E6D9B014D6FD52E /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				82FE1ABE7E82BDBEFC20BF62 /* CommandEditorModel.swift */,
+				8CEF04421F6DB728B8874E30 /* GestureEditorModel.swift */,
+				402DB23B894FB84DD7A2A859 /* PreferencesModel.swift */,
+				EDF7450D4D95AE0D3DF2B5F3 /* SettingsModel.swift */,
+				F66A3DC1C6690D07CDB62CDF /* WGStrokeConflict.swift */,
+				B19306A631224A6F39956037 /* WGStrokeRecorder.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 		BCD519B8708A9E8ED6A6CFEB /* zWGestures */ = {
@@ -285,6 +354,7 @@
 				6F63765F53F4AF7D32167E14 /* Input */,
 				87D8FB3F2185EF3110FAD515 /* Overlay */,
 				5E460AE5900A25361D6B25CE /* Recog */,
+				B858D19D5E6D9B014D6FD52E /* Settings */,
 				DFFA8358CEA7D9569D9ECAAD /* Target */,
 				88F93E17ED488092EFF652BE /* BuildInfo.swift */,
 				BED6B7EF21C4A63D52847B55 /* Log.swift */,
@@ -352,31 +422,46 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CFB2298BF386B1D420CE0542 /* AddAppTargetSheet.swift in Sources */,
 				E600576F631A200D29E7BE94 /* AppDelegate.swift in Sources */,
 				4AA1EB92D31866167A674BCA /* AppDirectory.swift in Sources */,
 				D8FE20F18E73B88FBDCB0662 /* BuildInfo.swift in Sources */,
+				5A09BE81C4EBCBD5316C2CD5 /* CommandEditorModel.swift in Sources */,
 				AAA7D11E8C47A9C5D9E08DE0 /* CommandExecutor.swift in Sources */,
+				62FA2C071BB766A1EF54510E /* CommandSectionView.swift in Sources */,
 				611034544BEA508CCE4CEA83 /* ConfigController.swift in Sources */,
 				E2A29BDBB1334AD17B516FE7 /* ConfigStore.swift in Sources */,
 				D7B14F419F40CAE86D52A8E4 /* DebugHUDWindow.swift in Sources */,
 				1B715980C539EFED04C20169 /* EngineController.swift in Sources */,
 				49CAE6454474546D40CD74E1 /* EventTapController.swift in Sources */,
+				8BB1D3773C46133ECCFD8099 /* GestureEditorModel.swift in Sources */,
+				A1EAC0817279C44D9055EDE0 /* GestureEditorSheet.swift in Sources */,
 				1ADA97FF6B1AB8935CE567FB /* GestureRecognizer.swift in Sources */,
 				0ABBA99ECD0A9BFD2D208516 /* InputCoordinator.swift in Sources */,
 				960C0E6B6A845CA2A6D7634C /* InputEngine.swift in Sources */,
+				0396B8E74274465ED68367FC /* KeyCaptureView.swift in Sources */,
 				D487BF881310D3FF47DB3C22 /* KeyEventPoster.swift in Sources */,
 				FDF5F36C475F910B6B15D0C9 /* LegacyConfigImporter.swift in Sources */,
 				75A267C79DF6EBC5ADFC54D0 /* Log.swift in Sources */,
+				A2F440A774855DEAA0FC65AB /* LoginItem.swift in Sources */,
 				1D96047CAB4FEF028345ECDA /* MonotonicClock.swift in Sources */,
 				D6338B5C06987A4DB7D2993D /* OverlayState.swift in Sources */,
 				867BEBB34B54E726C2D8BD85 /* PanicShortcut.swift in Sources */,
 				B74F84187764E1C1B2C31B3D /* PermissionGate.swift in Sources */,
 				20BA77DFC9FB80EF291E5C3A /* PointerEvent.swift in Sources */,
+				7F10A2E67E113975A5CFC8B2 /* PreferencesModel.swift in Sources */,
+				9175658C2B51C4294638F32D /* PreferencesPane.swift in Sources */,
+				CF97F75586014CBBB7401C2A /* SettingsCoordinator.swift in Sources */,
+				C3A1F703445244BC14EB67CF /* SettingsModel.swift in Sources */,
+				EEC10BE290ACF7CC365CCDDF /* SettingsPanel.swift in Sources */,
+				7B898BD27EB38D7EB8D583BF /* SettingsWindowController.swift in Sources */,
 				946DAC3008D6703095ABAAA8 /* ShellScriptRunner.swift in Sources */,
 				6EEAAB5A5C3825293D9C469C /* StatusItemController.swift in Sources */,
 				03639C7D8FA0755A9DD5944B /* Stroke.swift in Sources */,
+				017415BD017A63532BD9B460 /* StrokeCanvasView.swift in Sources */,
 				70892C1BD3EA6010C5F65EEE /* StrokeNormalizer.swift in Sources */,
 				6FEBE184B064CDA902641F36 /* StrokeOverlayController.swift in Sources */,
+				EA0DEA35FE0CAAD9344F1664 /* StrokeRecordingOverlay.swift in Sources */,
 				1AF54D920DBE3BCDAB6868D0 /* SyntheticEventPoster.swift in Sources */,
 				BE0AB9F149CF95824F4041B9 /* TargetResolver.swift in Sources */,
 				DEBD2C91305267F6D14EFAEA /* WGActionContext.swift in Sources */,
@@ -386,8 +471,11 @@
 				741E9516BCE709CA45B3479C /* WGConfigCodec.swift in Sources */,
 				7CDCA875B2CD5785580F23B6 /* WGEdgeCorner.swift in Sources */,
 				5BC178E8C5BF03C819D95292 /* WGInputToken.swift in Sources */,
+				EE4116EB8761F60759F845B4 /* WGIntentDisplay.swift in Sources */,
 				7BD238A177C5ED3225C78992 /* WGKeyCode.swift in Sources */,
 				5F271E0433B7609765D9A526 /* WGPreferences.swift in Sources */,
+				A818D9E18687807FC919C00D /* WGStrokeConflict.swift in Sources */,
+				C5E35053643C3C55C6F56620 /* WGStrokeRecorder.swift in Sources */,
 				93D50BDED8AD9F1EC9293485 /* WGTriggerMatrix.swift in Sources */,
 				49708BA7C9C5006DFBE58DDE /* WebSearchRunner.swift in Sources */,
 				9F85F6EE80EBF792076DA72E /* WindowProbe.swift in Sources */,

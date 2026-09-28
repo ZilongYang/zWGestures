@@ -56,6 +56,24 @@ public enum WGKeyCode {
         "Function": .maskSecondaryFn,
     ]
 
+    /// Reverse of `keyCodes`: virtual key code to configuration name.
+    ///
+    /// Needed by the settings window's key recorder. The forward table has no duplicate codes, so
+    /// this inversion is unambiguous; a code that is not in the table has no name and cannot be
+    /// recorded.
+    public static let namesByKeyCode: [CGKeyCode: String] = {
+        var table: [CGKeyCode: String] = [:]
+        for (name, code) in keyCodes where table[code] == nil {
+            table[code] = name
+        }
+        return table
+    }()
+
+    /// The configuration name for a virtual key code, or `nil` when this build has no name for it.
+    public static func name(forKeyCode code: CGKeyCode) -> String? {
+        namesByKeyCode[code]
+    }
+
     /// `ANSI_…` names and the special keys seen in real configurations.
     public static let keyCodes: [String: CGKeyCode] = {
         var table: [String: CGKeyCode] = [:]

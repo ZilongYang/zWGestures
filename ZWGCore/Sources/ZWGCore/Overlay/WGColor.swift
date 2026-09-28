@@ -43,4 +43,18 @@ public struct WGColor: Sendable, Equatable {
             alpha = Double(value & 0xFF) / 255
         }
     }
+
+    /// The `#RRGGBBAA` form the original app writes.
+    ///
+    /// Deliberately always eight digits and upper case, matching `prefs.json`, so writing a colour
+    /// back does not change how the file looks.
+    public var hexString: String {
+        func channel(_ value: Double) -> Int {
+            Int((min(max(value, 0), 1) * 255).rounded())
+        }
+        return String(
+            format: "#%02X%02X%02X%02X",
+            channel(red), channel(green), channel(blue), channel(alpha)
+        )
+    }
 }

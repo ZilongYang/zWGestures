@@ -23,6 +23,25 @@ public enum BuildInfo {
         return value == 1
     }
 
+    /// When the running executable was written — that is, which build this process is.
+    ///
+    /// Worth showing in the UI because `open` on an already-running app only brings the old
+    /// process forward: without a visible stamp there is no way to tell "my change didn't work"
+    /// from "I am still looking at yesterday's binary".
+    public static var buildDate: Date? {
+        guard let url = Bundle.main.executableURL else { return nil }
+        let values = try? url.resourceValues(forKeys: [.contentModificationDateKey])
+        return values?.contentModificationDate
+    }
+
+    /// Short, sortable rendering of `buildDate`, e.g. `09-28 15:10:40`.
+    public static var buildStamp: String {
+        guard let date = buildDate else { return "未知构建" }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MM-dd HH:mm:ss"
+        return formatter.string(from: date)
+    }
+
     private static func sysctlInt(_ name: String) throws -> Int32 {
         var value: Int32 = 0
         var size = MemoryLayout<Int32>.size

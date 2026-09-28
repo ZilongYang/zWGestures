@@ -81,6 +81,8 @@ public struct GestureRecognizer: Sendable {
 
         var candidates: [RecognitionMatch] = []
         for (index, intent) in target.intents.enumerated() {
+            // 被禁用的手势保留在列表里，但不参与任何匹配 —— 这就是「禁用」的全部语义。
+            guard intent.enabled else { continue }
             guard let definition = intent.strokeStep else { continue }
             guard isTriggerSatisfied(intent.triggerSteps, button: button, matrix: triggerMatrix) else { continue }
             guard areModifiersSatisfied(intent.modifierSteps, recorded: modifiers) else { continue }
@@ -122,15 +124,28 @@ public struct GestureRecognizer: Sendable {
 
     /// Picks between intents that share a trajectory.
     ///
-    /// The ordering matters for real configurations: `拷贝` and `剪切` are both an up-stroke,
-    /// and only the extra left-button press distinguishes them. The more specific definition
-    /// therefore wins; ties go to the closer shape and then to the later entry in the list,
-    /// matching WGestures' documented "later match wins" behaviour.
+    /// Order of preference:
+    /// 1. **More 手势修饰键 wins.** `拷贝` and `剪切` are both an up-stroke and only the extra
+    ///    left-button press distinguishes them, so the more specific definition must take over when
+    ///    that button is also pressed.
+    /// 2. **Earlier in the list wins.** The list order is the user's priority control: two gestures
+    ///    with the same trajectory are otherwise indistinguishable, and the settings window lets
+    ///    them reorder entries to decide which one fires.
+    /// 3. Closer shape, purely as a last resort.
+    ///
+    /// This deliberately differs from WGestures' documented "later match wins": an explicit,
+    /// visible priority is far easier to reason about than "the last one in the file wins", and it
+    /// is what makes the settings list's ordering meaningful.
+    ///
+    /// Putting the list order ahead of the shape distance is safe because two *different* shapes
+    /// cannot both pass `matchThreshold`: in the user's real configuration the closest
+    /// non-duplicate pair is ~0.28 apart, nearly three times the 0.10 threshold. Order therefore
+    /// only ever decides between entries that are genuine duplicates.
     func bestCandidate(in candidates: [RecognitionMatch]) -> RecognitionMatch? {
         candidates.max { lhs, rhs in
             if lhs.modifierCount != rhs.modifierCount { return lhs.modifierCount < rhs.modifierCount }
-            if lhs.distance != rhs.distance { return lhs.distance > rhs.distance }
-            return lhs.intentIndex < rhs.intentIndex
+            if lhs.intentIndex != rhs.intentIndex { return lhs.intentIndex > rhs.intentIndex }
+            return lhs.distance > rhs.distance
         }
     }
 

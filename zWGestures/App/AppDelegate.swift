@@ -5,6 +5,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItemController: StatusItemController?
     private var engine: EngineController?
     private var debugHUD: DebugHUDWindow?
+    private var settings: SettingsWindowController?
     private var config: ConfigController?
     private var appDirectory: AppDirectory?
 
@@ -23,16 +24,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             startDragTimeout: config.preferences.startDragTimeoutSeconds
         )
         let debugHUD = DebugHUDWindow(coordinator: engine.coordinator)
+        let settings = SettingsWindowController(
+            coordinator: SettingsCoordinator(config: config, engine: engine)
+        )
         let statusItemController = StatusItemController(
             engine: engine,
             config: config,
-            debugHUD: debugHUD
+            debugHUD: debugHUD,
+            settings: settings,
+            loginItem: LoginItem()
         )
 
         self.config = config
         self.appDirectory = appDirectory
         self.engine = engine
         self.debugHUD = debugHUD
+        self.settings = settings
         self.statusItemController = statusItemController
 
         let hadConfig = config.store.hasConfig
@@ -48,8 +55,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if ProcessInfo.processInfo.environment["ZWG_DEBUG_HUD"] == "1" {
             debugHUD.show()
         }
+        if ProcessInfo.processInfo.environment["ZWG_SETTINGS_PANEL"] == "1" {
+            settings.show()
+        }
 
         PermissionGate.logCurrentState()
+        // The login item lives in the system, not in our config file: record what the system
+        // says at launch, so a failure is diagnosable from the log alone.
+        Log.app.notice("""
+            登录项状态：\(String(describing: LoginItem().status), privacy: .public)，\
+            应用路径：\(Bundle.main.bundlePath, privacy: .public)
+            """)
         if !PermissionGate.isAccessibilityTrusted {
             // Show the system prompt offering to open the Accessibility pane. The engine
             // starts by itself as soon as the checkbox is ticked (see EngineController).

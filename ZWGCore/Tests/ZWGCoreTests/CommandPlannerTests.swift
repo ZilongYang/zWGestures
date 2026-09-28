@@ -207,4 +207,19 @@ struct CommandSummaryTests {
         ))
         #expect(summary == "增加音量")
     }
+
+    @Test("鼠标与滚动步骤渲染成中文输入名")
+    func describesInputKeys() {
+        #expect(WGCommand.describe(inputKey: "MOUSE:1") == "鼠标右键")
+        #expect(WGCommand.describe(inputKey: "MOUSE:0") == "鼠标左键")
+        #expect(WGCommand.describe(inputKey: "Command") == "⌘")
+        #expect(WGCommand.describe(inputKey: "ANSI_C") == "C")
+
+        // 滚动的正负号方向：正值向上/向左，与配置文件里 VSCROLL:±n 的写法一致。
+        // 注意 ROADMAP §7 仍把「量级如何分档」列为未验证，这里只断言方向。
+        #expect(WGCommand.describe(inputKey: "VSCROLL:11") == "滚动↑")
+        #expect(WGCommand.describe(inputKey: "VSCROLL:-11") == "滚动↓")
+        #expect(WGCommand.describe(inputKey: "HSCROLL:5") == "滚动←")
+        #expect(WGCommand.describe(inputKey: "HSCROLL:-5") == "滚动→")
+    }
 }
