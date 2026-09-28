@@ -2,6 +2,7 @@ SHELL := /bin/bash
 CONFIG ?= Debug
 DERIVED := build
 APP := $(DERIVED)/Build/Products/$(CONFIG)/zWGestures.app
+INSTALLED_APP := /Applications/zWGestures.app
 
 SIGNING_KEYCHAIN := $(HOME)/Library/Keychains/zWGestures.keychain-db
 SIGNING_KEYCHAIN_PASSWORD := zwgestures
@@ -35,19 +36,49 @@ unlock-signing:
 build: gen unlock-signing
 	$(XCODEBUILD) build
 
+## Source-level guards that unit tests cannot express (see docs/ROADMAP.md §8)
+lint:
+	@python3 scripts/check-appkit-isolation.py
+
 ## Run the SwiftPM unit tests for the ZWGCore package
-test:
+test: lint
 	$(SWIFT_TEST)
 
+## Quit a running instance.
+##
+## `open` on an app that is already running only brings the existing process forward — it does NOT
+## start the freshly built binary. Without this step it is easy to spend a whole test cycle looking
+## at the previous build, which has already happened once.
+stop:
+	@if pgrep -x zWGestures >/dev/null; then \
+		echo "先退出正在运行的实例（否则 open 只会把旧进程切到前台）"; \
+		osascript -e 'tell application "zWGestures" to quit' >/dev/null 2>&1 || true; \
+		for i in 1 2 3 4 5 6; do pgrep -x zWGestures >/dev/null || break; sleep 0.5; done; \
+		pgrep -x zWGestures >/dev/null && echo "警告：实例仍未退出，请从菜单栏手动退出" || true; \
+	fi
+
 ## Launch the built app
-run: build
+run: stop build
 	open "$(APP)"
 
 ## Launch the built app with the debug HUD open
-run-debug: build
+run-debug: stop build
 	open --env ZWG_DEBUG_HUD=1 "$(APP)"
 
-.PHONY: all gen unlock-signing build test run run-debug clean info
+## Copy the built app to /Applications (a stable path is required by the login item)
+##
+## Overwrites in place instead of deleting first: `SMAppService` associates the login item with
+## the bundle, and rebuilding the bundle from scratch is the prime suspect for the `.notFound`
+## status recorded in docs/ROADMAP.md §10.
+install: stop build
+	ditto "$(APP)" "$(INSTALLED_APP)"
+	@echo "已安装到 $(INSTALLED_APP)"
+
+## Launch the built app with the settings window open
+run-settings: stop build
+	open --env ZWG_SETTINGS_PANEL=1 "$(APP)"
+
+.PHONY: all gen unlock-signing build lint test run run-debug run-settings stop install clean info
 
 clean:
 	rm -rf $(DERIVED) ZWGCore/.build

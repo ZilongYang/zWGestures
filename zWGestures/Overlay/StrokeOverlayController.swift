@@ -171,8 +171,10 @@ private final class OverlayPanel: NSPanel {
         contentView = view
     }
 
-    override var canBecomeKey: Bool { false }
-    override var canBecomeMain: Bool { false }
+    /// `nonisolated` for the same reason as `TrailView.isFlipped`: AppKit can ask these from
+    /// non-isolated event paths, and an isolated override makes the runtime check run there.
+    nonisolated override var canBecomeKey: Bool { false }
+    nonisolated override var canBecomeMain: Bool { false }
 }
 
 // MARK: - View
@@ -182,8 +184,13 @@ private final class TrailView: NSView {
     private var style = OverlayStyle()
     private var alpha: CGFloat = 1
 
-    override var isFlipped: Bool { false }
-    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+    // `nonisolated` on purpose. `NSView` is main-actor isolated on this SDK, so an isolated
+    // override gets a runtime "am I on the main actor?" check inserted — and AppKit reaches these
+    // two from its tracking-area/hit-testing path (`_convertPoint_fromAncestor`), where that check
+    // faulted and took the whole app down (crash report zWGestures-2026-09-28-211050.ips, SIGSEGV
+    // inside swift_task_isMainExecutorImpl). Neither reads any state, so opting out costs nothing.
+    nonisolated override var isFlipped: Bool { false }
+    nonisolated override func hitTest(_ point: NSPoint) -> NSView? { nil }
 
     func update(state: OverlayState, style: OverlayStyle, alpha: CGFloat) {
         self.state = state
