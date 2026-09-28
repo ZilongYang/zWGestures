@@ -212,7 +212,10 @@ final class StatusItemController: NSObject {
 
     @objc private func handleAbout() {
         NSApp.activate(ignoringOtherApps: true)
-        NSApp.orderFrontStandardAboutPanel(options: [
+        // 显式给出图标：macOS 26 上实测「老的 CFBundleIconFile + 独立 .icns」这条路会让
+        // 关于面板渲染成空白（Finder 走图标服务，两条路不同），而 NSWorkspace 这条正是
+        // Finder 用的那条、已验证可用。图标资源本身仍由 asset catalog 提供（见 project.yml）。
+        var options: [NSApplication.AboutPanelOptionKey: Any] = [
             .applicationName: "zWGestures",
             .applicationVersion: "\(Bundle.main.shortVersion) (\(Bundle.main.buildVersion))",
             .credits: NSAttributedString(
@@ -222,7 +225,11 @@ final class StatusItemController: NSObject {
                     + config.status.localizedText,
                 attributes: [.font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)]
             ),
-        ])
+        ]
+        let icon = NSWorkspace.shared.icon(forFile: Bundle.main.bundlePath)
+        icon.size = NSSize(width: 128, height: 128)
+        options[.applicationIcon] = icon
+        NSApp.orderFrontStandardAboutPanel(options: options)
     }
 
     @objc private func handleQuit() {

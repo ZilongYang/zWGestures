@@ -557,6 +557,37 @@ struct ConfigStoreBackupTests {
         #expect(backups.map(\.lastPathComponent) == backups.map(\.lastPathComponent).sorted(by: >))
     }
 
+    @Test("同一毫秒内连续保存：备份不互相顶掉，名字序仍是时间序")
+    func sameMillisecondSavesStayOrdered() throws {
+        // 把时钟钉死在同一毫秒，让撞名路径**必然**发生 —— 不然这个 bug 每 8 次才露一次
+        // （它曾把新备份当成旧备份淘汰掉：撞名后缀 "-02" 排在基础名之前，因为 "-" < "."）。
+        let store = try makeStore()
+        let fixed = Date(timeIntervalSince1970: 1_800_000_000.123)
+        store.now = { fixed }
+
+        for index in 0..<15 {
+            try store.saveConfig(config(named: "第\(index)版"))
+        }
+
+        let backups = store.backups(for: "config")
+        #expect(backups.count == ConfigStore.backupLimit)
+        // 名字形状必须完全一致，排序才等价于按时间排序。
+        let names = backups.map(\.lastPathComponent)
+        #expect(names == names.sorted(by: >), "名字序必须是时间序（降序）")
+        let stampShape = /^config-\d{8}-\d{6}-\d{3}\.json$/
+        #expect(names.allSatisfy { $0.wholeMatch(of: stampShape) != nil }, "不得出现带后缀的变体名：\(names)")
+
+        // 15 次保存 → 14 份备份，保留最新 10 份 = 第 4–13 版。
+        var versions: [String] = []
+        for url in backups {
+            versions.append(try WGConfigCodec.decode(try Data(contentsOf: url)).config.general.name)
+        }
+        #expect(versions.first == "第13版")
+        #expect(versions.last == "第4版")
+        #expect(!versions.contains("第3版"))
+        #expect(Set(versions).count == versions.count, "不该有重复的版本")
+    }
+
     @Test("偏好文件也各自独立备份")
     func preferencesGetTheirOwnBackups() throws {
         let store = try makeStore()

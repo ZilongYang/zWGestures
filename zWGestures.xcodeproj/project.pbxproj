@@ -11,7 +11,6 @@
 		03639C7D8FA0755A9DD5944B /* Stroke.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AD84F47ADADCB43601E2F71 /* Stroke.swift */; };
 		0396B8E74274465ED68367FC /* KeyCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B940BA59992E1C557CEF9EE7 /* KeyCaptureView.swift */; };
 		0ABBA99ECD0A9BFD2D208516 /* InputCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58E69FA11F1C5AED1F3E8887 /* InputCoordinator.swift */; };
-		16D2764919E9A284EB0E5326 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 6931CBB896B4A329524EB27D /* AppIcon.icns */; };
 		1ADA97FF6B1AB8935CE567FB /* GestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37BF10BA5362196075C3E339 /* GestureRecognizer.swift */; };
 		1AF54D920DBE3BCDAB6868D0 /* SyntheticEventPoster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EFA9271A0175129EFBF9815 /* SyntheticEventPoster.swift */; };
 		1B715980C539EFED04C20169 /* EngineController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCAA306B3006478FA8B51C30 /* EngineController.swift */; };
@@ -67,6 +66,7 @@
 		EA0DEA35FE0CAAD9344F1664 /* StrokeRecordingOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB9215AF0628743AECBEF27C /* StrokeRecordingOverlay.swift */; };
 		EE4116EB8761F60759F845B4 /* WGIntentDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C7D665A6E9A709EFF4A1D19 /* WGIntentDisplay.swift */; };
 		EEC10BE290ACF7CC365CCDDF /* SettingsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B03BAF5A7173629D283714E /* SettingsPanel.swift */; };
+		FD1092E7B291CCE0713893B3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 12DA2A9E0A4B348A3E72216A /* Assets.xcassets */; };
 		FDF5F36C475F910B6B15D0C9 /* LegacyConfigImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3411F37FC05B72B39D6837A /* LegacyConfigImporter.swift */; };
 /* End PBXBuildFile section */
 
@@ -74,6 +74,7 @@
 		04F467548A3AD0F152969DB2 /* AppDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDirectory.swift; sourceTree = "<group>"; };
 		0DE58556186EDEF3072856D2 /* zWGestures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = zWGestures.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		126D92BFBFA3E4B274393D35 /* MonotonicClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonotonicClock.swift; sourceTree = "<group>"; };
+		12DA2A9E0A4B348A3E72216A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1B03BAF5A7173629D283714E /* SettingsPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPanel.swift; sourceTree = "<group>"; };
 		2108BDB4F7EC5DACCFBE36D5 /* GestureEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureEditorSheet.swift; sourceTree = "<group>"; };
 		295D267B8197892CBCF5B45C /* ShellScriptRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellScriptRunner.swift; sourceTree = "<group>"; };
@@ -97,7 +98,6 @@
 		5E2F92B574B900E37E509CAF /* LaunchAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAgent.swift; sourceTree = "<group>"; };
 		65E67B92FE1303A703B5885A /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		6637F3B28D985F981FE71EC7 /* StrokeOverlayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeOverlayController.swift; sourceTree = "<group>"; };
-		6931CBB896B4A329524EB27D /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		6AD84F47ADADCB43601E2F71 /* Stroke.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stroke.swift; sourceTree = "<group>"; };
 		72CE5E7190D3810B837000B3 /* WGCommandPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGCommandPlanner.swift; sourceTree = "<group>"; };
 		75010A7BD55B495E897BA081 /* WGKeyCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGKeyCode.swift; sourceTree = "<group>"; };
@@ -156,7 +156,7 @@
 		27F7F6D1D29A9A41955BB727 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				6931CBB896B4A329524EB27D /* AppIcon.icns */,
+				12DA2A9E0A4B348A3E72216A /* Assets.xcassets */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -448,7 +448,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				16D2764919E9A284EB0E5326 /* AppIcon.icns in Resources */,
+				FD1092E7B291CCE0713893B3 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -530,6 +530,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -623,6 +624,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";

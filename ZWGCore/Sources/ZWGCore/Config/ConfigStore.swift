@@ -15,6 +15,13 @@ public final class ConfigStore: @unchecked Sendable {
     public let directory: URL
     private let fileManager = FileManager.default
 
+    /// Where "now" comes from when stamping a backup.
+    ///
+    /// Injectable so tests can pin the clock: the collision path below only triggers when two saves
+    /// land in the same millisecond, and a test that merely saves in a tight loop therefore catches
+    /// it **once every few runs** (it did: 1 in 8). Pinning the clock makes that path deterministic.
+    var now: () -> Date = { Date() }
+
     public init(directory: URL = ConfigStore.defaultDirectory) {
         self.directory = directory
     }
@@ -88,23 +95,47 @@ public final class ConfigStore: @unchecked Sendable {
             // order being time order, and a *reused* name would be pruned as if it were the oldest
             // entry — which silently stopped backups from being kept at all.
             formatter.dateFormat = "yyyyMMdd-HHmmss-SSS"
-            let stamp = formatter.string(from: Date())
 
-            var target = backupsDirectory.appendingPathComponent("\(label)-\(stamp).json")
-            var suffix = 2
-            // Safety net for the (very unlikely) case of two saves in the same millisecond. The
-            // suffix is zero-padded so that name order stays time order.
-            while fileManager.fileExists(atPath: target.path) {
+            // Two saves inside the same millisecond are resolved by **moving the timestamp forward
+            // one millisecond at a time**, never by appending a suffix: a suffixed name such as
+            // `…-263-02.json` sorts *before* `…-263.json` (because "-" < "."), which inverts name
+            // order against time order and makes pruning drop the newer copy and keep the older one.
+            // Every name must keep exactly the same shape for the ordering to hold.
+            var date = nextStamp(for: label, formatter: formatter)
+            var target = backupsDirectory.appendingPathComponent(
+                "\(label)-\(formatter.string(from: date)).json"
+            )
+            var attempts = 0
+            while fileManager.fileExists(atPath: target.path), attempts < 1000 {
+                date = date.addingTimeInterval(0.001)
                 target = backupsDirectory.appendingPathComponent(
-                    String(format: "%@-%@-%02d.json", label, stamp, suffix)
+                    "\(label)-\(formatter.string(from: date)).json"
                 )
-                suffix += 1
+                attempts += 1
             }
             try fileManager.copyItem(at: url, to: target)
             pruneBackups(label: label)
         } catch {
             Log.config.error("配置备份失败（保存继续）：\(error.localizedDescription, privacy: .public)")
         }
+    }
+
+    /// The stamp for the next backup: `now`, pushed strictly past the newest backup already on disk.
+    ///
+    /// **A name is never reused.** Pruning frees the *smallest* name, so a fresh backup that reused
+    /// it would sort as the oldest entry and pruning would delete it immediately — backups silently
+    /// stopped accumulating after the limit was first reached. That is what this guards against.
+    /// (It only shows up when saves land in the same millisecond, which is why the setting window
+    /// never hit it by hand — but "same millisecond" is exactly what a fast loop produces.)
+    private func nextStamp(for label: String, formatter: DateFormatter) -> Date {
+        let prefix = "\(label)-"
+        let stamps = (try? fileManager.contentsOfDirectory(atPath: backupsDirectory.path))?
+            .filter { $0.hasPrefix(prefix) && $0.hasSuffix(".json") }
+            .compactMap { formatter.date(from: String($0.dropFirst(prefix.count).dropLast(5))) }
+            ?? []
+        let candidate = now()
+        guard let newest = stamps.max(), candidate <= newest else { return candidate }
+        return newest.addingTimeInterval(0.001)
     }
 
     /// Keeps only the newest `backupLimit` backups for `label`.

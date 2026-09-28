@@ -12,6 +12,8 @@ packages: {}
 
 settings:
   base:
+    # 应用图标来自 zWGestures/Resources/Assets.xcassets（由 scripts/make-app-icon.swift 生成）。
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     SWIFT_VERSION: "6.0"
     MACOSX_DEPLOYMENT_TARGET: "14.0"
     ARCHS: arm64
@@ -60,8 +62,12 @@ targets:
         CFBundleExecutable: $(EXECUTABLE_NAME)
         CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
         CFBundlePackageType: APPL
-        # 图标由 scripts/make-app-icon.swift 生成（AppIcon.icns 随 Resources 一起打包）。
-        CFBundleIconFile: AppIcon
+        # 图标由 scripts/make-app-icon.swift 生成。
+        #
+        # 用 asset catalog（编译成 Assets.car）+ CFBundleIconName，而不是老的
+        # CFBundleIconFile + 独立 .icns：macOS 26+ 的 AppKit 走 asset catalog，
+        # 老形式在「关于」面板这类 AppKit 路径上会渲染成空白（Finder 走图标服务，两条路不同）。
+        CFBundleIconName: AppIcon
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleDevelopmentRegion: zh-Hans

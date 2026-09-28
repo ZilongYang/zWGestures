@@ -18,3 +18,5 @@ ZWGCore/.build/
 
 # macOS
 .DS_Store
+# 由 make icon 生成的分发件（不进 bundle，也不需要进版本库）
+docs/icon/AppIcon.icns

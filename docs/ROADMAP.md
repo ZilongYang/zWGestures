@@ -180,7 +180,20 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
 5. **跨屏手势的坐标归一与边界处理**（当前只在单屏上验证过）。
 6. **分组（Groups）的格式** —— 现有配置里 `Groups` 为空，其 on-disk 结构未知，未实现。
 
-## 8. 已知陷阱（踩过的，别重复）
+## 8. 已知陷阱
+
+### 备份文件名绝不可复用（2026-09-28 修）
+
+`ConfigStore.backUpIfPresent` 的硬要求：**新备份的时间戳必须严格大于该 label 已存在的最新一份**，
+不能用「第一个空出来的名字」。原因是淘汰逻辑按名字序删最旧的，而**被淘汰的正是最小的那个名字** ——
+如果新备份复用了它，它立刻又成为「最旧的」，下一次淘汰就**把刚写的文件删掉**，
+表现是「保存超过 10 次后备份不再增加」，而且**不报错**。
+
+这个 bug 只在同一毫秒内连续保存时出现，手工点保存几乎碰不到（所以设置界面从没暴露过它），
+但测试里快速循环保存就会命中 —— 表现为**每 8 次跑挂 1 次**的 flaky 失败。
+修法与防线：`nextStamp(for:formatter:)` 取「now 与已存在最新时间戳+1ms 的较大者」；
+测试把时钟钉死在同一毫秒（`ConfigStore.now` 是可注入的），让撞名路径**必然**发生。
+（踩过的，别重复）
 
 - 🔴 **不要在 `NSView` / `NSWindow` 的覆写里带 actor 隔离 —— 这是同一个雷区的第二条路径。**
   `NSView`/`NSWindow` 在本 SDK 上被标注为 `@MainActor`，所以覆写它们的成员会继承这份隔离，
@@ -312,10 +325,26 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
 
 ## 11. 应用图标
 
-`scripts/make-app-icon.swift` 生成 `zWGestures/Resources/AppIcon.icns`（`make icon`，
-`VARIANT=corner|swoosh`）。设计上刻意与产品自身一致而不另起一套视觉：底色是轨迹面板那种深板岩，
+`scripts/make-app-icon.swift` 生成 `zWGestures/Resources/Assets.xcassets/AppIcon.appiconset`
+（asset catalog，`make icon`，`VARIANT=corner|swoosh`）；`docs/icon/AppIcon.icns` 是同一脚本产出的
+独立分发件（不进 bundle）。设计上刻意与产品自身一致而不另起一套视觉：底色是轨迹面板那种深板岩，
 轨迹用**已识别**色 `#20D697`（就是 `prefs.json` 里的 `PathColorRecognized`），
 起笔空心圆 + 末端实心点也和屏幕上的轨迹一致；形状取用户配置里真实存在的笔画。
+
+### 必须走 asset catalog，不能用老的 CFBundleIconFile（2026-09-28 实测）
+
+第一版用「`CFBundleIconFile: AppIcon` + 手搓的独立 `.icns`」，结果 Finder 认、**「关于」面板空白**：
+- Finder / `NSWorkspace.icon(forFile:)` 走**图标服务**，读 `.icns` 没问题（我把系统返回的图标导出来看过）
+- 「关于」面板走 **AppKit 的 `NSApplication.applicationIconImage`**，在 macOS 26/27 上它走
+  **asset catalog（编译后的 `Assets.car` + `CFBundleIconName`）**，老形式渲染成空白
+
+改成 asset catalog 后，`actool` 自己会生成一份 `.icns` 并注入 `CFBundleIconFile`
+（37KB，比我手搓的 378KB 小得多）。**注意别同时把自己的 `.icns` 放进 Resources**：
+两个文件抢同一个路径，谁赢取决于构建顺序。所以脚本现在把 `.icns` 写到 `docs/icon/`。
+
+⚠️ **这次同时改了两处**（asset catalog + 关于面板里显式取图标），所以**无法归因是哪一处解决了空白**。
+显式那行是保险（`NSWorkspace.icon(forFile:)` 正是 Finder 验证可用的那条路），
+要隔离验证的话删掉它再装一次即可。
 
 两个实现细节值得记：**模块缓存必须放在工作区内**（受限 shell 写不了 `/var/folders` 下的默认缓存，
 报错看起来像编译器故障而不是沙箱拒绝 —— 已写进 `make icon`）；**iconset 也落在 `build/`**，

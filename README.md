@@ -127,7 +127,9 @@ prefs.json     偏好项，与原版 prefs.json 格式完全一致
 
 ## 应用图标
 
-`zWGestures/Resources/AppIcon.icns` 由脚本生成，不手工维护：
+图标由脚本生成，不手工维护。产出是 **asset catalog**（`Assets.xcassets/AppIcon.appiconset`）——
+macOS 26+ 的 AppKit 只认它（老的 `CFBundleIconFile` + 独立 `.icns` 会让「关于」面板空白，
+Finder 却正常，因为两者走不同的路）。
 
 ```bash
 make icon                  # 默认折线「下→右」（配置里真实存在的 Close 手势）

@@ -260,7 +260,11 @@ let master = renderIcon(size: 1024)
 try writePNG(master, to: docsIcon.appendingPathComponent("appicon-1024.png"))
 
 // 打包成 .icns。
-let icnsURL = resources.appendingPathComponent("AppIcon.icns")
+//
+// **不放进 Resources**：asset catalog 已经让 actool 生成一份 icns 并由 Xcode 注入
+// CFBundleIconFile，两个文件抢同一个路径（而且手搓那份大十倍：378K vs 37K）。
+// 这里生成的是分发用的独立件，落在 docs/icon/。
+let icnsURL = docsIcon.appendingPathComponent("AppIcon.icns")
 let iconutil = Process()
 iconutil.executableURL = URL(fileURLWithPath: "/usr/bin/iconutil")
 iconutil.arguments = ["-c", "icns", iconset.path, "-o", icnsURL.path]
@@ -273,4 +277,53 @@ guard iconutil.terminationStatus == 0 else {
 
 let size = (try? FileManager.default.attributesOfItem(atPath: icnsURL.path)[.size] as? Int) ?? 0
 print("已生成 \(icnsURL.path)（\(size) 字节）")
+
+// asset catalog：macOS 26 起 AppKit 读的是编译后的 Assets.car（CFBundleIconName），
+// 老的 CFBundleIconFile + 独立 .icns 在「关于」面板这类 AppKit 路径上会渲染成空白
+// （Finder 走图标服务，两条路不同）。所以两种形式都产出，由 project.yml 决定用哪个。
+let catalog = resources.appendingPathComponent("Assets.xcassets", isDirectory: true)
+let appIconSet = catalog.appendingPathComponent("AppIcon.appiconset", isDirectory: true)
+try? FileManager.default.removeItem(at: appIconSet)
+try FileManager.default.createDirectory(at: appIconSet, withIntermediateDirectories: true)
+
+func writeJSON(_ object: [String: Any], to url: URL) throws {
+    let data = try JSONSerialization.data(
+        withJSONObject: object,
+        options: [.prettyPrinted, .sortedKeys]
+    )
+    try data.write(to: url)
+}
+
+try writeJSON(["info": ["author": "xcode", "version": 1]], to: catalog.appendingPathComponent("Contents.json"))
+
+/// asset catalog 的 macOS 尺寸是 16/32/128/256/512（各带 @2x），
+/// 与 iconutil 那套（含 64）不完全一样 —— 位图尺寸相同，只是命名与分组不同。
+let catalogFiles: [(name: String, size: String, scale: String, pixels: CGFloat)] = [
+    ("icon_16x16.png", "16x16", "1x", 16),
+    ("icon_16x16@2x.png", "16x16", "2x", 32),
+    ("icon_32x32.png", "32x32", "1x", 32),
+    ("icon_32x32@2x.png", "32x32", "2x", 64),
+    ("icon_128x128.png", "128x128", "1x", 128),
+    ("icon_128x128@2x.png", "128x128", "2x", 256),
+    ("icon_256x256.png", "256x256", "1x", 256),
+    ("icon_256x256@2x.png", "256x256", "2x", 512),
+    ("icon_512x512.png", "512x512", "1x", 512),
+    ("icon_512x512@2x.png", "512x512", "2x", 1024),
+]
+
+var images: [[String: String]] = []
+for file in catalogFiles {
+    try writePNG(renderIcon(size: file.pixels), to: appIconSet.appendingPathComponent(file.name))
+    images.append([
+        "filename": file.name,
+        "idiom": "mac",
+        "scale": file.scale,
+        "size": file.size,
+    ])
+}
+try writeJSON(
+    ["images": images, "info": ["author": "xcode", "version": 1]],
+    to: appIconSet.appendingPathComponent("Contents.json")
+)
+print("已生成 \(appIconSet.path)（asset catalog）")
 print("母版图 \(docsIcon.appendingPathComponent("appicon-1024.png").path)")
