@@ -70,7 +70,7 @@
 ```bash
 make build   # xcodegen generate + xcodebuild，产物在 build/Build/Products/Debug/zWGestures.app
 make run     # 先退出已运行的实例，再构建并启动
-make test    # 运行 ZWGCore 的单元测试（209 项）
+make test    # 运行 ZWGCore 的单元测试（223 项）
 make install # 构建并把 .app 拷到 /Applications（开机自启需要固定路径）
 make clean
 ```
@@ -144,11 +144,11 @@ zWGestures 需要「辅助功能」权限才能安装全局事件拦截器和发
 - **登录项记录的是应用路径。** 从 `build/Build/Products/Debug` 里注册也能成功，
   但 `make clean` 或移动应用之后登录项就失效了。所以要用 `make install` 把应用放到
   `/Applications/zWGestures.app` 这个固定路径，再从那里注册。
-- **当前状态：暂缓。** 从 `/Applications` 启动时菜单显示「系统找不到该应用」
-  （`SMAppService.mainApp.status == .notFound`，此时 `register()` 会失败）而
-  `sfltool dumpbtm` 里查不到对应记录，成因未证实（疑与 `make install` 的
-  `rm -rf` + `ditto` 重建 bundle 有关）。细节和排查方向见
-  [`docs/ROADMAP.md`](docs/ROADMAP.md) §10。
+- **`SMAppService` 在本机注册不了**：从 `/Applications` 启动时它报 `.notFound`，
+  `sfltool dumpbtm` 里始终没有记录（本构建是自签名、无 Team ID）。
+  因此开关会**先试系统登录项，失败就写 `~/Library/LaunchAgents/com.zilong.zwgestures.plist`**
+  （`RunAtLoad` + `open -a`），关闭时两处都清。菜单标题会写出实际生效的是哪一个。
+  细节见 [`docs/ROADMAP.md`](docs/ROADMAP.md) §10。
 - 如果系统提示需要确认（`requiresApproval`），菜单会显示「等待系统设置里确认」，
   点一下会直接打开登录项面板。
 - **重新导入配置不会覆盖登录项状态。** 原版的 `AutoStart` 只是原版的意图，导入时若

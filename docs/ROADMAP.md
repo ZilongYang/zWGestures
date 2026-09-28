@@ -36,7 +36,7 @@ Rosetta。
 | P6i | **应用目标管理**：新增（从运行中的应用 / 选 `.app` 文件）、移除手势集 | ✅ 已实机验证（Brave Browser 目标已建、bundleId 正确并已落盘） |
 | P6j | **应用手势集继承全局**（自己的优先，其余继承；每目标一个开关） | ✅ 已实机验证 |
 | 修复 | AppKit 覆写导致的崩溃（`zWGestures-2026-09-28-211050.ips`）+ 源码守卫脚本 | ✅ 已修复；修复后连续使用约 1 小时无新崩溃报告（此类偶发崩溃只能说「观察中」） |
-| P9 | 开机自启：`SMAppService.mainApp` + 菜单栏开关 | ⏸ 已实现，**系统侧注册受阻、暂缓**（见 §10） |
+| P9 | 开机自启：`SMAppService` 优先 + **LaunchAgent 兜底** + 菜单栏开关 | ⏳ 已实现兜底，待实机验证（见 §10） |
 
 **可以日常使用的程度**：右键基本手势全部工作 —— 识别、执行命令、轨迹与手势名实时显示、
 命中变绿淡出、未识别不弹菜单、急停快捷键；**并且改手势不再需要手改 JSON**：
@@ -72,7 +72,7 @@ Rosetta。
 cd /Users/zilong/zWork/ai/zWGestures
 
 make build      # xcodegen generate + xcodebuild（会自动解锁签名钥匙串）
-make test       # 运行 ZWGCore 的单元测试（209 项）
+make test       # 运行 ZWGCore 的单元测试（223 项）
 make run        # 构建并启动
 make run-debug  # 构建并启动，同时打开调试面板（ZWG_DEBUG_HUD=1）
 make install    # 构建并把 .app 拷到 /Applications（开机自启需要固定路径）
@@ -223,7 +223,7 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
 
 ## 9. 验证方式
 
-- 单元测试：`make test`（209 项），其中多条**针对用户真实配置**的强回归断言。
+- 单元测试：`make test`（223 项），其中多条**针对用户真实配置**的强回归断言。
 - 实机验证：用户用右键画手势，读调试面板（`make run-debug`）的
   `state` / `gesture` / `target` / `executed` 四行，并观察屏幕上的轨迹与手势名。
 - 崩溃报告在 `~/Library/Logs/DiagnosticReports/zWGestures-*.ips`
@@ -255,6 +255,7 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
   `/Applications/zWGestures.app`，在固定路径下注册才稳。
 - 🔴 **2026-09-28 实测：从 `/Applications/zWGestures.app` 启动时菜单显示
   「系统找不到该应用」，即 `SMAppService.mainApp.status == .notFound`。**
+  → **已加 LaunchAgent 兜底**，见本节末尾。
   同一时刻 `sfltool dumpbtm` 里**没有任何** zWGestures / zilong 记录，
   近 1 小时的 `smappservice` / BTM 日志也没有相关报错。
   成因大概率是 `make install` 用 `rm -rf` + `ditto` 把已有 bundle 整个删掉重建，
@@ -266,6 +267,26 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
   是否本就无法建立登录项关联（若是，则需要换签名方式或改用 LaunchAgent 方案）。
   注意：`.notFound` 与「未注册」不同 —— 前者意味着系统里有残留/损坏的关联记录。
 - 失败时（例如签名要求不满足）会弹窗，并附上当前应用路径，提示换固定路径重试。
+
+#### LaunchAgent 兜底（2026-09-28 增加）
+
+`SMAppService.mainApp` 走 BackgroundTaskManagement，对签名身份严格；本构建是**本机自签名、
+无 Team ID**，`status` 恒为 `.notFound`，`sfltool dumpbtm` 里始终**没有任何记录**。
+所以开启自启时现在是：**先试 `SMAppService`（成功则系统设置里可见），失败或状态非 enabled/
+requiresApproval 就写 LaunchAgent**；关闭时**两处都清**，不留残渣。菜单标题会显示实际生效的机制
+（「已开启（系统登录项）」或「已开启（LaunchAgent）」）。
+
+- plist 位置：`~/Library/LaunchAgents/com.zilong.zwgestures.plist`；生成逻辑在
+  `ZWGCore/Support/LaunchAgent.swift`，用 `PropertyListSerialization` 构造而不是拼字符串 ——
+  一个格式错误的 plist 会让开机自启**静默失效**，所以这部分有单测（标签、RunAtLoad、
+  `open -a` 参数、非 ASCII 路径往返）
+- **用 `/usr/bin/open -a <app>` 而不是直接执行二进制**：这样启动走 LaunchServices，
+  已手动开着时只是把它切到前台，不会起第二个实例
+- 加载/卸载用 `launchctl bootstrap` / `bootout`，状态判断 = plist 存在 **且** `launchctl print`
+  成功（只看文件存在会把「写进去了但没加载」误报成已开启）
+- 顺带更正一条**我先前的误判**：LaunchServices 里那条「Bundle node not found on disk」的记录
+  一开始被我当成根因，但 Sparkle 更新器、Brave 的 helper 等都有一堆同类失效记录，
+  有它们照样能正常注册登录项 —— 所以那不是证据，已撤回。
 
 ## 11. 设置界面（P6）
 

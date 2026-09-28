@@ -130,9 +130,12 @@ final class StatusItemController: NSObject {
 
         debugHUDItem.state = debugHUD.isVisible ? .on : .off
 
-        // Read the system, not `prefs.json`: the switch can be revoked in System Settings.
+        // Read the system, not `prefs.json`: the switch can be revoked in System Settings, and the
+        // mechanism matters — the LaunchAgent fallback does not appear in System Settings.
         let loginStatus = loginItem.status
-        loginItemToggle.title = loginStatus.localizedText
+        loginItemToggle.title = loginStatus.isOn
+            ? "开机自动启动：已开启（\(loginItem.mechanism.localizedName)）"
+            : loginStatus.localizedText
         loginItemToggle.state = loginStatus.isOn ? .on : .off
         loginItemToggle.toolTip = Bundle.main.bundlePath
 
