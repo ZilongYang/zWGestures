@@ -92,6 +92,9 @@ final class StrokeOverlayController {
     private func updatePanelVisibility() {
         let shouldShow = style.showPath
         for panel in panels where shouldShow && !panel.isVisible {
+            // Force one full redraw on the way back in: a hidden window is not redrawn, so its layer
+            // may still hold the previous trail, and only a whole-view invalidation clears it.
+            panel.view.needsDisplay = true
             panel.orderFrontRegardless()
         }
     }
@@ -118,10 +121,19 @@ final class StrokeOverlayController {
         state = next.phase == .drawing ? next : (completedState ?? next)
 
         let alpha = trailAlpha()
-        let needsDrawing = style.showPath && !state.isEmpty && alpha > 0
+        let visible = style.showPath && !state.isEmpty && alpha > 0
         for panel in panels {
-            panel.view.update(state: state, style: style, alpha: alpha)
-            panel.view.needsDisplay = needsDrawing
+            // Invalidate exactly the area the trail occupies (last frame ∪ this frame) instead of the
+            // whole view. Redrawing a 12-megapixel layer every 16 ms made the fade advance in coarse
+            // jumps, and a jump past `alpha == 0` used to leave a ghost of the trail on screen.
+            let invalidate = panel.view.update(
+                state: visible ? state : OverlayState(),
+                style: style,
+                alpha: alpha
+            )
+            if let invalidate, !invalidate.isEmpty {
+                panel.view.setNeedsDisplay(invalidate)
+            }
         }
     }
 
@@ -192,13 +204,54 @@ private final class TrailView: NSView {
     nonisolated override var isFlipped: Bool { false }
     nonisolated override func hitTest(_ point: NSPoint) -> NSView? { nil }
 
-    func update(state: OverlayState, style: OverlayStyle, alpha: CGFloat) {
+    /// What the last frame actually painted, in view coordinates.
+    ///
+    /// Kept so the next update can invalidate that area *and* the area it is about to paint: the
+    /// old pixels have to be erased, and neither the layer nor AppKit does that for us.
+    private var painted: CGRect?
+
+    /// Applies the new state.
+    ///
+    /// - Returns: the rectangle that must be invalidated, or `nil` when nothing on screen changes.
+    @discardableResult
+    func update(state: OverlayState, style: OverlayStyle, alpha: CGFloat) -> CGRect? {
         self.state = state
         self.style = style
         self.alpha = alpha
+        let upcoming = paintRect()
+        let invalidate = TrailBounds.union(painted, upcoming)
+        painted = upcoming
+        return invalidate
+    }
+
+    /// The area this state is about to paint, or `nil` when it paints nothing.
+    private func paintRect() -> CGRect? {
+        guard alpha > 0, state.points.count > 1 else { return nil }
+        let points = state.points.map(localPoint(fromCG:))
+        var rect = TrailBounds.of(points: points, lineWidth: style.lineWidth)
+        if style.showGestureName, let name = state.gestureName, !name.isEmpty {
+            let layout = labelLayout(for: name)
+            let labelRect = CGRect(origin: layout.origin, size: layout.size).insetBy(dx: -5, dy: -5)
+            rect = TrailBounds.union(rect, labelRect)
+        }
+        return rect
+    }
+
+    /// Where the gesture name goes. Shared by `paintRect()` and `drawLabel` so the invalidated area
+    /// always matches what is drawn.
+    private func labelLayout(for name: String) -> (origin: CGPoint, size: CGSize) {
+        let size = NSAttributedString(
+            string: name,
+            attributes: [.font: NSFont.systemFont(ofSize: 22, weight: .semibold)]
+        ).size()
+        let centerY = localY(fromCGY: style.labelCenterY(screenHeight: primaryScreenHeight))
+        return (CGPoint(x: bounds.midX - size.width / 2, y: centerY - size.height / 2), size)
     }
 
     override func draw(_ dirtyRect: NSRect) {
+        // Erase first. A layer-backed view keeps the previous frame's pixels, so without this the
+        // old trail accumulates underneath the new one — a blurred afterimage of the gesture.
+        NSGraphicsContext.current?.cgContext.clear(dirtyRect)
         guard alpha > 0, !state.points.isEmpty, let context = NSGraphicsContext.current?.cgContext else {
             return
         }
@@ -244,13 +297,7 @@ private final class TrailView: NSView {
             .shadow: shadow,
         ]
         let text = NSAttributedString(string: name, attributes: attributes)
-        let size = text.size()
-        let centerY = localY(fromCGY: style.labelCenterY(screenHeight: primaryScreenHeight))
-        let origin = CGPoint(
-            x: bounds.midX - size.width / 2,
-            y: centerY - size.height / 2
-        )
-        text.draw(at: origin)
+        text.draw(at: labelLayout(for: name).origin)
     }
 
     // MARK: - Coordinates

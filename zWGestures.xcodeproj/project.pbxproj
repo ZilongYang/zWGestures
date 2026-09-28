@@ -66,6 +66,7 @@
 		EA0DEA35FE0CAAD9344F1664 /* StrokeRecordingOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB9215AF0628743AECBEF27C /* StrokeRecordingOverlay.swift */; };
 		EE4116EB8761F60759F845B4 /* WGIntentDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C7D665A6E9A709EFF4A1D19 /* WGIntentDisplay.swift */; };
 		EEC10BE290ACF7CC365CCDDF /* SettingsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B03BAF5A7173629D283714E /* SettingsPanel.swift */; };
+		FBE0D722999182D79778DB1C /* TrailBounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6680DD1AC87FC7A2188B925B /* TrailBounds.swift */; };
 		FD1092E7B291CCE0713893B3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 12DA2A9E0A4B348A3E72216A /* Assets.xcassets */; };
 		FDF5F36C475F910B6B15D0C9 /* LegacyConfigImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3411F37FC05B72B39D6837A /* LegacyConfigImporter.swift */; };
 /* End PBXBuildFile section */
@@ -98,6 +99,7 @@
 		5E2F92B574B900E37E509CAF /* LaunchAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAgent.swift; sourceTree = "<group>"; };
 		65E67B92FE1303A703B5885A /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		6637F3B28D985F981FE71EC7 /* StrokeOverlayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeOverlayController.swift; sourceTree = "<group>"; };
+		6680DD1AC87FC7A2188B925B /* TrailBounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailBounds.swift; sourceTree = "<group>"; };
 		6AD84F47ADADCB43601E2F71 /* Stroke.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stroke.swift; sourceTree = "<group>"; };
 		72CE5E7190D3810B837000B3 /* WGCommandPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGCommandPlanner.swift; sourceTree = "<group>"; };
 		75010A7BD55B495E897BA081 /* WGKeyCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGKeyCode.swift; sourceTree = "<group>"; };
@@ -252,6 +254,7 @@
 			isa = PBXGroup;
 			children = (
 				F550AB1F613BC1B599471EFE /* OverlayState.swift */,
+				6680DD1AC87FC7A2188B925B /* TrailBounds.swift */,
 				B6AB7125FAF11D6211A6791A /* WGColor.swift */,
 			);
 			path = Overlay;
@@ -502,6 +505,7 @@
 				EA0DEA35FE0CAAD9344F1664 /* StrokeRecordingOverlay.swift in Sources */,
 				1AF54D920DBE3BCDAB6868D0 /* SyntheticEventPoster.swift in Sources */,
 				BE0AB9F149CF95824F4041B9 /* TargetResolver.swift in Sources */,
+				FBE0D722999182D79778DB1C /* TrailBounds.swift in Sources */,
 				DEBD2C91305267F6D14EFAEA /* WGActionContext.swift in Sources */,
 				C050C9CB5FC43CADF7E4B46A /* WGColor.swift in Sources */,
 				58FD4C71B2ABD3CB65755E7E /* WGCommandPlanner.swift in Sources */,
