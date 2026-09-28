@@ -548,3 +548,69 @@ struct SettingsModelAppTargetTests {
         #expect(!model.isDirty)
     }
 }
+
+@MainActor
+@Suite("设置：本版本无法触发的手势默认隐藏")
+struct UnsupportedGestureVisibilityTests {
+    /// 一条边角触发、一条滚轮触发、一条正常的右键手势 —— 与真实配置里的形态一致。
+    private func makeConfig() -> WGConfig {
+        func intent(_ name: String, trigger: [WGStep]) -> WGIntent {
+            WGIntent(
+                name: name,
+                gesture: trigger + [.stroke(WGStrokeStep(isSimple: true, points: [0, 0, 0, 50]))],
+                command: .keySequence(WGKeySequenceCommand(isSystemHotKey: false, keys: ["Command", "ANSI_C"]))
+            )
+        }
+        return WGConfig(general: WGTarget(
+            kind: .general,
+            id: "g",
+            name: "General",
+            intents: [
+                intent("Copy", trigger: [.keyDown(WGKeyDownStep(key: "MOUSE:1"))]),
+                intent("Volume +", trigger: [.moveToEdgeCorner(WGMoveToEdgeCornerStep(edgeCorner: WGEdgeCorner(value: 1)))]),
+                intent("Next Tab", trigger: [.keyDown(WGKeyDownStep(key: "VSCROLL:12"))]),
+            ]
+        ))
+    }
+
+    @Test("边角/滚轮触发的手势默认不出现在列表里，但会被计数")
+    func hidesUnsupportedGesturesByDefault() {
+        let model = SettingsModel(config: makeConfig())
+        #expect(model.rows.map(\.name) == ["Copy"])
+        #expect(model.hiddenUnsupportedCount == 2, "边角一条 + 滚轮一条")
+        #expect(model.rows.allSatisfy { $0.hasSupportedTrigger })
+
+        // 打开开关就能看到它们 —— 不能让用户以为配置丢了。
+        model.showsUnsupportedGestures = true
+        #expect(model.rows.map(\.name) == ["Copy", "Volume +", "Next Tab"])
+        #expect(model.rows.filter { !$0.hasSupportedTrigger }.count == 2)
+    }
+
+    @Test("真实配置里确实存在这类手势（边角 10 条 + 滚轮 2 条）")
+    func realConfigHasUnsupportedGestures() throws {
+        let directory = try #require(LegacyConfigImporter.locateVersionDirectory())
+        let config = try LegacyConfigImporter.load(from: directory).config
+        let model = SettingsModel(config: config)
+
+        // 这些是原版默认配置里就有的屏幕边缘手势（音量/亮度/睡眠…）与滚轮切标签页手势。
+        #expect(model.hiddenUnsupportedCount >= 10)
+        let hiddenNames = Set(config.general.intents.filter { !$0.hasSupportedTrigger }.map(\.name))
+        #expect(hiddenNames.contains("Volume +"))
+        #expect(hiddenNames.contains("Brightness +"))
+        #expect(hiddenNames.contains("Shut Down"))
+        #expect(hiddenNames.contains("Next Tab"))
+        // 默认列表里不该出现它们，但仍要能看到「拷贝」这类可用的。
+        #expect(!model.rows.contains { !$0.hasSupportedTrigger })
+        #expect(model.rows.contains { $0.name == "Copy" })
+    }
+
+    @Test("触发步骤为空的意图也算无法触发")
+    func emptyTriggerIsUnsupported() {
+        let broken = WGIntent(
+            name: "没有触发",
+            gesture: [.stroke(WGStrokeStep(isSimple: true, points: [0, 0, 0, 50]))],
+            command: .keySequence(WGKeySequenceCommand(isSystemHotKey: false, keys: ["Command", "ANSI_C"]))
+        )
+        #expect(!broken.hasSupportedTrigger)
+    }
+}

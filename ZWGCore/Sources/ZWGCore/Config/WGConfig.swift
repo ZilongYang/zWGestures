@@ -266,6 +266,26 @@ public struct WGIntent: Codable, Equatable, Sendable {
     /// The steps before the stroke: the trigger itself and any leading conditions.
     public var triggerSteps: [WGStep] { gesture.prefix { !$0.isStroke }.map { $0 } }
 
+    /// Whether this build can actually fire this gesture.
+    ///
+    /// Screen-edge/corner and scroll triggers are **not implemented** —
+    /// `GestureRecognizer.isTriggerSatisfied` rejects them outright — so such a gesture is stored and
+    /// preserved faithfully but can never match. The settings list hides these entries by default
+    /// (with a count and a way to reveal them), because a gesture that looks configured and never
+    /// fires is worse than one that is clearly parked.
+    public var hasSupportedTrigger: Bool {
+        let trigger = triggerSteps
+        guard !trigger.isEmpty else { return false }
+        var sawButton = false
+        for step in trigger {
+            guard case .keyDown(let key) = step,
+                  case .mouse = WGInputToken(key: key.key)
+            else { return false }
+            sawButton = true
+        }
+        return sawButton
+    }
+
     /// The stroke, when this gesture has one.
     public var strokeStep: WGStrokeStep? {
         for step in gesture {

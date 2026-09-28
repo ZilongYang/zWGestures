@@ -325,6 +325,23 @@ struct SettingsPanel: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
 
+            if model.hiddenUnsupportedCount > 0 || model.showsUnsupportedGestures {
+                HStack(spacing: 6) {
+                    Toggle("显示本版本暂不支持的手势", isOn: $model.showsUnsupportedGestures)
+                        .toggleStyle(.checkbox)
+                        .font(.caption)
+                        .help("""
+                            边角/滚轮触发还没实现，这些手势画了也不会有反应。                            它们完整保留在配置里，实现之后即可直接用。
+                            """)
+                    Text("（当前隐藏 \(model.hiddenUnsupportedCount) 条：边角 / 滚轮触发）")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+                .padding(.horizontal, 12)
+                .padding(.bottom, 4)
+            }
+
             if model.canToggleInheritance {
                 HStack(spacing: 6) {
                     Toggle("继承全局手势", isOn: Binding(

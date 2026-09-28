@@ -17,6 +17,9 @@ public struct WGGestureRow: Identifiable, Equatable, Sendable {
     /// True for a gesture that belongs to the general set and is only *shown* here because this
     /// target inherits it. Inherited rows are read-only.
     public let isInherited: Bool
+    /// False for a gesture this build cannot trigger (edge/corner or scroll triggers are not
+    /// implemented). Such rows are hidden unless the user asks to see them.
+    public let hasSupportedTrigger: Bool
     /// The trajectory in screen orientation, for the thumbnail.
     public let points: [CGPoint]
     public let isClosed: Bool
@@ -122,6 +125,9 @@ public final class SettingsModel: ObservableObject {
     @Published public private(set) var config: WGConfig
     @Published public var selection: Selection
     @Published public private(set) var query: String = ""
+    /// Whether gestures this build cannot trigger are listed. Off by default: they would look like
+    /// working gestures that mysteriously never fire.
+    @Published public var showsUnsupportedGestures: Bool = false
 
     /// The configuration as it was last loaded or saved, used to detect pending edits.
     private var savedConfig: WGConfig
@@ -187,23 +193,43 @@ public final class SettingsModel: ObservableObject {
     /// user cannot tell an app set apart from a broken one.
     public var rows: [WGGestureRow] {
         guard let target = selectedTarget else { return [] }
+        // 继承来的手势同样要按「能否触发」过滤（全局里也有边角/滚轮手势）。
+        let inheritedRows = {
+            guard target.kind != .general, target.inheritsGlobal else { return [WGGestureRow]() }
+            var rows = Self.rows(
+                for: config.general,
+                matching: query,
+                inherited: true,
+                idOffset: target.intents.count
+            )
+            if !showsUnsupportedGestures { rows.removeAll { !$0.hasSupportedTrigger } }
+            return rows
+        }()
         var listed = Self.rows(for: target, matching: query)
-        guard target.kind != .general, target.inheritsGlobal else { return listed }
-        // 继承行的 id 从自有手势之后开始编号：既保证 `ForEach` 的身份唯一（重复 id 会让 SwiftUI
-        // 渲染错乱），又保证任何误用这些 id 去改自有数组的调用都会越界失败而不是改错对象。
-        listed += Self.rows(
-            for: config.general,
-            matching: query,
-            inherited: true,
-            idOffset: target.intents.count
-        )
+        if !showsUnsupportedGestures {
+            listed.removeAll { !$0.hasSupportedTrigger }
+        }
+        listed += inheritedRows
         return listed
     }
 
     /// The general gestures shown as inherited rows, for the count in the status line.
     public var inheritedRowCount: Int {
         guard let target = selectedTarget, target.kind != .general, target.inheritsGlobal else { return 0 }
-        return Self.rows(for: config.general, matching: query, inherited: true).count
+        var rows = Self.rows(for: config.general, matching: query, inherited: true)
+        if !showsUnsupportedGestures { rows.removeAll { !$0.hasSupportedTrigger } }
+        return rows.count
+    }
+
+    /// How many gestures of the selected target (own + inherited) this build cannot trigger, so the
+    /// status line can say what is being hidden instead of silently dropping entries.
+    public var hiddenUnsupportedCount: Int {
+        guard let target = selectedTarget else { return 0 }
+        var intents = target.intents
+        if target.kind != .general, target.inheritsGlobal {
+            intents += config.general.intents
+        }
+        return intents.filter { !$0.hasSupportedTrigger }.count
     }
 
     /// Whether the selected target's inheritance can be switched (the general set has no parent).
@@ -359,6 +385,7 @@ public final class SettingsModel: ObservableObject {
                 executeOnRecognize: intent.executeOnRecognize,
                 isEnabled: intent.enabled,
                 isInherited: inherited,
+                hasSupportedTrigger: intent.hasSupportedTrigger,
                 points: intent.strokeStep?.drawingOrderPoints ?? [],
                 isClosed: {
                     let path = intent.strokeStep?.drawingOrderPoints ?? []

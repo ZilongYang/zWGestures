@@ -36,6 +36,9 @@ public final class GestureEditorModel: ObservableObject {
     @Published public var enabled: Bool
     /// The shape the gesture has **right now**, shown in the editor's left column.
     @Published public private(set) var currentStroke: WGStrokeStep?
+    /// True when the gesture's trigger is one this build cannot fire (screen edge/corner or scroll).
+    /// The editor says so plainly rather than letting the user polish a shape that will never run.
+    public let hasUnsupportedTrigger: Bool
     /// A newly drawn shape, shown in the right column. `nil` means "keep the current shape".
     @Published public private(set) var pendingStroke: WGStrokeStep?
 
@@ -64,6 +67,7 @@ public final class GestureEditorModel: ObservableObject {
         self.enabled = intent?.enabled ?? true
         self.currentStroke = intent?.strokeStep
         self.pendingStroke = nil
+        self.hasUnsupportedTrigger = intent.map { !$0.hasSupportedTrigger } ?? false
         self.commandEditor = CommandEditorModel(command: command)
         self.siblings = siblings
         if case .existing(let index) = mode {

@@ -78,6 +78,23 @@ struct GestureEditorSheet: View {
         VStack(alignment: .leading, spacing: 8) {
             sectionTitle("1. 手势形状", detail: "左边是现在的手势；点右边可以在全屏幕上画一个新手势")
 
+            if model.hasUnsupportedTrigger {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label("这条手势的触发方式本版本还没实现", systemImage: "exclamationmark.triangle.fill")
+                        .font(.callout.weight(.semibold))
+                        .foregroundStyle(.orange)
+                    Text("""
+                        它用的是屏幕边角或滚轮触发，而这两种触发还没实现 —— 形状和动作都保存得住，                        但画它不会有任何反应。等实现之后它就能直接用。
+                        """)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(10)
+                .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+            }
+
             HStack(alignment: .top, spacing: 12) {
                 currentShapeColumn
                 newShapeColumn
