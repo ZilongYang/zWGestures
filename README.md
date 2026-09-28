@@ -125,6 +125,20 @@ prefs.json     偏好项，与原版 prefs.json 格式完全一致
 这条测试已经抓出过两个真实缺陷 —— 偏好键名写成了 `LabelExecuted`（正确是
 `LabelColorExecuted`），以及 `SkipVersion: null` 被 `encodeIfPresent` 整条省略。
 
+## 应用图标
+
+`zWGestures/Resources/AppIcon.icns` 由脚本生成，不手工维护：
+
+```bash
+make icon                  # 默认斜向弧线（VARIANT=swoosh）
+make icon VARIANT=corner   # 折线「下→右」（配置里真实存在的 Close 手势）
+```
+
+`scripts/make-app-icon.swift` 用 CoreGraphics 按 macOS 图标网格（1024 画布上 824×824、
+圆角 185）画出底与轨迹，再用 `iconutil` 打包成 .icns；1024 的母版图落在 `docs/icon/`
+供评审。轨迹用的是「已识别」轨迹色 `#20D697`（与 `prefs.json` 的 `PathColorRecognized` 一致），
+形状取自用户配置里真实存在的手势。
+
 ## 权限
 
 zWGestures 需要「辅助功能」权限才能安装全局事件拦截器和发送合成按键事件。

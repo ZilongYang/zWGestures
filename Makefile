@@ -36,6 +36,15 @@ unlock-signing:
 build: gen unlock-signing
 	$(XCODEBUILD) build
 
+## Regenerate the app icon. VARIANT=corner|swoosh picks the subject stroke.
+##
+## The module cache must live inside the workspace: a restricted shell cannot write the default
+## one under /var/folders, and the failure reads like a compiler bug rather than a sandbox denial.
+icon:
+	CLANG_MODULE_CACHE_PATH="$(CURDIR)/build/swift-module-cache" \
+	SWIFT_MODULECACHE_OVERRIDE="$(CURDIR)/build/swift-module-cache" \
+	swift scripts/make-app-icon.swift $(or $(VARIANT),swoosh)
+
 ## Source-level guards that unit tests cannot express (see docs/ROADMAP.md §8)
 lint:
 	@python3 scripts/check-appkit-isolation.py
@@ -78,7 +87,7 @@ install: stop build
 run-settings: stop build
 	open --env ZWG_SETTINGS_PANEL=1 "$(APP)"
 
-.PHONY: all gen unlock-signing build lint test run run-debug run-settings stop install clean info
+.PHONY: all gen unlock-signing build lint test run run-debug run-settings stop install icon clean info
 
 clean:
 	rm -rf $(DERIVED) ZWGCore/.build

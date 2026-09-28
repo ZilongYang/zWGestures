@@ -89,7 +89,7 @@ make clean
 | 技术栈 | Swift 6 + AppKit 为主 / SwiftUI 留待设置界面；零第三方依赖 |
 | 最低系统 | macOS 14，仅 arm64 |
 | 签名 | 本机自签名证书 `zWGestures Local Signing`，放在独立钥匙串 `zWGestures.keychain-db`（密码 `zwgestures`），由 `make build` 自动解锁 |
-| 应用目标语义 | **已推翻并改掉（2026-09-28）**：原记录是「应用目标**替换**全局手势，不叠加（用户从原版 UI 确认：Finder 目标只有 3 条）」。用户实测后指出这不对 —— 给 Brave 加一条手势后，那个应用里其余全局手势全都不见了。**现在的语义是叠加：应用自己的手势优先，未定义的继承全局**，每个目标一个「继承全局手势」开关（`WGTarget.inheritsGlobal`）。见 §11「应用手势集继承全局」。 |
+| 应用目标语义 | **已推翻并改掉（2026-09-28）**：原记录是「应用目标**替换**全局手势，不叠加（用户从原版 UI 确认：Finder 目标只有 3 条）」。用户实测后指出这不对 —— 给 Brave 加一条手势后，那个应用里其余全局手势全都不见了。**现在的语义是叠加：应用自己的手势优先，未定义的继承全局**，每个目标一个「继承全局手势」开关（`WGTarget.inheritsGlobal`）。见 §12「应用手势集继承全局」。 |
 | 未识别的手势 | **不回放**给系统 —— 位移超过阈值就说明用户在画手势，不该弹出右键菜单 |
 | 普通点击 | 没移动、或停住超过起始超时（250ms）时，引擎补发 down+up，右键菜单照常 |
 | 屏幕边缘手势 | **暂缓**（用户决定）：边角/角落检测与滚轮触发先不做 |
@@ -310,7 +310,20 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
 
 ✅ 开机自启验收通过。
 
-## 11. 设置界面（P6）
+## 11. 应用图标
+
+`scripts/make-app-icon.swift` 生成 `zWGestures/Resources/AppIcon.icns`（`make icon`，
+`VARIANT=corner|swoosh`）。设计上刻意与产品自身一致而不另起一套视觉：底色是轨迹面板那种深板岩，
+轨迹用**已识别**色 `#20D697`（就是 `prefs.json` 里的 `PathColorRecognized`），
+起笔空心圆 + 末端实心点也和屏幕上的轨迹一致；形状取用户配置里真实存在的笔画。
+
+两个实现细节值得记：**模块缓存必须放在工作区内**（受限 shell 写不了 `/var/folders` 下的默认缓存，
+报错看起来像编译器故障而不是沙箱拒绝 —— 已写进 `make icon`）；**iconset 也落在 `build/`**，
+同理。png 由 `NSBitmapImageRep` + `NSGraphicsContext` 逐尺寸渲染（不是把 1024 缩下去，边缘更干净）。
+
+`loop`（闭环）变体渲染出来是实心水滴形 —— 笔画相对闭环太大，填充掉了中间的孔，**已弃用**。
+
+## 12. 设置界面（P6）
 
 菜单栏「打开设置…」（⌘,）→ 左栏手势集、右栏手势列表、搜索框、右键菜单改/删、
 双击一条手势（或右键 →「编辑命令…」）打开命令编辑器，底部「保存 / 放弃改动」。
@@ -597,7 +610,7 @@ error: external macro implementation type 'ObservationMacros.ObservableMacro' co
 是纯编译期特性、不依赖插件，功能等价。以后再想用宏（`@Observable`、`#Predicate`、
 自定义宏）都要先想到这条。
 
-## 12. 明确的边界
+## 13. 明确的边界
 
 - 不复制、不打包原版任何二进制、字体、图标、资源或激活码；只做配置格式互通。
 - 不复刻 Windows 版特有功能：自定义菜单、Lua、Cmd 脚本、运行/激活应用程序。

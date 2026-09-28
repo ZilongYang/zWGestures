@@ -11,6 +11,7 @@
 		03639C7D8FA0755A9DD5944B /* Stroke.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AD84F47ADADCB43601E2F71 /* Stroke.swift */; };
 		0396B8E74274465ED68367FC /* KeyCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B940BA59992E1C557CEF9EE7 /* KeyCaptureView.swift */; };
 		0ABBA99ECD0A9BFD2D208516 /* InputCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58E69FA11F1C5AED1F3E8887 /* InputCoordinator.swift */; };
+		16D2764919E9A284EB0E5326 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 6931CBB896B4A329524EB27D /* AppIcon.icns */; };
 		1ADA97FF6B1AB8935CE567FB /* GestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37BF10BA5362196075C3E339 /* GestureRecognizer.swift */; };
 		1AF54D920DBE3BCDAB6868D0 /* SyntheticEventPoster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EFA9271A0175129EFBF9815 /* SyntheticEventPoster.swift */; };
 		1B715980C539EFED04C20169 /* EngineController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCAA306B3006478FA8B51C30 /* EngineController.swift */; };
@@ -96,6 +97,7 @@
 		5E2F92B574B900E37E509CAF /* LaunchAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAgent.swift; sourceTree = "<group>"; };
 		65E67B92FE1303A703B5885A /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		6637F3B28D985F981FE71EC7 /* StrokeOverlayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeOverlayController.swift; sourceTree = "<group>"; };
+		6931CBB896B4A329524EB27D /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		6AD84F47ADADCB43601E2F71 /* Stroke.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stroke.swift; sourceTree = "<group>"; };
 		72CE5E7190D3810B837000B3 /* WGCommandPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGCommandPlanner.swift; sourceTree = "<group>"; };
 		75010A7BD55B495E897BA081 /* WGKeyCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGKeyCode.swift; sourceTree = "<group>"; };
@@ -149,6 +151,14 @@
 				3B6F47DF0770B09D4EA4D288 /* Sources */,
 			);
 			path = ZWGCore;
+			sourceTree = "<group>";
+		};
+		27F7F6D1D29A9A41955BB727 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				6931CBB896B4A329524EB27D /* AppIcon.icns */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		3B6F47DF0770B09D4EA4D288 /* Sources */ = {
@@ -304,6 +314,7 @@
 				79F96F3E14D2C460ABC09B83 /* Input */,
 				BCD7E238C8871C4F93ED5241 /* Overlay */,
 				C5BAE327C43C1BFFFE722BBE /* Recog */,
+				27F7F6D1D29A9A41955BB727 /* Resources */,
 				495AE27E85CE4E7F86A9C20B /* Target */,
 				B347625EA2E78D2855919D1A /* UI */,
 			);
@@ -385,6 +396,7 @@
 			buildConfigurationList = 03BB04F583A780CD2CA17320 /* Build configuration list for PBXNativeTarget "zWGestures" */;
 			buildPhases = (
 				710AE20A8BD0CB8C8D95F376 /* Sources */,
+				46165CC1986297B384DD0200 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -430,6 +442,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		46165CC1986297B384DD0200 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				16D2764919E9A284EB0E5326 /* AppIcon.icns in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		710AE20A8BD0CB8C8D95F376 /* Sources */ = {
