@@ -81,6 +81,9 @@ run-debug: stop build
 ## status recorded in docs/ROADMAP.md §10.
 install: stop build
 	ditto "$(APP)" "$(INSTALLED_APP)"
+	@# 目录 mtime 必须刷新：ditto 会保留构建产物里的老时间戳，于是 app 目录看起来「没变过」，
+	@# 靠 bundle 日期判断失效的图标缓存（Finder / 系统设置）就不会更新 —— 图片换了却仍显示旧图标。
+	@touch "$(INSTALLED_APP)"
 	@echo "已安装到 $(INSTALLED_APP)"
 
 ## Launch the built app with the settings window open
