@@ -36,7 +36,7 @@ Rosetta。
 | P6i | **应用目标管理**：新增（从运行中的应用 / 选 `.app` 文件）、移除手势集 | ✅ 已实机验证（Brave Browser 目标已建、bundleId 正确并已落盘） |
 | P6j | **应用手势集继承全局**（自己的优先，其余继承；每目标一个开关） | ✅ 已实机验证 |
 | 修复 | AppKit 覆写导致的崩溃（`zWGestures-2026-09-28-211050.ips`）+ 源码守卫脚本 | ✅ 已修复；修复后连续使用约 1 小时无新崩溃报告（此类偶发崩溃只能说「观察中」） |
-| P9 | 开机自启：`SMAppService` 优先 + **LaunchAgent 兜底** + 菜单栏开关 | ⏳ 已实现兜底，待实机验证（见 §10） |
+| P9 | 开机自启：`SMAppService` 优先 + **LaunchAgent 兜底** + 菜单栏开关 | ⏳ **注册已成功**（`sfltool dumpbtm` 已有 `Disposition: [enabled, allowed, notified]` 记录），待重启验证（见 §10） |
 
 **可以日常使用的程度**：右键基本手势全部工作 —— 识别、执行命令、轨迹与手势名实时显示、
 命中变绿淡出、未识别不弹菜单、急停快捷键；**并且改手势不再需要手改 JSON**：
@@ -253,9 +253,20 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
   `build/Build/Products/Debug/zWGestures.app` 里时也能注册成功，但 `make clean`
   或移动应用之后这条登录项就失效了。所以补了 `make install` 把应用拷到
   `/Applications/zWGestures.app`，在固定路径下注册才稳。
-- 🔴 **2026-09-28 实测：从 `/Applications/zWGestures.app` 启动时菜单显示
-  「系统找不到该应用」，即 `SMAppService.mainApp.status == .notFound`。**
-  → **已加 LaunchAgent 兜底**，见本节末尾。
+- ✅ **2026-09-28 晚：注册成功。** 先是实测到从 `/Applications/zWGestures.app` 启动时菜单显示
+  「系统找不到该应用」（`SMAppService.mainApp.status == .notFound`，且 `sfltool dumpbtm` 里始终
+  没有任何记录）；后来**改用原地覆盖方式重装**（`make install` 不再 `rm -rf`）并重新从
+  `/Applications` 启动，再点开关就变成了 `.enabled`，底账里出现了：
+
+  ```
+  Type: app (0x2)   Disposition: [enabled, allowed, notified]   URL: /Applications/zWGestures.app
+  Bundle Identifier: com.zilong.zwgestures
+  ```
+
+  **归因要谨慎**：`rm -rf` + `ditto` 重建 bundle 破坏系统关联**只是时序吻合的怀疑**
+  （旧装法 → `.notFound`；换原地覆盖 → 注册成功），并不能严格证明因果 —— 也可能来自新构建或
+  单纯重新注册。但**结论可以确定**：`SMAppService` 对本机这个无 Team ID 的自签名应用
+  **是能用的**，不必绕开它。
   同一时刻 `sfltool dumpbtm` 里**没有任何** zWGestures / zilong 记录，
   近 1 小时的 `smappservice` / BTM 日志也没有相关报错。
   成因大概率是 `make install` 用 `rm -rf` + `ditto` 把已有 bundle 整个删掉重建，
@@ -268,13 +279,13 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
   注意：`.notFound` 与「未注册」不同 —— 前者意味着系统里有残留/损坏的关联记录。
 - 失败时（例如签名要求不满足）会弹窗，并附上当前应用路径，提示换固定路径重试。
 
-#### LaunchAgent 兜底（2026-09-28 增加）
+#### LaunchAgent 兜底（2026-09-28 增加；作为保险保留）
 
-`SMAppService.mainApp` 走 BackgroundTaskManagement，对签名身份严格；本构建是**本机自签名、
-无 Team ID**，`status` 恒为 `.notFound`，`sfltool dumpbtm` 里始终**没有任何记录**。
-所以开启自启时现在是：**先试 `SMAppService`（成功则系统设置里可见），失败或状态非 enabled/
-requiresApproval 就写 LaunchAgent**；关闭时**两处都清**，不留残渣。菜单标题会显示实际生效的机制
-（「已开启（系统登录项）」或「已开启（LaunchAgent）」）。
+`SMAppService.mainApp` 走 BackgroundTaskManagement，对签名身份比 LaunchAgent 严格。
+虽然实测它最终能注册（见上），但**一旦失败用户就完全没有开机自启**，所以保留一条兜底：
+开启时**先试 `SMAppService`（成功则系统设置里可见），失败或状态非 enabled/requiresApproval
+就写 LaunchAgent**；关闭时**两处都清**，不留残渣。菜单标题显示实际生效的机制
+（「已开启（系统登录项）」或「已开启（LaunchAgent）」）—— 用户能看出走的是哪条路。
 
 - plist 位置：`~/Library/LaunchAgents/com.zilong.zwgestures.plist`；生成逻辑在
   `ZWGCore/Support/LaunchAgent.swift`，用 `PropertyListSerialization` 构造而不是拼字符串 ——

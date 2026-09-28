@@ -144,11 +144,13 @@ zWGestures 需要「辅助功能」权限才能安装全局事件拦截器和发
 - **登录项记录的是应用路径。** 从 `build/Build/Products/Debug` 里注册也能成功，
   但 `make clean` 或移动应用之后登录项就失效了。所以要用 `make install` 把应用放到
   `/Applications/zWGestures.app` 这个固定路径，再从那里注册。
-- **`SMAppService` 在本机注册不了**：从 `/Applications` 启动时它报 `.notFound`，
-  `sfltool dumpbtm` 里始终没有记录（本构建是自签名、无 Team ID）。
-  因此开关会**先试系统登录项，失败就写 `~/Library/LaunchAgents/com.zilong.zwgestures.plist`**
-  （`RunAtLoad` + `open -a`），关闭时两处都清。菜单标题会写出实际生效的是哪一个。
-  细节见 [`docs/ROADMAP.md`](docs/ROADMAP.md) §10。
+- **本机自签名、无 Team ID，但 `SMAppService` 确实能注册**：一度从 `/Applications` 启动时报
+  `.notFound`、`sfltool dumpbtm` 里毫无记录，改用**原地覆盖**方式重装（`make install` 不再
+  `rm -rf`）并重新启动后就注册成功了（底账里出现 `Disposition: [enabled, allowed, notified]`）。
+  为了不让「注册失败就彻底没有开机自启」，开关仍然**先试系统登录项，失败才写
+  `~/Library/LaunchAgents/com.zilong.zwgestures.plist`**（`RunAtLoad` + `open -a`），
+  关闭时两处都清；菜单标题会写出实际生效的是哪一个。
+  细节与归因上的保留见 [`docs/ROADMAP.md`](docs/ROADMAP.md) §10。
 - 如果系统提示需要确认（`requiresApproval`），菜单会显示「等待系统设置里确认」，
   点一下会直接打开登录项面板。
 - **重新导入配置不会覆盖登录项状态。** 原版的 `AutoStart` 只是原版的意图，导入时若
