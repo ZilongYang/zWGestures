@@ -1,7 +1,6 @@
 <!--
-本文件是 2026-09-28 经子龙批准的那份实施方案的**原样导出**，不是重写的。
-来源：DSH 会话记录 ~/.dsh/sessions/--Users-zilong-zWork-ai-zWGestures--/session-374ee8cb-18f7-4f08-8a30-15d2ff4cb425/session.v4.jsonl.zstd
-      中 seq=204 的 exit_plan_mode 工具调用（提交时间 2026-09-28 00:54）。
+本文件是 2026-09-28 经作者批准的那份实施方案的**原样导出**，不是重写的。
+来源：当时方案评审会话里 `exit_plan_mode` 提交的原文（提交时间 2026-09-28 00:54）。
 进度与后续计划请看 docs/ROADMAP.md；本文件只作为当时的方案存档，不再更新。
 -->
 
@@ -34,7 +33,7 @@
 
 ## 3. 已勘察到的原版数据模型（迁移依据，已实测）
 
-工作区 `/Users/zilong/zWork/ai/zWGestures` 目前为空、非 git 仓库。原版信息来自只读勘察：
+工作区 `~/zWork/ai/zWGestures` 目前为空、非 git 仓库。原版信息来自只读勘察：
 
 - 结构：`{General, Groups, Apps, Specials}`，每个 Target = `{Id, Name, Intents[], Triggers[]}`
 - Step 类型：`KeyDownStep{Key}` / `StrokeStep{IsSimple,P[]}` / `MoveToEdgeCornerStep{EdgeCorner:{Value}}` / `ScrollStep{IsHorizontal}`
@@ -127,7 +126,7 @@ zWGesturesTests/
 | **P7 对照验收** | 与原版逐项对照、多屏/全屏/长时间运行加固 | 第 1 节全部成功标准达成 |
 | **P8（后续）** | 完整可视化编辑器、分组、拖放排序、拼音搜索、动画回放 | 与原版 2.3.3 全功能等价 |
 
-每个阶段的构建/运行命令会**先列给你确认再执行**；批准本方案即视为授权我在 `/Users/zilong/zWork/ai/zWGestures` 内自由写代码/构建。工作区外的一切（建证书、装到 `/Applications`、改系统设置、推 git 远端）都单独再问一次。
+每个阶段的构建/运行命令会**先列给你确认再执行**；批准本方案即视为授权我在 `~/zWork/ai/zWGestures` 内自由写代码/构建。工作区外的一切（建证书、装到 `/Applications`、改系统设置、推 git 远端）都单独再问一次。
 
 ## 6. 待验证清单（P1/P3 用小实验定论，不靠猜）
 

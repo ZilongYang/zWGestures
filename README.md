@@ -1,5 +1,9 @@
 # zWGestures
 
+[![CI](https://github.com/ZilongYang/zWGestures/actions/workflows/ci.yml/badge.svg)](https://github.com/ZilongYang/zWGestures/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Platform](https://img.shields.io/badge/platform-macOS%2014%2B%20Apple%20silicon-blue)
+
 原生的 Apple Silicon 鼠标手势工具，复刻 [WGestures 2](https://www.yingdev.com/projects/wgestures2)
 (macOS 2.3.3) 的功能。原版是基于 Mono / Xamarin.Mac 的 x86_64 应用，只能在 Rosetta 下运行。
 
@@ -57,10 +61,12 @@
 |---|---|
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | **计划与进度**，接手开发从这里开始读 |
 | [`docs/PLAN.md`](docs/PLAN.md) | 2026-09-28 批准的那份实施方案**原样存档**（只作历史参考，不再更新） |
+| [`docs/OPEN-SOURCE-PLAN.md`](docs/OPEN-SOURCE-PLAN.md) | 2026-09-29 批准的开源 + 发布计划**原样存档**（只作历史参考，不再更新） |
 | `README.md` | 本文件：构建命令、工程结构、开发约定 |
 
 ## 环境要求
 
+- **Apple Silicon（arm64）** —— 工程的 `ARCHS` 就是 `arm64`，Intel 机器构建不了 App
 - macOS 14 Sonoma 或更高（开发机为 macOS 27 + Xcode 26.6）
 - Xcode 26.x
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen)（`brew install xcodegen`）
@@ -68,12 +74,16 @@
 ## 构建与运行
 
 ```bash
-make build   # xcodegen generate + xcodebuild，产物在 build/Build/Products/Debug/zWGestures.app
-make run     # 先退出已运行的实例，再构建并启动
-make test    # 运行 ZWGCore 的单元测试（223 项）
-make install # 构建并把 .app 拷到 /Applications（开机自启需要固定路径）
+make bootstrap  # 首次克隆后跑一次：创建本机自签名证书（见「签名」一节）
+make build      # xcodegen generate + xcodebuild，产物在 build/Build/Products/Debug/zWGestures.app
+make run        # 先退出已运行的实例，再构建并启动
+make test       # ZWGCore 单元测试（230 项；其中 1 项读本机原版安装，没装时会被明确跳过）
+make install    # 构建并把 .app 拷到 /Applications（开机自启需要固定路径）
 make clean
 ```
+
+`make bootstrap` 不能省。工程用一把**本机自签名证书**签名，没有它 `make build` 会直接失败；
+而这把证书又是「辅助功能授权在重新编译之后依然有效」的前提（原因见下面「签名」一节）。
 
 > ⚠️ **`make run` 会先退出正在运行的实例，这一步不能省。** `open` 对一个**已在运行**的 App
 > 只做前台激活、**不会**启动新构建的二进制；macOS 上覆盖二进制文件也不影响已运行的进程。
@@ -121,7 +131,8 @@ prefs.json     偏好项，与原版 prefs.json 格式完全一致
 `~/Library/Application Support/com.yingdev.wgestures/<版本>/` 迁移一次，
 并在弹窗里报告迁移了哪些内容。**原版目录只读，绝不改写**；菜单栏里可以随时重新导入。
 
-格式兼容性有回归测试兜底：测试会读取真实配置文件，重新编码后要求 JSON **逐键完全相等**。
+格式兼容性有回归测试兜底：测试会读取仓库里提交的**参考配置 fixture**（原版 WGestures 2.3.3 的
+一份脱敏样本），重新编码后要求 JSON **逐键完全相等**。
 这条测试已经抓出过两个真实缺陷 —— 偏好键名写成了 `LabelExecuted`（正确是
 `LabelColorExecuted`），以及 `SkipVersion: null` 被 `encodeIfPresent` 整条省略。
 
@@ -164,7 +175,7 @@ zWGestures 需要「辅助功能」权限才能安装全局事件拦截器和发
   `.notFound`、`sfltool dumpbtm` 里毫无记录，改用**原地覆盖**方式重装（`make install` 不再
   `rm -rf`）并重新启动后就注册成功了（底账里出现 `Disposition: [enabled, allowed, notified]`）。
   为了不让「注册失败就彻底没有开机自启」，开关仍然**先试系统登录项，失败才写
-  `~/Library/LaunchAgents/com.zilong.zwgestures.plist`**（`RunAtLoad` + `open -a`），
+  `~/Library/LaunchAgents/io.github.zilongyang.zwgestures.plist`**（`RunAtLoad` + `open -a`），
   关闭时两处都清；菜单标题会写出实际生效的是哪一个。
   细节与归因上的保留见 [`docs/ROADMAP.md`](docs/ROADMAP.md) §10。
 - 如果系统提示需要确认（`requiresApproval`），菜单会显示「等待系统设置里确认」，
@@ -180,7 +191,7 @@ zWGestures 用一把本机自签名证书 `zWGestures Local Signing` 签名，�
 **指定代码要求（designated requirement）** 是稳定的：
 
 ```
-designated => identifier "com.zilong.zwgestures" and certificate root = H"85d71af4…"
+designated => identifier "io.github.zilongyang.zwgestures" and certificate root = H"85d71af4…"
 ```
 
 因此「辅助功能」授权在重新编译之后依然有效。ad-hoc 签名（`codesign -s -`）的要求基于

@@ -69,10 +69,10 @@ Rosetta。
 ## 4. 常用命令
 
 ```bash
-cd /Users/zilong/zWork/ai/zWGestures
+cd /path/to/zWGestures
 
 make build      # xcodegen generate + xcodebuild（会自动解锁签名钥匙串）
-make test       # 运行 ZWGCore 的单元测试（223 项）
+make test       # 运行 ZWGCore 的单元测试（230 项）
 make run        # 构建并启动
 make run-debug  # 构建并启动，同时打开调试面板（ZWG_DEBUG_HUD=1）
 make install    # 构建并把 .app 拷到 /Applications（开机自启需要固定路径）
@@ -80,7 +80,17 @@ make info       # 打印产物的架构与代码签名
 make clean
 ```
 
-**改完代码后务必 `make test`**，测试里有多条针对真实配置的强回归断言。
+**改完代码后务必 `make test`**，测试里有多条针对参考配置的强回归断言。
+
+> **术语：参考配置（reference configuration）**
+> 早先这些回归断言直接读本机安装的原版 WGestures 配置（当时的说法是「真实配置」）。那样在
+> 没有装原版的机器上会整条跳过，等于没测。现在改成读**随仓库提交的 fixture**：
+> `ZWGCore/Tests/ZWGCoreTests/Fixtures/legacy/2.3.3/`（原版 2.3.3 的一份脱敏样本，含
+> `gestures.json` / `prefs.json` / `Version`）。下文出现的「参考配置」都指这份 fixture，
+> 「参考偏好」指其中的 `prefs.json`。改动 fixture 会让多处硬编码基线失效，改之前先读
+> `ZWGCore/Tests/ZWGCoreTests/Fixtures/README.md`。
+> `ConfigTests.loadsALocalInstallWhenThereIsOne` 是唯一一条仍然读本机原版安装的**哨兵**测试，
+> 没装原版时会被明确跳过。
 
 ## 5. 关键决策（已与用户确认，不要擅自推翻）
 
@@ -136,7 +146,7 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
 > 4. **先跑全量手势两两距离的混淆报告**（`ConfusionReportTests`）再动手，
 >    不要「用户报一条、我修一条」。
 >
-> 这些都固化成了断言：`StrokeDirectionTests` 用真实配置的 `P` 原值直接断言方向语义，
+> 这些都固化成了断言：`StrokeDirectionTests` 用参考配置的 `P` 原值直接断言方向语义，
 > `ConfusionReportTests` 断言 `重新载入` 与 `其他窗口` 必须能区分。
 
 ### 边角位掩码：`Top=1 Right=2 Bottom=4 Left=8`
@@ -252,11 +262,12 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
   `MonotonicClock`（`ProcessInfo.systemUptime`），超时一律用相对延迟。
 - **锁方向必须单向**。`overlayLock` 可以再取 `recognitionLock`，反之不行 ——
   实时手势名必须在取 `overlayLock` 之前算完。
-- **手写测试 fixture 容易写反方向**。用真实配置里的 `P` 原值，或按真实编码规则生成。
+- **手写测试 fixture 容易写反方向**。用参考配置里的 `P` 原值，或按真实编码规则生成。
 
 ## 9. 验证方式
 
-- 单元测试：`make test`（223 项），其中多条**针对用户真实配置**的强回归断言。
+- 单元测试：`make test`（230 项），其中多条**针对参考配置**的强回归断言。
+  在没装原版 WGestures 的机器上会有 1 项哨兵测试被跳过，属正常。
 - 实机验证：用户用右键画手势，读调试面板（`make run-debug`）的
   `state` / `gesture` / `target` / `executed` 四行，并观察屏幕上的轨迹与手势名。
 - 崩溃报告在 `~/Library/Logs/DiagnosticReports/zWGestures-*.ips`
@@ -296,11 +307,16 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
   Bundle Identifier: com.zilong.zwgestures
   ```
 
+  > 上面这段是当时的原始输出，保留原样。`com.zilong.zwgestures` 属于个人命名空间，开源前已
+  > 统一改为 `io.github.zilongyang.zwgestures`（详见 [`OPEN-SOURCE-PLAN.md`](OPEN-SOURCE-PLAN.md) 阶段一）。
+  > 改 ID 之后 `SMAppService` 需要按新身份重新注册一次。
+
   **归因要谨慎**：`rm -rf` + `ditto` 重建 bundle 破坏系统关联**只是时序吻合的怀疑**
   （旧装法 → `.notFound`；换原地覆盖 → 注册成功），并不能严格证明因果 —— 也可能来自新构建或
   单纯重新注册。但**结论可以确定**：`SMAppService` 对本机这个无 Team ID 的自签名应用
   **是能用的**，不必绕开它。
-  同一时刻 `sfltool dumpbtm` 里**没有任何** zWGestures / zilong 记录，
+  同一时刻 `sfltool dumpbtm` 里**没有任何** zWGestures / zilong 记录（改 ID 后应搜
+  `io.github.zilongyang.zwgestures`），
   近 1 小时的 `smappservice` / BTM 日志也没有相关报错。
   成因大概率是 `make install` 用 `rm -rf` + `ditto` 把已有 bundle 整个删掉重建，
   破坏了系统对这份 bundle 的身份关联 —— **尚未证实**，需要单独一轮排查。
@@ -320,7 +336,7 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
 就写 LaunchAgent**；关闭时**两处都清**，不留残渣。菜单标题显示实际生效的机制
 （「已开启（系统登录项）」或「已开启（LaunchAgent）」）—— 用户能看出走的是哪条路。
 
-- plist 位置：`~/Library/LaunchAgents/com.zilong.zwgestures.plist`；生成逻辑在
+- plist 位置：`~/Library/LaunchAgents/io.github.zilongyang.zwgestures.plist`；生成逻辑在
   `ZWGCore/Support/LaunchAgent.swift`，用 `PropertyListSerialization` 构造而不是拼字符串 ——
   一个格式错误的 plist 会让开机自启**静默失效**，所以这部分有单测（标签、RunAtLoad、
   `open -a` 参数、非 ASCII 路径往返）
@@ -438,7 +454,7 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
   都是 AppKit 的。以后加新弹窗请照这个来。
 - 两个入口都加了 `Log.ui` 日志（「打开命令编辑器…」「命令编辑器已提交…」），这样
   「点击没反应」可以区分成两种情况：**没有日志 = 点击没到代码**，**有日志但没界面 =
-  呈现失败**。排查命令见 README（`log stream --predicate 'subsystem == "com.zilong.zwgestures"'`）。
+  呈现失败**。排查命令见 README（`log stream --predicate 'subsystem == "io.github.zilongyang.zwgestures"'`）。
 
 > ⚠️ **上面这段的第一版结论是错的，别照着抄。** 当时把「点击没反应」归因于
 > `onTapGesture(count: 2)` 在 `ScrollView` 里不触发，还据此把整行改成了 `Button`。
@@ -497,13 +513,13 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
    归一化后位置无意义，相对坐标在文件里更可读。
 
 回归防线：`WGStrokeRecorderTests` 直接断言「上/下/左/右/下→右/闭环」的方向文字，
-并且有一条**与真实配置里「Copy」定义比对归一化距离**的测试 —— 录一个向上笔画必须能匹配
+并且有一条**与参考配置里「Copy」定义比对归一化距离**的测试 —— 录一个向上笔画必须能匹配
 原版的拷贝，这是 y 轴方向与绘制顺序最强的守卫（这两点历史上各错过一次）。
 
 ### ⚠️ 同形状不一定是冲突 —— 必须看修饰键
 
 **这是我在 P6d 第一版里犯过的错，差点把用户正常的配置判成坏的。**
-用户真实配置里 `Copy` 与 `Cut` 都是「上」、`Paste` 与 `Paste & Enter` 都是「下」，
+参考配置里 `Copy` 与 `Cut` 都是「上」、`Paste` 与 `Paste & Enter` 都是「下」，
 区分它们的是**手势修饰键**（鼠标左键）。识别器 `GestureRecognizer` 的实际规则是：
 
 - `areModifiersSatisfied`：意图声明的每个修饰键步骤都必须真实发生（子集判定）；
@@ -512,7 +528,7 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
 所以不按左键时只有 `Copy` 符合条件，按住左键时 `Cut` 更具体而胜出 —— **两条都能用**。
 判成冲突的条件必须同时满足三条：**同一个触发键 + 同样的修饰键要求 + 形状距离 ≤ 阈值**。
 `WGStrokeConflict` 用签名比较（滚动的幅度折叠成方向，与识别器一致）实现这三条，
-并有一条**不变量测试**跑在用户的真实配置上：凡是被报出来的冲突，两条手势的触发与修饰键
+并有一条**不变量测试**跑在参考配置上：凡是被报出来的冲突，两条手势的触发与修饰键
 签名必须完全一致。
 
 ### 顺带查出的既存问题
@@ -529,7 +545,7 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
 「禁用某一条手势」）。所以这条是扩展：
 
 - `WGIntent.enabled`，缺键即视为启用；**只有禁用时才写出 `"Enabled": false`**。
-  这一点是硬约束：`ConfigTests` 有一条「真实配置重新编码后与原文件逐键一致」的守卫，
+  这一点是硬约束：`ConfigTests` 有一条「参考配置重新编码后与原文件逐键一致」的守卫，
   如果对启用状态也写键，那条测试立刻失败（已实测验证通过）。
 - 识别器 `scoredCandidates` 第一步就 `guard intent.enabled`，禁用的手势不进入候选；
   调试面板的「最近候选」也不会再报一条已禁用的手势。
@@ -563,7 +579,7 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
 - **搜索过滤时禁用拖拽**：过滤后可见的是子集，落点下标与用户看到的顺序对不上。
   此时底部状态栏会提示「清空搜索后可拖拽调整顺序」。
 
-把顺序放在距离之前是**安全**的：在用户的真实配置里，非重复形状之间最近的一对约 0.28，
+把顺序放在距离之前是**安全**的：在参考配置里，非重复形状之间最近的一对约 0.28，
 是匹配阈值 0.10 的近三倍，所以「两条不同形状同时通过阈值」实际不会发生 ——
 顺序只会在**真正的重复**之间做决定。这条推理写进了 `bestCandidate` 的注释与
 `GestureRecognizerTests` 的两个用例（靠前的赢；修饰键优先级不被顺序推翻）。
@@ -601,7 +617,7 @@ EventTap 拆掉，不是「忽略事件」），关闭时**只按原状态恢复
 所以匹配、调试面板、触发矩阵**一行都没改**。这是刻意的 —— 引擎只认识 `resolved.target`。
 
 `inheritsGlobal` 与 `WGIntent.enabled` 一样是本项目的扩展键，**只在偏离该类型的默认值时才写出**，
-保证重新编码真实配置仍然逐键一致（`ConfigTests` 守着）。
+保证重新编码参考配置仍然逐键一致（`ConfigTests` 守着）。
 
 ### 继承来的手势在列表里可见但只读
 
