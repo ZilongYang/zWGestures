@@ -46,6 +46,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         config.onStateChange = { [weak statusItemController] in
             statusItemController?.refresh()
         }
+        // 菜单是个静态 NSMenu，没人刷新它就永远保持构建时的文案。少了这一句，引擎在启动后
+        // 自己跑起来了，菜单栏还一直写着「等待辅助功能授权」——而这恰恰是用户最需要看准的一行。
+        engine.onStateChange = { [weak statusItemController] in
+            statusItemController?.refresh()
+        }
         config.start()
         appDirectory.start()
         engine.apply(startDragTimeout: config.preferences.startDragTimeoutSeconds)

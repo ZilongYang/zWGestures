@@ -130,7 +130,17 @@ install: stop build
 run-settings: stop build
 	open --env ZWG_SETTINGS_PANEL=1 "$(APP)"
 
-.PHONY: all gen bootstrap unlock-signing build lint test run run-debug run-settings stop install icon default-gestures dist clean info
+## Launch with a throwaway configuration directory — exactly what a fresh download sees.
+##
+## Exercises the first-run path (no config + no original WGestures → seed the built-in default
+## pack) without touching your real configuration. `ZWG_CONFIG_DIR` is the only way to do that on a
+## machine that already has one (see ConfigStore.defaultDirectory). The directory is kept so you can
+## inspect what was seeded.
+run-fresh: stop build
+	rm -rf build/fresh-config
+	open --env ZWG_CONFIG_DIR="$(CURDIR)/build/fresh-config" "$(APP)"
+
+.PHONY: all gen bootstrap unlock-signing build lint test run run-debug run-settings run-fresh stop install icon default-gestures dist clean info
 
 clean:
 	rm -rf $(DERIVED) ZWGCore/.build

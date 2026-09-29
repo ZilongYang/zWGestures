@@ -5,7 +5,23 @@ import Foundation
 /// Deliberately separate from the original app's directory: importing is a one-way read, so
 /// the original configuration is never modified and can be re-imported at any time.
 public final class ConfigStore: @unchecked Sendable {
+    /// Where the configuration lives. `ZWG_CONFIG_DIR` overrides it for development.
+    ///
+    /// The override exists for the same reason as `ZWG_DEBUG_HUD` and `ZWG_SETTINGS_PANEL`: it is the
+    /// only way to exercise the **first-run** path on a machine that already has a configuration. Point
+    /// it at an empty directory and the app goes through `ConfigBootstrapper` and seeds the built-in
+    /// default pack — exactly what a fresh download does — without touching the real configuration.
+    /// (`make run-fresh` does precisely that.) Never set during normal use.
     public static var defaultDirectory: URL {
+        let override = ProcessInfo.processInfo.environment["ZWG_CONFIG_DIR"]?
+            .trimmingCharacters(in: .whitespaces) ?? ""
+        if !override.isEmpty {
+            return URL(
+                fileURLWithPath: (override as NSString).expandingTildeInPath,
+                isDirectory: true
+            )
+        }
+
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? FileManager.default.homeDirectoryForCurrentUser
                 .appendingPathComponent("Library/Application Support", isDirectory: true)

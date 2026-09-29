@@ -12,14 +12,20 @@
 > **想直接下载使用？** 见 [`docs/INSTALL.md`](docs/INSTALL.md) —— 没签名的应用首次打开需要放行一次，
 > 那里写清了每一步、系统给出的原文，以及这些结论是怎么实测出来的。
 
-<!--
-截图：阶段三 15 产出后取消注释插入。
-![实时轨迹与手势名](docs/screenshots/overlay.png)
-![设置界面](docs/screenshots/settings.png)
-![手势编辑器：全屏重画形状](docs/screenshots/gesture-editor.png)
-![菜单栏](docs/screenshots/menu.png)
-![首次打开：Gatekeeper 步骤](docs/screenshots/gatekeeper.png)
--->
+![按住右键画一个手势：轨迹与手势名实时显示，一旦识别出来立刻变绿](site/assets/shot-overlay.png)
+
+<details>
+<summary><b>界面截图</b>（设置界面 / 菜单栏）</summary>
+
+![设置界面：手势集、手势列表与搜索](site/assets/shot-settings.png)
+
+![菜单栏](site/assets/shot-menu.png)
+
+> 两条说明：轨迹那张的深色背景是**衬底**，轨迹与手势名本身是实时截取的
+> （见 [`docs/ROADMAP.md`](docs/ROADMAP.md) §18）；截图用的是随 App 发布的**出厂默认手势**，
+> 也就是你下载后真正看到的那一份，不是你本机配置的样子。
+
+</details>
 
 ## 功能特性
 

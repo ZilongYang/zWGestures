@@ -18,14 +18,21 @@ can be imported directly (see [Why zWGestures exists](#why-zwgestures-exists)).
 > 中文文档见 [`README.md`](README.md)。**The app's interface is currently Chinese-only** — see
 > [Known limitations](#known-limitations).
 
-<!--
-Screenshots: uncomment once phase 3 produces them.
-![Live trail and gesture name](docs/screenshots/overlay.png)
-![Settings](docs/screenshots/settings.png)
-![Gesture editor: redraw the shape full-screen](docs/screenshots/gesture-editor.png)
-![Menu bar](docs/screenshots/menu.png)
-![First launch: the Gatekeeper step](docs/screenshots/gatekeeper.png)
--->
+![Hold the right button and draw: the trail and the gesture name appear live, turning green the moment it is recognised](site/assets/shot-overlay.png)
+
+<details>
+<summary><b>Screenshots</b> (settings / menu bar)</summary>
+
+![Settings: gesture sets, the gesture list and search](site/assets/shot-settings.png)
+
+![Menu bar](site/assets/shot-menu.png)
+
+> Two notes: the dark background behind the trail is a **backdrop** — the trail and the gesture name
+> themselves are captured live (see [`docs/ROADMAP.md`](docs/ROADMAP.md) §18, in Chinese). And the
+> screenshots show the **factory-default gestures that ship with the app**, i.e. what you get after
+> downloading it, not this machine's own configuration.
+
+</details>
 
 ## Features
 

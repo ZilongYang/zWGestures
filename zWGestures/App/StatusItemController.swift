@@ -2,7 +2,7 @@ import AppKit
 
 /// The menu-bar item.
 @MainActor
-final class StatusItemController: NSObject {
+final class StatusItemController: NSObject, NSMenuDelegate {
     private let statusItem: NSStatusItem
     private let menu = NSMenu()
 
@@ -55,6 +55,17 @@ final class StatusItemController: NSObject {
             button.title = "zW"
         }
         statusItem.menu = menu
+        // 打开菜单时再刷新一次，作为 `onStateChange` 之外的兜底：引擎会因为权限轮询自己启动、
+        // 也会被急停快捷键暂停，而一个把状态写错的菜单栏比没有菜单栏更糟。
+        menu.delegate = self
+    }
+
+    /// 每次打开菜单都按实时状态重建文案。
+    ///
+    /// 静态 `NSMenu` 不会自己更新，不刷新就永远显示构建那一刻的文案。这个 bug 真实发生过：
+    /// 启动时菜单写「等待辅助功能授权」，而引擎其实已经跑起来了。
+    func menuWillOpen(_ menu: NSMenu) {
+        refresh()
     }
 
     private func configureMenu() {

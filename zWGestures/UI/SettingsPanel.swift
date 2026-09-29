@@ -492,7 +492,10 @@ struct SettingsPanel: View {
         }
         parts.append(canReorder ? "顺序＝优先级（靠前的优先），可拖拽调整" : "清空搜索后可拖拽调整顺序")
         parts.append("构建 \(BuildInfo.buildStamp)")
-        parts.append("存于 \(ConfigStore.defaultDirectory.path)")
+        // 用 `~` 而不是绝对路径：更短、更友好，而且不必把用户名显示在界面上
+        // （截图发出去时也不会带出去）。
+        let configPath = (ConfigStore.defaultDirectory.path as NSString).abbreviatingWithTildeInPath
+        parts.append("存于 \(configPath)")
         return parts.joined(separator: " · ")
     }
 }
