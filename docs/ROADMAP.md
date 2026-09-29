@@ -735,3 +735,52 @@ error: external macro implementation type 'ObservationMacros.ObservableMacro' co
 - 不复制、不打包原版任何二进制、字体、图标、资源或激活码；只做配置格式互通。
 - 不复刻 Windows 版特有功能：自定义菜单、Lua、Cmd 脚本、运行/激活应用程序。
 - 不做 App Store 上架（沙箱与全局输入拦截互斥）。
+
+---
+
+## 15. v0.2.0 工作包：界面英文化（成本评估）
+
+用户 2026-09-29 决定：**v0.1.0 不做界面多语言，搁置到 v0.2.0**。本次只做三件便宜事 ——
+`CFBundleLocalizations` 去掉不实的 `en`（已改，`Info.plist` 是生成物，已重新生成）、三份文档写明
+「界面目前仅中文」（已写）、把成本评估记在这里。
+
+### 要做的事
+
+1. **抽字符串。** 界面文案现在是散落各处的字面量，需要抽进 String Catalog。规模约 **200+ 条**：
+   设置界面（手势列表 / 手势编辑器 / 偏好设置）、命令编辑器、应用目标管理、菜单栏、各类弹窗与错误提示。
+2. **ZWGCore 的展示层要改结构 —— 这是真正麻烦的部分。** 用户可见文案有一部分**住在核心逻辑包里**：
+   `ZWGCore/Sources/ZWGCore/Config/Display/WGIntentDisplay.swift`（对 `WGIntent` 的展示扩展，提供
+   `displayName` / `strokeDescription` / `modifierDescriptions` / `summary` / `describe(inputKey:)` /
+   `keySymbol`）与 `WGCommand.summary`。而 ZWGCore 是个不知道 UI 语言的纯逻辑包。两条路：
+   - 给这些入口做 **locale 注入**（传 `Locale` 或一个文案提供者），或
+   - 把展示层**上移**到 App target（ZWGCore 只留结构化数据）。
+
+   两条都会**改动公开 API**，并会碰一批断言中文文案的测试。
+   （`ConfigController.Status.localizedText` 与 `LoginItem.Status.localizedText` 已经在 App target 里，
+   这部分不用搬。）
+3. **出厂默认手势要做第二份。** 默认手势的名字来自原版的 `tr_bootstrap.json`（中文译名表）。要出英文界面
+   就得再做一份英文默认配置 —— 等于**两份默认配置**都要维护，各自都要有往返与键名测试。
+4. **系统层文案要跟着走。** 菜单栏、弹窗、`Info.plist` 的 `NSAppleEventsUsageDescription` 等；
+   `CFBundleLocalizations` 加回 `en`；复核 `CFBundleDevelopmentRegion`。
+
+### 不做的部分
+
+- 不做 RTL 适配 —— 界面没有需要镜像的布局。
+- 不做中英以外的第三语言。
+- 不动 `site/index.html`（那个页面自带中英切换，与 App 界面语言无关）。
+
+### 实施顺序与风险
+
+**先做第 2 条（展示层结构），再抽字符串。** 顺序反了会把同一批文案抽两遍。
+
+主要成本是「断言中文文案的测试」：那批测试要么改成断言结构化数据（枚举 / 键），要么把期望文案一并本地化。
+实测的粗略基线（2026-09-29）：
+
+| 位置 | 中文字面量 | 说明 |
+|---|---|---|
+| `zWGestures/`（App target） | 约 160 处 | 含日志与注释里的字符串，不全是界面文案 —— 需要逐个甄别 |
+| `ZWGCore/Tests/ZWGCoreTests/` | 约 649 处，分布在 19 个文件 | 其中大部分是测试标题与诊断信息，**不全是文案断言** —— 同样需要逐个甄别 |
+
+这两个数字只用来判断量级，不能直接当作「待抽条数」。
+
+顺带能修掉一个现存的不一致：`WGCommand.summary` 这类**给用户看的**文案，本来就不该住在核心逻辑包里。

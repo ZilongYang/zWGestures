@@ -71,7 +71,9 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleDevelopmentRegion: zh-Hans
-        CFBundleLocalizations: [zh-Hans, en]
+        # 界面目前仅中文（英文化排在 v0.2.0，见 docs/ROADMAP.md 的 v0.2.0 工作包）。
+        # 这里不能声明 `en`：那会让系统把英文用户导向一个其实不存在的英文界面。
+        CFBundleLocalizations: [zh-Hans]
         LSMinimumSystemVersion: "14.0"
         # Menu-bar-only agent app (no Dock icon).
         LSUIElement: true
