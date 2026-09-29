@@ -77,6 +77,14 @@ icon:
 default-gestures:
 	python3 scripts/make-default-gestures.py $(ORIGINAL)
 
+## Build the distributable artifacts into dist/: ad-hoc signed app, dmg, zip, SHA256SUMS.
+##
+## Delegates to scripts/make-dist.sh — read its header for why the signing identity is ad-hoc
+## there and what it guards against. Needs a normal terminal: creating the dmg mounts a volume,
+## which a restricted sandbox refuses.
+dist:
+	bash scripts/make-dist.sh
+
 ## Source-level guards that unit tests cannot express (see docs/ROADMAP.md §8)
 lint:
 	@python3 scripts/check-appkit-isolation.py
@@ -122,7 +130,7 @@ install: stop build
 run-settings: stop build
 	open --env ZWG_SETTINGS_PANEL=1 "$(APP)"
 
-.PHONY: all gen bootstrap unlock-signing build lint test run run-debug run-settings stop install icon default-gestures clean info
+.PHONY: all gen bootstrap unlock-signing build lint test run run-debug run-settings stop install icon default-gestures dist clean info
 
 clean:
 	rm -rf $(DERIVED) ZWGCore/.build

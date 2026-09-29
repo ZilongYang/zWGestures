@@ -39,6 +39,19 @@ settings:
     PROVISIONING_PROFILE_SPECIFIER: ""
     CODE_SIGNING_REQUIRED: YES
     CODE_SIGNING_ALLOWED: YES
+  # 分发产物必须满足的两件事。放在这里而不是 make dist 里，这样**任何** Release 构建
+  # （包括手工 xcodebuild、CI）都是可发布的状态。
+  configs:
+    Release:
+      # 1) Xcode 在**签名之前**对产物做 strip。没有它，二进制里会留下 133 处构建者主目录
+      #    （`.swift` 源路径与 `.o` 目标文件路径，来自链接器的 debug map —— 编译器前缀
+      #    重映射只能修掉前者），会随下载包一起公开；顺带把二进制从 2.9 MB 缩到 1.2 MB。
+      #    Debug 不设，保留完整调试信息。
+      DEPLOYMENT_POSTPROCESSING: YES
+      # 2) 默认 YES 会注入 Xcode 的开发用 entitlement，产物带上
+      #    com.apple.security.get-task-allow（允许别人 attach 调试器）。Debug 需要它，
+      #    分发产物不能有。
+      CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
 
 targets:
   zWGestures:
