@@ -27,6 +27,27 @@ all: build
 gen:
 	xcodegen generate
 
+## First run after a fresh clone: create the local self-signed certificate.
+##
+## `make build` signs with a **stable local identity** on purpose. Ad-hoc signing would derive its
+## designated requirement from the CDHash, which changes on every compile, so macOS would treat
+## each build as a brand-new app and the Accessibility grant would have to be re-issued every time.
+## The certificate is created once and lives in its own keychain (never in the login keychain).
+bootstrap:
+	@if security find-certificate -c "zWGestures Local Signing" "$(SIGNING_KEYCHAIN)" >/dev/null 2>&1; then \
+		echo "签名证书已就绪：zWGestures Local Signing"; \
+	else \
+		echo "未找到签名证书，开始创建（只需一次）…"; \
+		bash scripts/create-signing-cert.sh; \
+	fi
+	@echo
+	@echo "下一步："
+	@echo "  make build   构建（产物在 $(APP)）"
+	@echo "  make run     构建并启动"
+	@echo
+	@echo "首次启动需要在「系统设置 › 隐私与安全性 › 辅助功能」里勾选 zWGestures ——"
+	@echo "没有这个权限，全局事件拦截器和合成按键都无法工作。"
+
 ## Unlock the dedicated signing keychain so xcodebuild can sign unattended
 unlock-signing:
 	@security unlock-keychain -p "$(SIGNING_KEYCHAIN_PASSWORD)" "$(SIGNING_KEYCHAIN)" 2>/dev/null \
@@ -90,7 +111,7 @@ install: stop build
 run-settings: stop build
 	open --env ZWG_SETTINGS_PANEL=1 "$(APP)"
 
-.PHONY: all gen unlock-signing build lint test run run-debug run-settings stop install icon clean info
+.PHONY: all gen bootstrap unlock-signing build lint test run run-debug run-settings stop install icon clean info
 
 clean:
 	rm -rf $(DERIVED) ZWGCore/.build

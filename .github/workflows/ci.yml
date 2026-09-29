@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A new push to the same branch makes the previous run irrelevant.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Runs anywhere: the compatibility tests read a configuration committed under
+  # ZWGCore/Tests/ZWGCoreTests/Fixtures, not the WGestures installation on the machine.
+  core-tests:
+    name: ZWGCore 单元测试
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 工具链版本
+        run: |
+          swift --version
+          xcodebuild -version
+
+      # Source-level guard for the AppKit actor-isolation crash — see scripts/check-appkit-isolation.py
+      # and the "开发约定" section of the README. `make test` runs it too; running it first makes a
+      # violation show up as its own failed step instead of hiding inside the test log.
+      - name: 源码守卫（AppKit 隔离）
+        run: make lint
+
+      - name: 单元测试
+        run: make test
+
+  # `make test` only compiles ZWGCore. The App target — UI, EventTap, Overlay — is not in that
+  # package, so without this job nothing would ever compile it in CI.
+  app-build:
+    name: App target 编译
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 XcodeGen
+        run: brew install xcodegen
+
+      # project.yml is the source of truth; zWGestures.xcodeproj is committed but generated.
+      # Regenerating here also catches a project.yml edit that was never regenerated locally.
+      - name: 生成工程
+        run: xcodegen generate
+
+      # No certificate exists on a runner: signing is off, which is all a compile check needs.
+      - name: 编译 App target
+        run: |
+          xcodebuild -project zWGestures.xcodeproj -scheme zWGestures \
+            -configuration Debug \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+
+      # TODO(阶段二): the factory default gesture pack (zWGestures/Resources/Defaults/) does not
+      # exist yet. It must land in the bundle at Contents/Resources/Defaults/ — XcodeGen flattens
+      # plain .json resources to the bundle root unless the directory is a folder reference — so
+      # once it exists, assert the built path here:
+      #   test -f build/Build/Products/Debug/zWGestures.app/Contents/Resources/Defaults/gestures.json
+      - name: 展示产物结构
+        run: find build/Build/Products/Debug/zWGestures.app/Contents/Resources -maxdepth 2 | sort
