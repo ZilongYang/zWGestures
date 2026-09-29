@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>zWGestures — 原生的 Apple Silicon 鼠标手势工具</title>
+<meta name="description" content="用 Swift 从头写成的原生 Apple Silicon 鼠标手势工具。不依赖 Rosetta，兼容 WGestures 2 配置格式，可一键导入已有手势。开箱 48 条中文手势。">
+<link rel="icon" href="assets/icon.png">
+<link rel="apple-touch-icon" href="assets/icon.png">
+<!--
+  刻意不使用任何外部资源：没有 CDN、没有网络字体、没有统计脚本。断网也能正常显示。
+  中英切换由页面底部那一小段内联 JS 完成，默认中文，支持 ?lang=en，选择记在 localStorage。
+  没有 JS 时中文内容照常可读（英文内容默认隐藏，只由 JS 切换）。
+-->
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #1b1b1f;
+    --muted: #64646c;
+    --card: #f4f4f7;
+    --line: #e4e4e8;
+    --accent: #0b8f61;
+    --on-accent: #ffffff;
+    --shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.06);
+    --maxw: 960px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121215;
+      --fg: #f1f1f4;
+      --muted: #9b9ba4;
+      --card: #1c1c21;
+      --line: #2c2c33;
+      --accent: #20d697;
+      --on-accent: #05261a;
+      --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.7 -apple-system, BlinkMacSystemFont, "SF Pro Text",
+          "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  }
+  /* 语言切换：默认只显示中文，没有 JS 时也成立 */
+  .en { display: none; }
+  body.lang-en .zh { display: none; }
+  body.lang-en .en { display: inline; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 22px; }
+  a { color: var(--accent); }
+
+  header.top {
+    position: sticky; top: 0; z-index: 10;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: saturate(180%) blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  header.top .wrap { display: flex; align-items: center; gap: 12px; height: 56px; }
+  header.top img { width: 24px; height: 24px; border-radius: 6px; }
+  header.top .name { font-weight: 600; letter-spacing: .2px; }
+  header.top .spacer { flex: 1; }
+  .ghost {
+    font: inherit; font-size: 14px; cursor: pointer;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: 5px 14px;
+  }
+  .ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  section { padding: 56px 0; }
+  section + section { border-top: 1px solid var(--line); }
+  h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.25; margin: 0 0 14px; letter-spacing: -.5px; }
+  h2 { font-size: clamp(21px, 3vw, 27px); margin: 0 0 18px; letter-spacing: -.3px; }
+  h3 { font-size: 17px; margin: 26px 0 8px; }
+  p  { margin: 0 0 14px; }
+  .lead { font-size: clamp(16px, 2.2vw, 19px); color: var(--muted); max-width: 46em; }
+  .muted { color: var(--muted); }
+  small { color: var(--muted); }
+
+  .hero { text-align: center; padding-top: 64px; }
+  .hero img.appicon { width: 96px; height: 96px; border-radius: 22px; box-shadow: var(--shadow); }
+  .hero .lead { margin: 0 auto 26px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center; }
+  .btn {
+    display: inline-block; text-decoration: none;
+    background: var(--accent); color: var(--on-accent);
+    font-weight: 600; padding: 12px 26px; border-radius: 999px;
+    box-shadow: var(--shadow);
+  }
+  .btn:hover { filter: brightness(1.06); }
+  .meta { margin-top: 16px; font-size: 14px; color: var(--muted); }
+  .notice {
+    margin: 22px auto 0; max-width: 40em; font-size: 14px;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 12px 16px; text-align: left; color: var(--muted);
+  }
+
+  figure { margin: 0; }
+  figure img { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid var(--line); }
+  figcaption { margin-top: 8px; font-size: 13px; color: var(--muted); text-align: center; }
+  .shots { display: grid; gap: 22px; grid-template-columns: 2fr 1fr; align-items: start; }
+  @media (max-width: 720px) { .shots { grid-template-columns: 1fr; } }
+  .shots .wide { grid-column: 1 / -1; }
+
+  ul.features { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 720px) { ul.features { grid-template-columns: 1fr; } }
+  ul.features li { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  ul.features b { display: block; margin-bottom: 4px; }
+  ul.features span.d { color: var(--muted); font-size: 14.5px; }
+
+  ol.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; }
+  ol.steps > li { counter-increment: s; position: relative; padding: 0 0 20px 46px; }
+  ol.steps > li::before {
+    content: counter(s); position: absolute; left: 0; top: 0;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); color: var(--on-accent);
+    font-size: 14px; font-weight: 700; display: grid; place-items: center;
+  }
+  ol.steps b { display: block; }
+
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; margin-bottom: 10px; }
+  details summary { cursor: pointer; font-weight: 600; }
+  details[open] summary { margin-bottom: 8px; }
+  details p:last-child { margin-bottom: 0; }
+
+  blockquote { margin: 0; padding: 0 0 0 18px; border-left: 3px solid var(--accent); color: var(--fg); }
+
+  footer { border-top: 1px solid var(--line); padding: 32px 0 48px; font-size: 14px; color: var(--muted); }
+  footer a { color: var(--muted); }
+  footer .links { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <img src="assets/icon.png" alt="">
+    <span class="name">zWGestures</span>
+    <span class="spacer"></span>
+    <a class="ghost" href="https://github.com/ZilongYang/zWGestures" style="text-decoration:none">GitHub</a>
+    <button class="ghost" id="lang-toggle" type="button" aria-label="切换语言 / Switch language">English</button>
+  </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="wrap">
+    <img class="appicon" src="assets/icon.png" alt="zWGestures 应用图标">
+    <h1>
+      <span class="zh">原生的 Apple Silicon 鼠标手势工具</span>
+      <span class="en">Native mouse gestures for Apple&nbsp;Silicon</span>
+    </h1>
+    <p class="lead">
+      <span class="zh">按住鼠标右键画一个形状，就执行你为它配置的动作。用 Swift 从头写成，不依赖 Rosetta；兼容 WGestures&nbsp;2 的配置格式，可以直接导入你已有的手势。</span>
+      <span class="en">Hold the right mouse button, draw a shape, and the action you configured for it runs. Written from scratch in Swift with no Rosetta dependency, and compatible with the WGestures&nbsp;2 configuration format so your existing gestures carry over.</span>
+    </p>
+    <p class="cta">
+      <a class="btn" href="https://github.com/ZilongYang/zWGestures/releases/latest/download/zWGestures-arm64.dmg">
+        <span class="zh">下载 macOS 版</span><span class="en">Download for macOS</span>
+      </a>
+      <a class="ghost" href="https://github.com/ZilongYang/zWGestures/releases" style="text-decoration:none; padding:11px 20px">
+        <span class="zh">校验和与其它版本</span><span class="en">Checksums &amp; other releases</span>
+      </a>
+    </p>
+    <p class="meta">v0.1.0 · macOS 14+ · Apple Silicon</p>
+    <p class="notice">
+      <span class="zh"><b>首次打开需要放行一次。</b>这个应用没有 Apple 开发者签名，macOS 会拦下它 —— 这是预期行为，不是文件损坏。放行步骤见下面的「安装」，一步一步都写清了。</span>
+      <span class="en"><b>macOS will block the first launch.</b> The app is not signed with an Apple Developer certificate — that is expected behaviour, not a corrupted file. The “Install” section below walks through it.</span>
+    </p>
+  </div>
+</section>
+
+<section id="shots">
+  <div class="wrap">
+    <h2><span class="zh">长这样</span><span class="en">What it looks like</span></h2>
+    <div class="shots">
+      <figure class="wide">
+        <img src="assets/shot-overlay.png" alt="按住右键画手势时，屏幕上实时显示轨迹与识别出的手势名">
+        <figcaption>
+          <span class="zh">画的过程中就显示轨迹；一旦识别出来立刻变绿并显示手势名。</span>
+          <span class="en">The trail appears as you draw; it turns green and shows the gesture name the moment it is recognised.</span>
+        </figcaption>
+      </figure>
+      <figure style="grid-column: span 2">
+        <img src="assets/shot-settings.png" alt="zWGestures 设置界面：手势集、手势列表与搜索">
+        <figcaption>
+          <span class="zh">设置界面：手势集、手势列表、搜索。开箱就是这 48 条中文手势。</span>
+          <span class="en">Settings: gesture sets, the gesture list, search. These 48 gestures ship with the app.</span>
+        </figcaption>
+      </figure>
+      <figure>
+        <img src="assets/shot-menu.png" alt="菜单栏菜单">
+        <figcaption><span class="zh">菜单栏</span><span class="en">Menu bar</span></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <h2><span class="zh">功能特性</span><span class="en">Features</span></h2>
+    <ul class="features">
+      <li>
+        <b><span class="zh">右键手势，形状随意</span><span class="en">Right-button gestures of any shape</span></b>
+        <span class="d"><span class="zh">不只是上下左右 —— 任意折线、圆圈、L 形都能识别，靠形状归一化距离匹配。</span><span class="en">Not just up/down/left/right — arbitrary polylines, circles and L-shapes, matched by normalised shape distance.</span></span>
+      </li>
+      <li>
+        <b><span class="zh">一条手势 = 笔画 + 动作</span><span class="en">A gesture = a stroke + an action</span></b>
+        <span class="d"><span class="zh">动作可以是按键序列（含组合键与多步序列）、系统功能键、Web 搜索地址或 Shell 脚本，也可以勾选「识别后立即执行」。</span><span class="en">Key sequences (including modifier combos and multi-step sequences), system function keys, a web-search URL or a shell script — with an optional “run the moment it is recognised”.</span></span>
+      </li>
+      <li>
+        <b><span class="zh">按应用分手势集，并且有继承</span><span class="en">Per-application sets, with inheritance</span></b>
+        <span class="d"><span class="zh">应用自己的手势优先，没定义的继续用全局的 —— 给某个应用只加一条手势，不会让那个应用里的拷贝粘贴失效。</span><span class="en">An app's own gestures win; anything it does not define falls back to the global set — so adding one gesture for an app never breaks copy/paste inside it.</span></span>
+      </li>
+      <li>
+        <b><span class="zh">每条手势可以单独禁用</span><span class="en">Enable or disable any single gesture</span></b>
+        <span class="d"><span class="zh">保留在列表里、形状和命令都不变，只是画它没反应；整行变淡以示区别。</span><span class="en">It stays in the list with its shape and command intact, it just does nothing; the row is dimmed.</span></span>
+      </li>
+      <li>
+        <b><span class="zh">轨迹与手势名实时可视化</span><span class="en">Live trail and gesture name</span></b>
+        <span class="d"><span class="zh">识别即变绿，松手后淡出。未识别的手势不会弹出右键菜单。</span><span class="en">Green on recognition, fading out after release. An unrecognised stroke never drops a context menu.</span></span>
+      </li>
+      <li>
+        <b><span class="zh">形状冲突会提示，顺序即可调</span><span class="en">Conflicts flagged, priority by list order</span></b>
+        <span class="d"><span class="zh">相同形状靠手势修饰键区分是合法的（拷贝与剪切都是向上），不会被误报。真冲突标橙，拖拽或右键菜单即可调整。</span><span class="en">Two gestures sharing a shape is legal when a gesture modifier tells them apart (Copy and Cut are both “up”), so that is not reported. Real conflicts are marked orange and reordered by drag or context menu.</span></span>
+      </li>
+      <li>
+        <b><span class="zh">界面里能改一切，保存前自动备份</span><span class="en">Everything editable, with automatic backups</span></b>
+        <span class="d"><span class="zh">浏览、搜索、改名、删除、重画形状、改动作、排队、禁用，都不用再手改 JSON。覆盖配置前旧版本会存进 Backups（各留最近 10 份）。</span><span class="en">Browse, search, rename, delete, redraw a shape, change an action, reorder, disable — no hand-editing JSON. Before a file is overwritten the old version goes into Backups (last 10 kept).</span></span>
+      </li>
+      <li>
+        <b><span class="zh">兼容 WGestures 配置，一键导入</span><span class="en">WGestures-compatible, one-click import</span></b>
+        <span class="d"><span class="zh">首次启动自动导入，也可以随时从菜单栏手动重新导入。<b>原版目录只读，绝不改写。</b></span><span class="en">Imported automatically on first launch, and re-importable from the menu bar at any time. <b>The original's data directory is read-only and never modified.</b></span></span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <h2><span class="zh">安装</span><span class="en">Install</span></h2>
+    <ol class="steps">
+      <li>
+        <b><span class="zh">下载并打开 dmg</span><span class="en">Download and open the dmg</span></b>
+        <span class="zh muted">从上面的按钮下载 <code>zWGestures-arm64.dmg</code>，双击打开。</span>
+        <span class="en muted">Download <code>zWGestures-arm64.dmg</code> with the button above and open it.</span>
+      </li>
+      <li>
+        <b><span class="zh">把 zWGestures.app 拖进「应用程序」</span><span class="en">Drag zWGestures.app into Applications</span></b>
+        <span class="zh muted"><b>不要在 dmg 卷里直接双击运行。</b>dmg 卷是只读的、随时会被卸载，而且系统会把卷内运行的应用移置到一个随机只读路径 —— 后果是开机自启注册的是那个临时路径，重启后就失效。</span>
+        <span class="en muted"><b>Do not run it from inside the dmg volume.</b> That volume is read-only and gets unmounted, and macOS translocates an app run from it to a random read-only path — so autostart would register that temporary path and stop working after a reboot.</span>
+      </li>
+      <li>
+        <b><span class="zh">首次打开会被系统拦下，去系统设置放行</span><span class="en">macOS blocks the first launch — allow it in System Settings</span></b>
+        <span class="zh muted">双击之后应用好像启动了、随即又退出，这是系统在后台评估后把它结束了。打开<b>系统设置 › 隐私与安全性</b>，往下找到<b>安全性</b>一节，会看到「已阻止“zWGestures”以保护Mac。」，点右边的<b>「仍要打开」</b>，然后回到「应用程序」再双击一次。<br>（在 Finder 里双击时如果弹的是对话框，那个对话框上的按钮放行不了 —— macOS Sequoia 起苹果已经移除了「按住 Control 点按 → 打开」这条老路。）</span>
+        <span class="en muted">After the double-click the app appears to start and then quits: the system evaluates it in the background and then terminates it. Open <b>System Settings › Privacy &amp; Security</b>, scroll to the <b>Security</b> section, find “已阻止“zWGestures”以保护Mac。” and click <b>仍要打开</b> (Open Anyway), then double-click the app in Applications again.<br>(If Finder shows a dialog instead, the buttons on that dialog cannot allow it — Apple removed the old Control-click → Open route in macOS Sequoia.)</span>
+      </li>
+      <li>
+        <b><span class="zh">授权「辅助功能」</span><span class="en">Grant Accessibility</span></b>
+        <span class="zh muted">系统设置 › 隐私与安全性 › <b>辅助功能</b>，勾选 zWGestures。没有这个权限，全局手势拦截和合成按键都无法工作。勾选后不需要重启应用，它会自己发现并把引擎拉起来。</span>
+        <span class="en muted">System Settings › Privacy &amp; Security › <b>Accessibility</b>, tick zWGestures. Without it neither the global gesture interception nor synthetic key events can work. No relaunch needed — the app notices and starts the engine itself.</span>
+      </li>
+      <li>
+        <b><span class="zh">完成</span><span class="en">Done</span></b>
+        <span class="zh muted">开箱就有 48 条中文手势：画「上」是拷贝、画「下」是粘贴、向左后退、向右前进、<code>L</code> 形关闭窗口、<code>C</code> 形切换 App。可以直接用，也可以在设置里随便改。</span>
+        <span class="en muted">You get 48 gestures out of the box: “up” copies, “down” pastes, left goes back, right goes forward, an <code>L</code> closes the window, a <code>C</code> switches apps. Use them as they are, or change anything in the settings.</span>
+      </li>
+    </ol>
+    <!-- 阶段五之后补：全新用户账号里拍到的「已阻止」+「仍要打开」界面
+    <figure style="margin-top:22px">
+      <img src="assets/install-gatekeeper.png" alt="系统设置 › 隐私与安全性 › 安全性 里的「已阻止」与「仍要打开」">
+      <figcaption>系统设置 › 隐私与安全性 › 安全性</figcaption>
+    </figure>
+    -->
+    <p class="muted" style="margin-top:22px; font-size:14.5px">
+      <span class="zh">更完整的说明（包括命令行放行方式、以及这些结论是怎么实测出来的）见仓库里的 <a href="https://github.com/ZilongYang/zWGestures/blob/main/docs/INSTALL.md">docs/INSTALL.md</a>。</span>
+      <span class="en">A fuller write-up — including the command-line route and how each of these conclusions was actually measured — is in <a href="https://github.com/ZilongYang/zWGestures/blob/main/docs/INSTALL.md">docs/INSTALL.md</a> (in Chinese).</span>
+    </p>
+  </div>
+</section>
+
+<section id="migrate">
+  <div class="wrap">
+    <h2><span class="zh">从 WGestures 迁移</span><span class="en">Migrating from WGestures</span></h2>
+    <p>
+      <span class="zh">已经装了原版 WGestures 的话，<b>首次启动会自动导入你现有的手势</b>，并在弹窗里报告迁移了哪些内容。你的手势、按应用分组、触发矩阵都会带过来。</span>
+      <span class="en">If you already have the original WGestures installed, <b>the first launch imports your existing gestures automatically</b> and reports what came across. Your gestures, per-application sets and trigger matrix all carry over.</span>
+    </p>
+    <p>
+      <span class="zh"><b>原版目录只被读取，绝不会被改写。</b>配置写到 zWGestures 自己的目录，并在覆盖前自动备份。菜单栏里随时可以重新导入一次。</span>
+      <span class="en"><b>The original's directory is only read, never written.</b> The configuration goes to zWGestures' own directory, with an automatic backup before each overwrite. You can re-import from the menu bar at any time.</span>
+    </p>
+    <p>
+      <span class="zh">没装过原版也没关系 —— 那样你拿到的是上面那 48 条内置默认手势。</span>
+      <span class="en">If you have never installed the original, that is fine too: you get the 48 built-in default gestures described above.</span>
+    </p>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap">
+    <h2><span class="zh">为什么会有 zWGestures</span><span class="en">Why zWGestures exists</span></h2>
+    <blockquote>
+      <p>
+        <span class="zh">WGestures 2 是一款出色的鼠标手势工具。它的「手势＝操作步骤之和」「手势修饰键」「继承与重载」等设计是 zWGestures 的直接灵感来源；zWGestures 也刻意保持了与它配置文件格式的兼容，好让你已有的手势能直接搬过来。</span>
+        <span class="en">WGestures 2 is an excellent mouse-gesture tool. Its ideas — “a gesture is the sum of its steps”, gesture modifiers, inheritance and overriding — are the direct inspiration for zWGestures, which deliberately keeps configuration-file compatibility so that existing gestures carry over.</span>
+      </p>
+      <p>
+        <span class="zh">原版 macOS 版最后一个版本是 2021 年 12 月的 2.3.3。它是基于 Mono / Xamarin.Mac 的 x86_64 应用，在 Apple 芯片 Mac 上依赖 Rosetta 运行。而 Apple 已宣布：<a href="https://developer.apple.com/news/?id=w5ngl9k2">macOS 26.4 起</a>，启动依赖 Rosetta 的应用会收到系统提示；<b>macOS 27 是最后一个支持 Rosetta 的版本</b>，之后 Intel-only 应用在 Apple 芯片 Mac 上将不再能运行（少数老游戏除外）。</span>
+        <span class="en">The last macOS release of the original is 2.3.3, from December 2021. It is a Mono / Xamarin.Mac x86_64 application, so it depends on Rosetta on Apple Silicon Macs. Apple has announced that <a href="https://developer.apple.com/news/?id=w5ngl9k2">starting with macOS 26.4</a> launching a Rosetta-dependent app produces a system prompt, and that <b>macOS 27 is the last release to support Rosetta</b> — after that, Intel-only apps will no longer run on Apple Silicon Macs (a few older games excepted).</span>
+      </p>
+      <p>
+        <span class="zh">为了让这套用了多年的鼠标手势能继续在新系统上用下去，我用 Swift 从头写了一个原生版本。它是<b>独立的重新实现，不是官方版本，与原项目及作者 yingdev（Ying Yuandong）没有隶属关系</b>，不包含原版的任何二进制、字体、图标或激活码。</span>
+        <span class="en">To keep a mouse-gesture setup that has been in daily use for years working on current systems, I rewrote it from scratch in Swift. It is an <b>independent reimplementation, not an official version, and has no affiliation with the original project or its author, yingdev (Ying Yuandong)</b>. It contains none of the original's binaries, fonts, icons or licence keys.</span>
+      </p>
+      <p>
+        <span class="zh">如果你还在用原版并且觉得它好用，请去 <a href="https://www.yingdev.com/projects/wgestures2">yingdev.com/projects/wgestures2</a> 支持原作者。</span>
+        <span class="en">If you still use the original and like it, please support its author at <a href="https://www.yingdev.com/projects/wgestures2">yingdev.com/projects/wgestures2</a>.</span>
+      </p>
+    </blockquote>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="wrap">
+    <h2><span class="zh">已知限制</span><span class="en">Known limitations</span></h2>
+    <ul>
+      <li><span class="zh"><b>界面目前仅中文。</b>英文界面排在 v0.2.0 的路线图上。</span><span class="en"><b>The interface is currently Chinese-only.</b> An English UI is on the roadmap for v0.2.0.</span></li>
+      <li><span class="zh"><b>仅支持 Apple Silicon。</b>不做 Intel / Universal 支持 —— 这正是 zWGestures 存在的理由之一。</span><span class="en"><b>Apple Silicon only.</b> No Intel or Universal support — which is rather the point.</span></li>
+      <li><span class="zh">未做 Developer ID 签名与公证，所以首次打开要手动放行一次。</span><span class="en">Not Developer ID signed or notarised, so the first launch has to be allowed through manually.</span></li>
+      <li><span class="zh">触发矩阵编辑、边角与滚轮触发尚未实现（这类手势在列表里默认隐藏）；手势分组与动画回放也还没做。</span><span class="en">Trigger-matrix editing and edge/scroll-wheel triggers are not implemented yet (those gestures are hidden in the list by default); gesture groups and animated replay are still to come.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <h2><span class="zh">常见问题</span><span class="en">FAQ</span></h2>
+
+    <details>
+      <summary><span class="zh">没签名，安不安全？</span><span class="en">It is unsigned — is that safe?</span></summary>
+      <p>
+        <span class="zh">「没有签名」在这里的含义是：作者没有买 Apple 的付费开发者账号（99 美元/年），所以拿不到 Developer ID 证书、也就做不了公证。它<b>不等于</b>「来路不明」—— 全部源码公开在 GitHub 上，你可以自己读、也可以自己从源码构建，命令写在 README 里。</span>
+        <span class="en">“Unsigned” here means the author has not bought Apple's paid developer programme (US$99/year), so there is no Developer ID certificate and therefore no notarisation. It does <b>not</b> mean the origin is unknown — the entire source is public on GitHub; you can read it, or build it yourself with the commands in the README.</span>
+      </p>
+      <p>
+        <span class="zh">发行包提供 SHA256 校验和，可以对照确认下载完整。</span>
+        <span class="en">Each release ships SHA256 checksums so you can confirm the download is intact.</span>
+      </p>
+    </details>
+
+    <details>
+      <summary><span class="zh">会不会改我的原版 WGestures 配置？</span><span class="en">Will it modify my original WGestures configuration?</span></summary>
+      <p>
+        <span class="zh">不会。zWGestures 只<b>读</b>原版目录，配置写到它自己的 <code>~/Library/Application Support/zWGestures/</code>，并且每次覆盖前都会备份（各留最近 10 份）。你原来的 WGestures 可以继续照常使用。</span>
+        <span class="en">No. zWGestures only <b>reads</b> the original's directory; its own configuration lives in <code>~/Library/Application Support/zWGestures/</code>, and every overwrite is preceded by a backup (last 10 kept). Your original WGestures keeps working as before.</span>
+      </p>
+    </details>
+
+    <details>
+      <summary><span class="zh">更新之后画手势没反应了？</span><span class="en">After updating, gestures do nothing?</span></summary>
+      <p>
+        <span class="zh">几乎一定是辅助功能授权失效了。未签名的构建每次编译都会改变系统用来识别它的指纹，所以<b>每更新一版都要重新授权一次</b>。此时应用会主动弹一次说明并给出「打开系统设置」按钮，菜单栏也会写「辅助功能权限：已失效（点击重新授权）」。到 辅助功能 列表里把 zWGestures 取消勾选再勾上即可，不用重启应用。</span>
+        <span class="en">Almost certainly the Accessibility grant was lost. An unsigned build changes the identity macOS uses to recognise it on every compile, so <b>each update needs the grant re-issued</b>. The app will say so in a dialog with an “Open System Settings” button, and the menu bar reports “辅助功能权限：已失效”. Untick and re-tick zWGestures in the Accessibility list; no relaunch needed.</span>
+      </p>
+    </details>
+
+    <details>
+      <summary><span class="zh">怎么卸载？</span><span class="en">How do I uninstall it?</span></summary>
+      <p>
+        <span class="zh">退出应用 → 把 <code>/Applications/zWGestures.app</code> 拖进废纸篓 → 如果开过开机自启，到 系统设置 › 通用 › 登录项 里删掉它 → 到 辅助功能 列表里移除 zWGestures（可能有新旧两条重复条目，都删掉）。想连配置一起清掉，就删 <code>~/Library/Application Support/zWGestures/</code>。</span>
+        <span class="en">Quit the app → drag <code>/Applications/zWGestures.app</code> to the Trash → if you enabled autostart, remove it under System Settings › General › Login Items → remove zWGestures from the Accessibility list (you may see two entries, old and new; remove both). To clear the configuration too, delete <code>~/Library/Application Support/zWGestures/</code>.</span>
+      </p>
+    </details>
+
+    <details>
+      <summary><span class="zh">为什么只支持 Apple Silicon？</span><span class="en">Why Apple Silicon only?</span></summary>
+      <p>
+        <span class="zh">工程的构建目标就是 <code>arm64</code>。原版 WGestures 是 x86_64 应用、靠 Rosetta 运行，而 Rosetta 即将退出支持（见上面的「为什么会有 zWGestures」）—— 写一个原生 arm64 版本正是这个项目的出发点。</span>
+        <span class="en">The project's build target is <code>arm64</code>. The original WGestures is an x86_64 app running under Rosetta, and Rosetta is on its way out (see “Why zWGestures exists” above) — writing a native arm64 version is the whole point of this project.</span>
+      </p>
+    </details>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a href="https://github.com/ZilongYang/zWGestures">GitHub 仓库</a>
+      <a href="https://github.com/ZilongYang/zWGestures/blob/main/CHANGELOG.md">更新日志</a>
+      <a href="https://github.com/ZilongYang/zWGestures/blob/main/docs/INSTALL.md">安装说明</a>
+      <a href="https://github.com/ZilongYang/zWGestures/blob/main/LICENSE">MIT 许可证</a>
+      <a href="https://github.com/ZilongYang/zWGestures/issues">反馈问题</a>
+    </div>
+    <p>
+      <span class="zh">© 2026 Zilong Yang，以 MIT 许可证发布。zWGestures 是独立的重新实现，不是官方版本，与 WGestures / WGestures 2 及其作者 yingdev（Ying Yuandong）没有任何隶属关系，也未获其背书。「WGestures」及相关名称归其各自所有者。</span>
+      <span class="en">© 2026 Zilong Yang, released under the MIT licence. zWGestures is an independent reimplementation, not an official version, and has no affiliation with or endorsement from WGestures / WGestures 2 or its author yingdev (Ying Yuandong). “WGestures” and related names belong to their respective owners.</span>
+    </p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var KEY = 'zwg-lang';
+  var button = document.getElementById('lang-toggle');
+
+  function stored() {
+    try { return localStorage.getItem(KEY); } catch (e) { return null; }
+  }
+  function remember(value) {
+    try { localStorage.setItem(KEY, value); } catch (e) { /* 隐私模式下忽略 */ }
+  }
+  function apply(lang) {
+    var english = lang === 'en';
+    document.body.classList.toggle('lang-en', english);
+    document.documentElement.lang = english ? 'en' : 'zh-Hans';
+    if (button) button.textContent = english ? '中文' : 'English';
+    remember(lang);
+  }
+
+  // 优先级：?lang= 显式指定 > 上次选择 > 默认中文
+  var requested = new URLSearchParams(location.search).get('lang');
+  apply(requested === 'en' ? 'en' : (requested === 'zh' ? 'zh' : (stored() === 'en' ? 'en' : 'zh')));
+
+  if (button) {
+    button.addEventListener('click', function () {
+      apply(document.body.classList.contains('lang-en') ? 'zh' : 'en');
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
