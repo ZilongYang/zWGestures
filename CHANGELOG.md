@@ -14,6 +14,12 @@
 
   > ⚠️ 如果你装的是 2026-09-29 之前的本机构建，请务必更新到修复版。
 
+### 新增
+
+- **更新后辅助功能授权失效时会明确告诉你。** 以前的表现是：应用正常启动、菜单栏图标也在，
+  但画手势毫无反应 —— 看起来像新版有 bug。现在会区分「还没授权」与「更新把授权弄丢了」，
+  后者会弹一次说明，并给出直接打开系统设置的按钮。授权后手势引擎会自动启动，不需要重启应用。
+
 ### 变更
 
 - **事件拦截器不再捕获键盘事件。** 急停快捷键 `⌃⌥⌘⎋` 改由不吞事件的监听实现，功能不变。
@@ -30,3 +36,8 @@
 
 - 发版时同步三处版本号：`project.yml` 的 `MARKETING_VERSION`、`site/index.html`、本文件。
 - 每个版本的 Release notes 放在 `docs/release-notes/<版本>.md`，并作为 `gh release create` 的 `--notes-file`。
+  Release notes **必含**：未签名说明与 Gatekeeper 步骤、**更新后要重新授权辅助功能**、
+  只支持 Apple Silicon、必须拖入 Applications、「从 WGestures 导入」怎么用、界面目前仅中文。
+  完整清单见 [`docs/OPEN-SOURCE-PLAN.md`](docs/OPEN-SOURCE-PLAN.md) §5.4。
+- `site/index.html` 的 FAQ **必含**：未签名安不安全 / 会不会改我的原版配置 / **更新后手势没反应** /
+  怎么卸载 / 为什么只有 Apple Silicon（见 `docs/OPEN-SOURCE-PLAN.md` §6.2）。

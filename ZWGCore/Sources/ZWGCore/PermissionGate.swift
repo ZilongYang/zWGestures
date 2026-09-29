@@ -49,3 +49,29 @@ public enum PermissionGate {
         NSWorkspace.shared.open(url)
     }
 }
+
+/// What the app should say about the Accessibility grant.
+public enum AccessibilityGrantState: Equatable, Sendable {
+    /// Granted — the input engine can run.
+    case granted
+    /// Never granted, as far as this install knows: the ordinary first-run path.
+    case notGrantedYet
+    /// This install has run with the grant before, so it was taken away.
+    ///
+    /// In practice that means an update. The released build is ad-hoc signed, and an ad-hoc
+    /// designated requirement is derived from the CDHash — which changes on every compile — so TCC
+    /// treats each version as a different application and drops the grant.
+    case lostAfterUpdate
+}
+
+public enum AccessibilityGrantAssessment {
+    /// Classifies the current state.
+    ///
+    /// Split out from `PermissionGate` so the distinction can be unit tested: "you have not granted
+    /// this yet" and "an update broke it" need different explanations, and getting them the wrong way
+    /// round tells the user to do the wrong thing.
+    public static func assess(isTrusted: Bool, hasEverRunGranted: Bool) -> AccessibilityGrantState {
+        if isTrusted { return .granted }
+        return hasEverRunGranted ? .lostAfterUpdate : .notGrantedYet
+    }
+}

@@ -11,6 +11,7 @@
 		03639C7D8FA0755A9DD5944B /* Stroke.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AD84F47ADADCB43601E2F71 /* Stroke.swift */; };
 		0396B8E74274465ED68367FC /* KeyCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B940BA59992E1C557CEF9EE7 /* KeyCaptureView.swift */; };
 		0ABBA99ECD0A9BFD2D208516 /* InputCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58E69FA11F1C5AED1F3E8887 /* InputCoordinator.swift */; };
+		0C4F75836B887F6EF4E39AF7 /* PermissionHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = E41BB23D0A2A7A253D962D95 /* PermissionHistory.swift */; };
 		1ADA97FF6B1AB8935CE567FB /* GestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37BF10BA5362196075C3E339 /* GestureRecognizer.swift */; };
 		1AF54D920DBE3BCDAB6868D0 /* SyntheticEventPoster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EFA9271A0175129EFBF9815 /* SyntheticEventPoster.swift */; };
 		1B715980C539EFED04C20169 /* EngineController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCAA306B3006478FA8B51C30 /* EngineController.swift */; };
@@ -137,6 +138,7 @@
 		CC9064449516F65A9510DD1E /* DebugHUDWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugHUDWindow.swift; sourceTree = "<group>"; };
 		E1F92AEC05105E2560C739F2 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		E3411F37FC05B72B39D6837A /* LegacyConfigImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyConfigImporter.swift; sourceTree = "<group>"; };
+		E41BB23D0A2A7A253D962D95 /* PermissionHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionHistory.swift; sourceTree = "<group>"; };
 		E83B1397FEFFA16BBEED4800 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
 		EDF7450D4D95AE0D3DF2B5F3 /* SettingsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModel.swift; sourceTree = "<group>"; };
 		F550AB1F613BC1B599471EFE /* OverlayState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayState.swift; sourceTree = "<group>"; };
@@ -399,6 +401,7 @@
 				88F93E17ED488092EFF652BE /* BuildInfo.swift */,
 				BED6B7EF21C4A63D52847B55 /* Log.swift */,
 				4DD120B910B3EAAF21113B6A /* PermissionGate.swift */,
+				E41BB23D0A2A7A253D962D95 /* PermissionHistory.swift */,
 			);
 			path = ZWGCore;
 			sourceTree = "<group>";
@@ -505,6 +508,7 @@
 				D6338B5C06987A4DB7D2993D /* OverlayState.swift in Sources */,
 				CF2CDD7A6950349E3A2B3D14 /* PanicShortcut.swift in Sources */,
 				B74F84187764E1C1B2C31B3D /* PermissionGate.swift in Sources */,
+				0C4F75836B887F6EF4E39AF7 /* PermissionHistory.swift in Sources */,
 				20BA77DFC9FB80EF291E5C3A /* PointerEvent.swift in Sources */,
 				7F10A2E67E113975A5CFC8B2 /* PreferencesModel.swift in Sources */,
 				9175658C2B51C4294638F32D /* PreferencesPane.swift in Sources */,

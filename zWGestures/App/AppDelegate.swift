@@ -66,12 +66,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             登录项状态：\(String(describing: LoginItem().status), privacy: .public)，\
             应用路径：\(Bundle.main.bundlePath, privacy: .public)
             """)
-        if !PermissionGate.isAccessibilityTrusted {
-            // Show the system prompt offering to open the Accessibility pane. The engine
-            // starts by itself as soon as the checkbox is ticked (see EngineController).
-            PermissionGate.requestAccessibility()
-        }
         engine.startIfPermitted()
+        switch engine.grantState {
+        case .granted:
+            break
+        case .notGrantedYet:
+            // Show the system prompt offering to open the Accessibility pane. The engine starts by
+            // itself as soon as the checkbox is ticked (see EngineController).
+            PermissionGate.requestAccessibility()
+        case .lostAfterUpdate:
+            // The system prompt would not explain *why*. An update re-issued the app's identity and
+            // dropped the grant, which looks like a broken release, so it gets its own explanation
+            // (at most once per launch).
+            engine.presentGrantLostAlertIfNeeded()
+        }
 
         // A menu-bar-only app (LSUIElement) otherwise shows nothing but a small icon on a fresh
         // install, which reads as "it did not work". Open the settings window, and report what the

@@ -24,6 +24,18 @@ final class EngineController {
     private(set) var isRunning = false
     private(set) var lastFailureReason: String?
 
+    /// Whether the Accessibility grant is missing, never given, or was taken away by an update.
+    ///
+    /// The distinction is the whole point: 「还没给」and 「更新弄丢了」need different explanations, and
+    /// only the second one looks like a broken release.
+    private(set) var grantState: AccessibilityGrantState = .notGrantedYet
+    /// The explanation is worth showing once per launch, not once per poll tick.
+    private var didPresentGrantLostAlert = false
+
+    /// Remembers that this install has run with the grant before — which is what makes the
+    /// "an update took it away" case distinguishable from a first run.
+    private let permissionHistory: PermissionHistory
+
     /// `NSEvent` monitor tokens for the emergency-stop shortcut.
     private var panicMonitorGlobal: Any?
     private var panicMonitorLocal: Any?
@@ -31,8 +43,13 @@ final class EngineController {
     /// Called whenever `isRunning` or the permission state may have changed.
     var onStateChange: (() -> Void)?
 
-    init(appDirectory: AppDirectory, startDragTimeout: TimeInterval = 0.25) {
+    init(
+        appDirectory: AppDirectory,
+        startDragTimeout: TimeInterval = 0.25,
+        permissionHistory: PermissionHistory = PermissionHistory()
+    ) {
         self.appDirectory = appDirectory
+        self.permissionHistory = permissionHistory
         coordinator = InputCoordinator(settings: EngineSettings(startDragTimeout: startDragTimeout))
         overlay = StrokeOverlayController(coordinator: coordinator)
         coordinator.onGestureMatched = { [weak self] outcome in
@@ -92,15 +109,27 @@ final class EngineController {
 
     /// Starts the engine if Accessibility has been granted, otherwise waits for the grant.
     func startIfPermitted() {
+        grantState = AccessibilityGrantAssessment.assess(
+            isTrusted: isPermitted,
+            hasEverRunGranted: permissionHistory.hasEverRunGranted
+        )
+
         guard isPermitted else {
-            Log.app.notice("尚未获得辅助功能权限，暂不安装事件拦截器")
-            lastFailureReason = "尚未获得辅助功能权限"
+            switch grantState {
+            case .lostAfterUpdate:
+                Log.app.error("辅助功能授权已失效（更新后未重新授权的典型表现），不安装事件拦截器")
+                lastFailureReason = "辅助功能授权已失效，需要重新授权"
+            default:
+                Log.app.notice("尚未获得辅助功能权限，暂不安装事件拦截器")
+                lastFailureReason = "尚未获得辅助功能权限"
+            }
             isRunning = false
             startPermissionPolling()
             onStateChange?()
             return
         }
 
+        permissionHistory.recordGranted()
         stopPermissionPolling()
         isRunning = coordinator.start()
         lastFailureReason = isRunning ? nil : "事件拦截器安装失败"
@@ -133,6 +162,38 @@ final class EngineController {
         overlay.stop()
         coordinator.stop()
         isRunning = false
+    }
+
+    // MARK: - Accessibility grant
+
+    /// Explains, at most once per launch, that an update took the Accessibility grant away.
+    ///
+    /// Worth a dialog of its own because this failure looks exactly like a broken release: the app is
+    /// running, the menu-bar icon is there, and drawing a gesture does nothing at all. Called once
+    /// from `AppDelegate` rather than from the permission poll — a poll that pops a modal alert every
+    /// two seconds would be its own bug.
+    func presentGrantLostAlertIfNeeded() {
+        guard grantState == .lostAfterUpdate, !didPresentGrantLostAlert else { return }
+        didPresentGrantLostAlert = true
+
+        NSApp.activate(ignoringOtherApps: true)
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = "辅助功能授权已失效，画手势不会有反应"
+        alert.informativeText = """
+            这通常发生在更新之后：这个版本没有 Apple 开发者签名，系统按版本指纹识别它，\
+            所以每次更新都要重新授权一次。
+
+            请在「系统设置 › 隐私与安全性 › 辅助功能」里重新勾选 zWGestures。\
+            如果列表里已经勾着，先取消再勾上。
+
+            授权之后手势引擎会自动启动，不需要重启应用。
+            """
+        alert.addButton(withTitle: "打开系统设置")
+        alert.addButton(withTitle: "稍后")
+        if alert.runModal() == .alertFirstButtonReturn {
+            PermissionGate.openAccessibilitySettings()
+        }
     }
 
     // MARK: - Emergency stop

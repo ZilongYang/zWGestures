@@ -119,7 +119,10 @@ final class StatusItemController: NSObject {
             pauseItem.title = "暂停手势引擎"
             pauseItem.isEnabled = true
         } else if !engine.isPermitted {
-            engineItem.title = "手势引擎：等待辅助功能授权"
+            engineItem.title = switch engine.grantState {
+            case .lostAfterUpdate: "手势引擎：授权已失效（需重新授权）"
+            default: "手势引擎：等待辅助功能授权"
+            }
             pauseItem.title = "手势引擎未运行"
             pauseItem.isEnabled = false
         } else {
@@ -139,9 +142,11 @@ final class StatusItemController: NSObject {
         loginItemToggle.state = loginStatus.isOn ? .on : .off
         loginItemToggle.toolTip = Bundle.main.bundlePath
 
-        permissionItem.title = engine.isPermitted
-            ? "辅助功能权限：已授权"
-            : "辅助功能权限：未授权（点击前往授权）"
+        permissionItem.title = switch engine.grantState {
+        case .granted: "辅助功能权限：已授权"
+        case .lostAfterUpdate: "辅助功能权限：已失效（点击重新授权）"
+        case .notGrantedYet: "辅助功能权限：未授权（点击前往授权）"
+        }
     }
 
     @objc private func handlePauseResume() {
