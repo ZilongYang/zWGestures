@@ -8,10 +8,10 @@ struct LaunchAgentTests {
     @Test("写在用户的 LaunchAgents 目录里，标签固定")
     func plistLocation() {
         let url = LaunchAgent.plistURL
-        #expect(url.lastPathComponent == "com.zilong.zwgestures.plist")
+        #expect(url.lastPathComponent == "io.github.zilongyang.zwgestures.plist")
         #expect(url.path.contains("/Library/LaunchAgents/"))
         #expect(url.path.hasPrefix(FileManager.default.homeDirectoryForCurrentUser.path))
-        #expect(LaunchAgent.label == "com.zilong.zwgestures")
+        #expect(LaunchAgent.label == "io.github.zilongyang.zwgestures")
     }
 
     @Test("plist 内容正确：标签、RunAtLoad、经 open -a 启动指定应用")
@@ -20,7 +20,7 @@ struct LaunchAgentTests {
         let plist = try #require(
             try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
         )
-        #expect(plist["Label"] as? String == "com.zilong.zwgestures")
+        #expect(plist["Label"] as? String == "io.github.zilongyang.zwgestures")
         #expect(plist["RunAtLoad"] as? Bool == true)
         #expect(plist["ProcessType"] as? String == "Interactive")
         // 必须经过 open -a：直接执行二进制会绕过 LaunchServices，

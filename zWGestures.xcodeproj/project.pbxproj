@@ -616,7 +616,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.zilong.zwgestures;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.zilongyang.zwgestures;
 				PRODUCT_NAME = zWGestures;
 				SDKROOT = macosx;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -704,7 +704,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.zilong.zwgestures;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.zilongyang.zwgestures;
 				PRODUCT_NAME = zWGestures;
 				SDKROOT = macosx;
 				SWIFT_STRICT_CONCURRENCY = complete;

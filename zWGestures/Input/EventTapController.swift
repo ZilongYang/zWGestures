@@ -102,7 +102,7 @@ final class EventTapController: @unchecked Sendable {
             self.removeTapOnCurrentThread()
             finished.signal()
         }
-        thread.name = "com.zilong.zwgestures.eventtap"
+        thread.name = "io.github.zilongyang.zwgestures.eventtap"
         thread.qualityOfService = .userInteractive
         thread.stackSize = 512 * 1024
         lock.withLock { threadFinished = finished }

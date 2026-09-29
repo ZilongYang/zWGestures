@@ -4,9 +4,9 @@ import os
 /// Centralised `os.Logger` handles.
 ///
 /// Prefer these over `print` so output is visible in Console.app or via:
-/// `log stream --predicate 'subsystem == "com.zilong.zwgestures"'`
+/// `log stream --predicate 'subsystem == "io.github.zilongyang.zwgestures"'`
 public enum Log {
-    public static let subsystem = "com.zilong.zwgestures"
+    public static let subsystem = "io.github.zilongyang.zwgestures"
 
     public static let app = Logger(subsystem: subsystem, category: "app")
     public static let config = Logger(subsystem: subsystem, category: "config")

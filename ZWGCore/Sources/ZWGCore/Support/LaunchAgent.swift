@@ -14,9 +14,9 @@ import Foundation
 /// instead of starting a second instance), which matters for a menu-bar app that the user may well
 /// have started by hand.
 public enum LaunchAgent {
-    public static let label = "com.zilong.zwgestures"
+    public static let label = "io.github.zilongyang.zwgestures"
 
-    /// `~/Library/LaunchAgents/com.zilong.zwgestures.plist`.
+    /// `~/Library/LaunchAgents/io.github.zilongyang.zwgestures.plist`.
     public static var plistURL: URL {
         let home = FileManager.default.homeDirectoryForCurrentUser
         return home

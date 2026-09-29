@@ -1,6 +1,6 @@
 name: zWGestures
 options:
-  bundleIdPrefix: com.zilong
+  bundleIdPrefix: io.github.zilongyang
   createIntermediateGroups: true
   deploymentTarget:
     macOS: "14.0"
@@ -79,7 +79,7 @@ targets:
         NSAppleEventsUsageDescription: zWGestures 需要通过 AppleScript / Shell 脚本控制其它应用来执行你配置的手势命令。
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.zilong.zwgestures
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.zilongyang.zwgestures
         PRODUCT_NAME: zWGestures
         SWIFT_STRICT_CONCURRENCY: complete
 
