@@ -17,6 +17,9 @@ ZWGCore/.build/
 # zWGestures.xcodeproj and zWGestures/Resources/Info.plist are generated but committed
 # on purpose so the project builds without regenerating.
 
+# 本机/基础设施相关的私有笔记：绝不进版本库
+docs/private/
+
 # 发布产物（make dist 的产出）
 dist/
 

@@ -28,30 +28,37 @@ cd site && python3 -m http.server 8080
 语言切换的优先级：`?lang=` 显式指定 > 上次选择（`localStorage`）> 默认中文。
 没有 JS 时中文照常可读。
 
-## 本项目的实际部署（2026-09-30 已执行并验证）
+## 一次真实的部署记录（2026-09-30，Debian + 1Panel）
 
-目标服务器：`ssh root@gz01-deb`（Debian）。站点目录：
+> **连接信息不写在这里。** 主机别名、绝对路径、面板布局都属于基础设施信息，公开仓库里没有它们
+> 的任何好处 —— 本机的真实值记在 `docs/private/local-deploy.md`（那个目录已 gitignore）。
+> 下面只留**通用做法**与**踩过的坑**，那才是别人（和以后的我们）真正用得上的部分。
+> 这也是这个项目的一条约定：凡是「只对某台机器成立」的东西，都不进仓库。
+
+站点目录形态（1Panel 的默认布局）：
 
 ```
-宿主机：  /opt/1panel/www/sites/zwg.zlmix.com/index
-容器内：  /www/sites/zwg.zlmix.com/index        ← OpenResty 跑在容器里，1Panel 把前者挂载为后者
+宿主机：  /opt/1panel/www/sites/<域名>/index
+容器内：  /www/sites/<域名>/index        ← OpenResty 跑在容器里，面板把前者挂载为后者
 ```
 
-**服务器上没有 rsync**，所以用的是 tar over SSH。完整命令（含备份与收尾）：
+注意 nginx 的 `root` 用的是**容器内路径**；这也是文件必须 world-readable 的原因之一。
+
+**那台服务器上没有 rsync**，所以实际用的是 tar over SSH：
 
 ```bash
-SITE=/opt/1panel/www/sites/zwg.zlmix.com/index
+SITE=/opt/1panel/www/sites/<域名>/index
 
-# 1) 备份 1Panel 的默认占位页（挪到 web 根之外）
-ssh root@gz01-deb "mkdir -p $(dirname $SITE)/1panel-default-backup \
-  && cp -a $SITE/. $(dirname $SITE)/1panel-default-backup/"
+# 1) 备份面板的默认占位页（挪到 web 根之外）
+ssh user@your-server "mkdir -p $(dirname $SITE)/panel-default-backup \
+  && cp -a $SITE/. $(dirname $SITE)/panel-default-backup/"
 
 # 2) 传（COPYFILE_DISABLE=1 防止 macOS 生成 ._* 影子文件）
 COPYFILE_DISABLE=1 tar czf - -C site --exclude README.md --exclude '.DS_Store' . \
-  | ssh root@gz01-deb "tar xzf - -C $SITE"
+  | ssh user@your-server "tar xzf - -C $SITE"
 
 # 3) 收尾：属主与权限（**这一步不能省，见下**）
-ssh root@gz01-deb "chown -R root:root $SITE \
+ssh user@your-server "chown -R root:root $SITE \
   && find $SITE -type d -exec chmod 755 {} + \
   && find $SITE -type f -exec chmod 644 {} +"
 ```
@@ -80,14 +87,15 @@ curl -s https://zwg.zlmix.com/ -o /tmp/live.html && shasum -a 256 /tmp/live.html
 ```
 
 本次结果：HTTP→HTTPS 301、首页与 4 张素材**逐字节一致**、gzip 已启用。
-`zwg.zlmix.com` 与 `zwgestures.zlmix.com` **两个域名都生效**（1Panel 的 `server_name` 里两个都写了）。
+面板的 `server_name` 里同时写了两个域名，所以 `zwg.zlmix.com` 与 `zwgestures.zlmix.com` **都生效** ——
+以后换用其中一个都不用改配置，但**页面里的 `canonical` 与 `og:*` 只应指向一个**，避免同一内容两个地址。
 
 ### 已知的两处未处理
 
-1. **`assets/` 没有长缓存头。** 1Panel 生成的配置里没有 `expires` / `Cache-Control`，
-   而这份配置由面板管理，**手改可能在面板重新生成时丢失** —— 要加请走 1Panel 的网站配置界面。
+1. **`assets/` 没有长缓存头。** 面板生成的配置里没有 `expires` / `Cache-Control`，
+   而这份配置由面板管理，**手改可能在面板重新生成时丢失** —— 要加请走面板的网站配置界面。
    单页站点 + 5 个文件，影响很小，所以先没动。
-2. **404 页还是 1Panel 的默认样式**，与站点风格不一致。`404.html` 在站点目录里，
+2. **404 页还是面板的默认样式**，与站点风格不一致。`404.html` 在站点目录里，
    属于站点内容、可以安全替换（不用改 nginx 配置）。
 
 ## 部署方式（其它选择）
