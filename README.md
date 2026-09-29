@@ -9,6 +9,9 @@
 用 Swift 从头写成，不依赖 Rosetta；兼容 [WGestures 2](https://www.yingdev.com/projects/wgestures2)
 的配置文件格式，可以直接导入你已有的手势（见[为什么会有 zWGestures](#为什么会有-zwgestures)）。
 
+> **想直接下载使用？** 见 [`docs/INSTALL.md`](docs/INSTALL.md) —— 没签名的应用首次打开需要放行一次，
+> 那里写清了每一步、系统给出的原文，以及这些结论是怎么实测出来的。
+
 <!--
 截图：阶段三 15 产出后取消注释插入。
 ![实时轨迹与手势名](docs/screenshots/overlay.png)
@@ -179,7 +182,8 @@ WGestures 2 是一款出色的鼠标手势工具。它的「手势＝操作步�
 
 - **界面目前仅中文。** 英文界面在 v0.2.0 的路线图上（见 [`docs/ROADMAP.md`](docs/ROADMAP.md)）。
 - **仅支持 Apple Silicon。** 不做 Intel / Universal 支持，`ARCHS=arm64` 保持不变。
-- **未做 Developer ID 签名与公证**，需要按发行说明绕过 Gatekeeper（见 Release notes）。
+- **未做 Developer ID 签名与公证**，首次打开需要按 [`docs/INSTALL.md`](docs/INSTALL.md) 放行一次；
+  而且**每更新一版都要重新授权一次辅助功能**。
 - **触发矩阵编辑、边角与滚轮触发尚未实现。** 这类手势在列表里默认隐藏。
 - **手势分组、动画回放尚未实现。**
 
@@ -281,6 +285,7 @@ make lint && make test
 | 文件 | 内容 |
 |---|---|
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | **计划与进度**，接手开发从这里开始读 |
+| [`docs/INSTALL.md`](docs/INSTALL.md) | **安装说明**：Gatekeeper 放行、授权辅助功能、卸载、常见问题 |
 | [`CHANGELOG.md`](CHANGELOG.md) | 每个版本值得用户知道的变化 |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | 构建方式、提交前清单、必须遵守的约定 |
 | [`docs/PLAN.md`](docs/PLAN.md) | 2026-09-28 批准的那份实施方案**原样存档**（只作历史参考，不再更新） |

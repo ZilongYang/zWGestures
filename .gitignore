@@ -1,5 +1,6 @@
 # Xcode
 build/
+build-*/
 DerivedData/
 ZWGCore/.build/
 .swiftpm/
@@ -15,6 +16,9 @@ ZWGCore/.build/
 # XcodeGen
 # zWGestures.xcodeproj and zWGestures/Resources/Info.plist are generated but committed
 # on purpose so the project builds without regenerating.
+
+# 发布产物（make dist 的产出）
+dist/
 
 # macOS
 .DS_Store

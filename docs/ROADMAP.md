@@ -38,6 +38,8 @@ Rosetta。
 | 修复 | AppKit 覆写导致的崩溃（`zWGestures-2026-09-28-211050.ips`）+ 源码守卫脚本 | ✅ 已修复；修复后连续使用约 1 小时无新崩溃报告（此类偶发崩溃只能说「观察中」） |
 | 修复 | **整机输入冻结**（2026-09-29，发布阻断级）：tap 退出键盘同步路径 + 超时主动停用 + 掩码回归测试 | ✅ 已修复并装上（详见 §13）；修复后行为待实机确认 |
 | 开源 | **出厂默认手势包**：48 条中文手势随 App 发布，没装过原版的人开箱可用（§16） | ✅ 已生成并提交；新增 12 项单测，CI 断言产物路径 |
+| 开源 | **更新后授权失效的显式提示**：区分「还没授权」与「更新弄丢了」，后者弹一次说明（§13 相关） | ✅ 已实现并装上；标记写入已实机验证，新增 6 项单测 |
+| 开源 | **Gatekeeper 实测与安装说明**：5 项逐条实测 → [`INSTALL.md`](INSTALL.md)；顺带查出 `make dist` 的两个硬要求（§17） | ✅ 已完成；其中 1 项（点「仍要打开」）留到全新账号验收 |
 | P9 | 开机自启：`SMAppService` 优先 + **LaunchAgent 兜底** + 菜单栏开关 | ✅ 已实机验证（**重启后自动启动**：开机 22:59:28，5 分钟后进程已是 `/Applications` 那份、无 LaunchAgent 兜底、无新崩溃） |
 
 **可以日常使用的程度**：右键基本手势全部工作 —— 识别、执行命令、轨迹与手势名实时显示、
@@ -834,3 +836,48 @@ make default-gestures ORIGINAL=/path/to/WGestures.app/Contents/Resources
 **版权**：默认包是**原版的配置数据 + 它自带的中文译名表**，属配置数据，而非二进制、字体、图标或代码。
 README 与 `README.en.md` 的「许可证与商标」已写明「独立的重新实现、非官方、无隶属关系」并链接官网。
 后备方案：换成一份手写精简默认，`ConfigStore.importDefaultConfiguration(from:)` 这个接口不变。
+
+---
+
+## 17. Gatekeeper 实测结果与 `make dist` 的两个硬要求（2026-09-30）
+
+用 Release + ad-hoc 签名的产物在本机（macOS 27.0 / 26A428 / M1 Pro）实测，逐条结论与「怎么测的」
+写成了单一事实来源 [`INSTALL.md`](INSTALL.md)。这里只记**踩到的两个坑**和三条值得记住的事实。
+
+### 坑一：Release 产物带着调试 entitlement
+
+第一次真正跑 Release 路径时发现产物里有：
+
+```
+[Key] com.apple.security.get-task-allow   [Value] [Bool] true
+```
+
+这是**允许别人 attach 调试器**的开发用 entitlement，不该出现在分发产物里。来源是
+`CODE_SIGN_INJECT_BASE_ENTITLEMENTS` 默认为 YES。`make dist` 必须显式加
+`CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO`（Debug 构建保留它，那是要用的）。
+
+### 坑二：`hdiutil create` 在 macOS 27 上已废弃，新 API 又需要非沙箱环境
+
+`hdiutil create -srcfolder …` 会打印废弃警告并**直接失败**（`create failed - 目录非空`）。替代：
+
+```bash
+diskutil image create from --format UDZO --volumeName zWGestures <staging> <out.dmg>
+```
+
+它需要挂载卷，**在受限沙箱里连最小用例都失败**（`OSStatus error 1`）——
+做发布产物必须在正常终端里跑。`make dist` 用这条新 API。
+
+### 三条值得记住的事实
+
+1. **带隔离标记时是「先启动、后被系统结束」，不是「弹窗拒绝」。** `open` 返回 **0**（成功），
+   应用被移置到 `…/T/AppTranslocation/<UUID>/d/`，`syspolicyd` 异步评估后才结束进程
+   （本机实测 **19.6 秒**）。所以**绝不能用 `open` 的退出码判断应用是否真的起来了** ——
+   任何安装脚本都别这么写。
+2. **`curl -L` 下载的包不带隔离标记**（zip 与 dmg 都实测过）。这是「脚本 / Homebrew Cask 安装
+   可以绕开弹窗」的依据，也正是计划里特别标注「必须实测、不凭记忆写」的那一条。
+3. **去掉 `com.apple.quarantine` 的同时也去掉了 App Translocation。** 移置会把应用换到一个随机
+   只读路径，而登录项记录的是**路径** —— 所以「不要在 dmg 卷里直接运行」不是洁癖，
+   是功能正确性问题（否则开机自启注册的是那个临时路径，重启后就失效）。
+
+打包前的安全扫描（`license.json` / `.p12` / `.pem` / `.key` 不得入产物）第一次跑过，产物干净；
+`.gitignore` 已加 `dist/`。

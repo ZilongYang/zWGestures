@@ -11,6 +11,10 @@ Written from scratch in Swift with no Rosetta dependency. It is compatible with 
 file format of [WGestures 2](https://www.yingdev.com/projects/wgestures2), so your existing gestures
 can be imported directly (see [Why zWGestures exists](#why-zwgestures-exists)).
 
+> **Just want to download and use it?** See [`docs/INSTALL.md`](docs/INSTALL.md) (in Chinese) — an
+> unsigned app has to be allowed through once, and that file spells out every step, the exact system
+> wording, and how each conclusion was actually measured.
+
 > 中文文档见 [`README.md`](README.md)。**The app's interface is currently Chinese-only** — see
 > [Known limitations](#known-limitations).
 
@@ -208,8 +212,9 @@ If you still use the original and like it, please support its author at
 - **The interface is currently Chinese-only.** An English UI is on the roadmap for v0.2.0 (see
   [`docs/ROADMAP.md`](docs/ROADMAP.md), in Chinese).
 - **Apple Silicon only.** No Intel or Universal support; `ARCHS=arm64` stays.
-- **Not Developer ID signed or notarised**, so Gatekeeper must be bypassed as described in the
-  release notes.
+- **Not Developer ID signed or notarised**, so the first launch has to be allowed through as
+  described in [`docs/INSTALL.md`](docs/INSTALL.md) — and **every update needs the Accessibility
+  grant re-issued**.
 - **Trigger-matrix editing, edge and scroll-wheel triggers are not implemented yet.** Those gestures
   are hidden in the list by default.
 - **Gesture groups and animated replay are not implemented yet.**
@@ -326,6 +331,7 @@ make lint && make test
 |---|---|
 | [`README.md`](README.md) | The Chinese README (the primary one) |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | **Plan and progress**; start here when picking up development (Chinese) |
+| [`docs/INSTALL.md`](docs/INSTALL.md) | **Install guide**: Gatekeeper, Accessibility, uninstalling, FAQ (Chinese) |
 | [`CHANGELOG.md`](CHANGELOG.md) | What changed in each version (Chinese) |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to build, pre-submit checklist, mandatory conventions (Chinese) |
 | [`docs/PLAN.md`](docs/PLAN.md) | Verbatim archive of the implementation plan approved on 2026-09-28 (historical only) |
