@@ -17,6 +17,8 @@
 		1D96047CAB4FEF028345ECDA /* MonotonicClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 126D92BFBFA3E4B274393D35 /* MonotonicClock.swift */; };
 		20BA77DFC9FB80EF291E5C3A /* PointerEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B06777C46F74A73BE3DFAA02 /* PointerEvent.swift */; };
 		270F06823612F9887ABA6342 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E67B92FE1303A703B5885A /* main.swift */; };
+		33EC9AB2079211FF662C44D9 /* Defaults in Resources */ = {isa = PBXBuildFile; fileRef = 3BCCEA0B77FA559491055938 /* Defaults */; };
+		47CEC118C2B27707054F0DD8 /* ConfigBootstrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968EB5426BA84E62BE405BB8 /* ConfigBootstrapper.swift */; };
 		49708BA7C9C5006DFBE58DDE /* WebSearchRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89448E399658487F235019DB /* WebSearchRunner.swift */; };
 		49CAE6454474546D40CD74E1 /* EventTapController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3216492821234F47E042DD74 /* EventTapController.swift */; };
 		4AA1EB92D31866167A674BCA /* AppDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F467548A3AD0F152969DB2 /* AppDirectory.swift */; };
@@ -86,6 +88,7 @@
 		3381CA578E424AE9B72DA30F /* AddAppTargetSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddAppTargetSheet.swift; sourceTree = "<group>"; };
 		37BF10BA5362196075C3E339 /* GestureRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureRecognizer.swift; sourceTree = "<group>"; };
 		389CCF3A1A0E88671C79DD3A /* WGEdgeCorner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGEdgeCorner.swift; sourceTree = "<group>"; };
+		3BCCEA0B77FA559491055938 /* Defaults */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Defaults; path = zWGestures/Resources/Defaults; sourceTree = SOURCE_ROOT; };
 		3EFA9271A0175129EFBF9815 /* SyntheticEventPoster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntheticEventPoster.swift; sourceTree = "<group>"; };
 		402DB23B894FB84DD7A2A859 /* PreferencesModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesModel.swift; sourceTree = "<group>"; };
 		4230562FD31D09A980A24E4F /* PreferencesPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesPane.swift; sourceTree = "<group>"; };
@@ -116,6 +119,7 @@
 		8D609A7BD92EC1F5F4BA9BF0 /* TargetResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetResolver.swift; sourceTree = "<group>"; };
 		91F75EFA3ED12D76C1FDEC55 /* CommandSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandSectionView.swift; sourceTree = "<group>"; };
 		92CBA6DC86C7A9DB15273C50 /* CommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandExecutor.swift; sourceTree = "<group>"; };
+		968EB5426BA84E62BE405BB8 /* ConfigBootstrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigBootstrapper.swift; sourceTree = "<group>"; };
 		A81491D8DC7F824A57EA9A34 /* KeyEventPoster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEventPoster.swift; sourceTree = "<group>"; };
 		ABAA2D5526E8980C694B5548 /* ConfigStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigStore.swift; sourceTree = "<group>"; };
 		AC8DBAC8592F6FAEC6C1A76E /* WGPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGPreferences.swift; sourceTree = "<group>"; };
@@ -163,6 +167,7 @@
 			isa = PBXGroup;
 			children = (
 				12DA2A9E0A4B348A3E72216A /* Assets.xcassets */,
+				3BCCEA0B77FA559491055938 /* Defaults */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -211,6 +216,7 @@
 			isa = PBXGroup;
 			children = (
 				9AF9D227D4697B3D69411D51 /* Display */,
+				968EB5426BA84E62BE405BB8 /* ConfigBootstrapper.swift */,
 				ABAA2D5526E8980C694B5548 /* ConfigStore.swift */,
 				E3411F37FC05B72B39D6837A /* LegacyConfigImporter.swift */,
 				C2A64E5D44D16632374E7585 /* WGConfig.swift */,
@@ -458,6 +464,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FD1092E7B291CCE0713893B3 /* Assets.xcassets in Resources */,
+				33EC9AB2079211FF662C44D9 /* Defaults in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -475,6 +482,7 @@
 				5A09BE81C4EBCBD5316C2CD5 /* CommandEditorModel.swift in Sources */,
 				AAA7D11E8C47A9C5D9E08DE0 /* CommandExecutor.swift in Sources */,
 				62FA2C071BB766A1EF54510E /* CommandSectionView.swift in Sources */,
+				47CEC118C2B27707054F0DD8 /* ConfigBootstrapper.swift in Sources */,
 				611034544BEA508CCE4CEA83 /* ConfigController.swift in Sources */,
 				E2A29BDBB1334AD17B516FE7 /* ConfigStore.swift in Sources */,
 				D7B14F419F40CAE86D52A8E4 /* DebugHUDWindow.swift in Sources */,

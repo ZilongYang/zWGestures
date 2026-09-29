@@ -73,9 +73,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         engine.startIfPermitted()
 
-        // Report a first-time migration so the user can see exactly what came across.
-        if !hadConfig, case .imported = config.status {
-            config.presentImportSummary()
+        // A menu-bar-only app (LSUIElement) otherwise shows nothing but a small icon on a fresh
+        // install, which reads as "it did not work". Open the settings window, and report what the
+        // first run actually did so the result is not buried in the log.
+        if !hadConfig {
+            settings.show()
+            switch config.status {
+            case .imported, .seeded:
+                config.presentImportSummary()
+            default:
+                break
+            }
         }
     }
 

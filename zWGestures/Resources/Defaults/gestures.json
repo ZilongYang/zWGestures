@@ -1,0 +1,1970 @@
+{
+  "General": {
+    "Id": "4O9RKu8cgkWeA3_G2-tIsg",
+    "Name": "General",
+    "Intents": [
+      {
+        "Name": "拷贝",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              0,
+              -50,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "ANSI_C"
+          ]
+        }
+      },
+      {
+        "Name": "粘贴",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              0,
+              50,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "ANSI_V"
+          ]
+        }
+      },
+      {
+        "Name": "Web 搜索",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              0,
+              0,
+              0,
+              50,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "WebSearchCommand",
+          "SearchEngine": "https://www.google.com/search?q={0}"
+        }
+      },
+      {
+        "Name": "粘贴并 Enter",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              0,
+              50,
+              0,
+              0
+            ]
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:0"
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "ANSI_V",
+            null,
+            "Return"
+          ]
+        }
+      },
+      {
+        "Name": "剪切",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              0,
+              -50,
+              0,
+              0
+            ]
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:0"
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "ANSI_X"
+          ]
+        }
+      },
+      {
+        "Name": "退格",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              0,
+              0,
+              -50,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Delete"
+          ]
+        }
+      },
+      {
+        "Name": "删除",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              0,
+              0,
+              50,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "ForwardDelete"
+          ]
+        }
+      },
+      {
+        "Name": "Enter",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              -50,
+              100,
+              -50,
+              50,
+              0,
+              50,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Return"
+          ]
+        }
+      },
+      {
+        "Name": "撤销",
+        "ExecuteOnRecognize": true,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              50,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:0"
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "ANSI_Z"
+          ]
+        }
+      },
+      {
+        "Name": "音量+",
+        "ExecuteOnRecognize": true,
+        "Gesture": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 1
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "VSCROLL:-1"
+          }
+        ],
+        "Command": {
+          "$type": "SystemFunctionKeyCommand",
+          "SelectedIndex": 7
+        }
+      },
+      {
+        "Name": "音量-",
+        "ExecuteOnRecognize": true,
+        "Gesture": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 1
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "VSCROLL:1"
+          }
+        ],
+        "Command": {
+          "$type": "SystemFunctionKeyCommand",
+          "SelectedIndex": 6
+        }
+      },
+      {
+        "Name": "静音",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 1
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:2"
+          }
+        ],
+        "Command": {
+          "$type": "SystemFunctionKeyCommand",
+          "SelectedIndex": 5
+        }
+      },
+      {
+        "Name": "亮度+",
+        "ExecuteOnRecognize": true,
+        "Gesture": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 4
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "VSCROLL:-11"
+          }
+        ],
+        "Command": {
+          "$type": "SystemFunctionKeyCommand",
+          "SelectedIndex": 1
+        }
+      },
+      {
+        "Name": "亮度-",
+        "ExecuteOnRecognize": true,
+        "Gesture": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 4
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "VSCROLL:13"
+          }
+        ],
+        "Command": {
+          "$type": "SystemFunctionKeyCommand",
+          "SelectedIndex": 0
+        }
+      },
+      {
+        "Name": "退出",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              50,
+              50,
+              50,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "ANSI_Q"
+          ]
+        }
+      },
+      {
+        "Name": "强制退出",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              50,
+              50,
+              50,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:0"
+          }
+        ],
+        "Command": {
+          "$type": "ShellScriptCommand",
+          "Script": "kill $WG_TARGET_PID"
+        }
+      },
+      {
+        "Name": "切换 App",
+        "ExecuteOnRecognize": true,
+        "Gesture": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 9
+            }
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "Tab"
+          ]
+        }
+      },
+      {
+        "Name": "后退",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              50,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "ANSI_LeftBracket"
+          ]
+        }
+      },
+      {
+        "Name": "前进",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              -50,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "ANSI_RightBracket"
+          ]
+        }
+      },
+      {
+        "Name": "重新载入",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              0,
+              -50,
+              -50,
+              -50,
+              -50,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "ANSI_R"
+          ]
+        }
+      },
+      {
+        "Name": "强制重新载入",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              0,
+              -50,
+              -50,
+              -50,
+              -50,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:0"
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Shift",
+            "Command",
+            "ANSI_R"
+          ]
+        }
+      },
+      {
+        "Name": "关闭",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              -50,
+              50,
+              -50,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "ANSI_W"
+          ]
+        }
+      },
+      {
+        "Name": "关闭",
+        "ExecuteOnRecognize": true,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:2"
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "ANSI_W"
+          ]
+        }
+      },
+      {
+        "Name": "重开标签",
+        "ExecuteOnRecognize": true,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              -50,
+              50,
+              0,
+              50,
+              0,
+              0
+            ]
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:0"
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "Shift",
+            "ANSI_T"
+          ]
+        }
+      },
+      {
+        "Name": "新建",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              -50,
+              50,
+              0,
+              50,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "ANSI_T"
+          ]
+        }
+      },
+      {
+        "Name": "新建",
+        "ExecuteOnRecognize": true,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:0"
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "ANSI_T"
+          ]
+        }
+      },
+      {
+        "Name": "地址栏",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              -50,
+              -50,
+              0,
+              -50,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "ANSI_L"
+          ]
+        }
+      },
+      {
+        "Name": "上一标签",
+        "ExecuteOnRecognize": true,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "VSCROLL:-13"
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "Shift",
+            "ANSI_LeftBracket"
+          ]
+        }
+      },
+      {
+        "Name": "上一标签",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              50,
+              -50,
+              50,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "Shift",
+            "ANSI_LeftBracket"
+          ]
+        }
+      },
+      {
+        "Name": "上一标签",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:2"
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "VSCROLL:-13"
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Shift",
+            "Command",
+            "ANSI_LeftBracket"
+          ]
+        }
+      },
+      {
+        "Name": "下一标签",
+        "ExecuteOnRecognize": true,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "VSCROLL:12"
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "Shift",
+            "ANSI_RightBracket"
+          ]
+        }
+      },
+      {
+        "Name": "下一标签",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              -50,
+              -50,
+              -50,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "Shift",
+            "ANSI_RightBracket"
+          ]
+        }
+      },
+      {
+        "Name": "下一标签",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:2"
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "VSCROLL:12"
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Shift",
+            "Command",
+            "ANSI_RightBracket"
+          ]
+        }
+      },
+      {
+        "Name": "Home 键",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              50,
+              -50,
+              0,
+              -50,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Home"
+          ]
+        }
+      },
+      {
+        "Name": "End 键",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              50,
+              50,
+              0,
+              50,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "End"
+          ]
+        }
+      },
+      {
+        "Name": "全屏",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              -50,
+              0,
+              -50,
+              50,
+              0,
+              50,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Control",
+            "Command",
+            "ANSI_F"
+          ]
+        }
+      },
+      {
+        "Name": "最小化",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              -50,
+              0,
+              -50,
+              -50,
+              0,
+              -50,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Command",
+            "ANSI_M"
+          ]
+        }
+      },
+      {
+        "Name": "终端",
+        "ExecuteOnRecognize": true,
+        "Gesture": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 8
+            }
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              0,
+              0,
+              0,
+              50,
+              0,
+              0,
+              0,
+              50,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "ShellScriptCommand",
+          "Script": "open \"/System/Applications/Utilities/Terminal.app\""
+        }
+      },
+      {
+        "Name": "活动监视器",
+        "ExecuteOnRecognize": true,
+        "Gesture": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 2
+            }
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              0,
+              0,
+              0,
+              50,
+              0,
+              0,
+              0,
+              50,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "ShellScriptCommand",
+          "Script": "open \"/System/Applications/Utilities/Activity Monitor.app\""
+        }
+      },
+      {
+        "Name": "睡眠",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 1
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              -50,
+              50,
+              -50,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "ShellScriptCommand",
+          "Script": "osascript -e 'tell application \"Finder\" to sleep'"
+        }
+      },
+      {
+        "Name": "关机",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 1
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              50,
+              50,
+              50,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "ShellScriptCommand",
+          "Script": "osascript <<EOF\n\ttell application \"Finder\" to shut down\nEOF"
+        }
+      },
+      {
+        "Name": "播放/暂停",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 1
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          }
+        ],
+        "Command": {
+          "$type": "SystemFunctionKeyCommand",
+          "SelectedIndex": 3
+        }
+      },
+      {
+        "Name": "上一曲",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:2"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              50,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "SystemFunctionKeyCommand",
+          "SelectedIndex": 2
+        }
+      },
+      {
+        "Name": "下一曲",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:2"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              -50,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "Command": {
+          "$type": "SystemFunctionKeyCommand",
+          "SelectedIndex": 4
+        }
+      },
+      {
+        "Name": "关闭窗口",
+        "ExecuteOnRecognize": false,
+        "Gesture": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          },
+          {
+            "$type": "StrokeStep",
+            "IsSimple": true,
+            "P": [
+              -50,
+              50,
+              -50,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:0"
+          }
+        ],
+        "Command": {
+          "$type": "KeySeqCommand",
+          "IsSystemHotKey": false,
+          "Keys": [
+            "Shift",
+            "Command",
+            "ANSI_W"
+          ]
+        }
+      }
+    ],
+    "Triggers": [
+      {
+        "Def": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:2"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:0"
+          }
+        ],
+        "Enabled": false
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 1
+            }
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 1
+            }
+          },
+          {
+            "$type": "ScrollStep",
+            "IsHorizontal": false
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 1
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 1
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:2"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 1
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:0"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 2
+            }
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 2
+            }
+          },
+          {
+            "$type": "ScrollStep",
+            "IsHorizontal": false
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 2
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 2
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:2"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 2
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:0"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 4
+            }
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 4
+            }
+          },
+          {
+            "$type": "ScrollStep",
+            "IsHorizontal": false
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 4
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 4
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:2"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 4
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:0"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 8
+            }
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 8
+            }
+          },
+          {
+            "$type": "ScrollStep",
+            "IsHorizontal": false
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 8
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 8
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:2"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 8
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:0"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 3
+            }
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 3
+            }
+          },
+          {
+            "$type": "ScrollStep",
+            "IsHorizontal": false
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 3
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 3
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:2"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 3
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:0"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 6
+            }
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 6
+            }
+          },
+          {
+            "$type": "ScrollStep",
+            "IsHorizontal": false
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 6
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 6
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:2"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 6
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:0"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 9
+            }
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 9
+            }
+          },
+          {
+            "$type": "ScrollStep",
+            "IsHorizontal": false
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 9
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 9
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:2"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 9
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:0"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 12
+            }
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 12
+            }
+          },
+          {
+            "$type": "ScrollStep",
+            "IsHorizontal": false
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 12
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:1"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 12
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:2"
+          }
+        ],
+        "Enabled": true
+      },
+      {
+        "Def": [
+          {
+            "$type": "MoveToEdgeCornerStep",
+            "EdgeCorner": {
+              "Value": 12
+            }
+          },
+          {
+            "$type": "KeyDownStep",
+            "Key": "MOUSE:0"
+          }
+        ],
+        "Enabled": true
+      }
+    ]
+  },
+  "Groups": [],
+  "Apps": [
+    {
+      "$type": "MacAppTarget",
+      "BundleId": null,
+      "Path": "/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder",
+      "Id": "IYY0_CDFdUqbqST2s-Hrng",
+      "Name": "Finder",
+      "Intents": [
+        {
+          "Name": "全部关闭",
+          "ExecuteOnRecognize": false,
+          "Gesture": [
+            {
+              "$type": "KeyDownStep",
+              "Key": "MOUSE:1"
+            },
+            {
+              "$type": "StrokeStep",
+              "IsSimple": true,
+              "P": [
+                50,
+                50,
+                50,
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "Command": {
+            "$type": "ShellScriptCommand",
+            "Script": "osascript<<-EOF\n\ttell application \"Finder\" to close every window\nEOF"
+          }
+        },
+        {
+          "Name": "移到废纸篓",
+          "ExecuteOnRecognize": false,
+          "Gesture": [
+            {
+              "$type": "KeyDownStep",
+              "Key": "MOUSE:1"
+            },
+            {
+              "$type": "StrokeStep",
+              "IsSimple": true,
+              "P": [
+                0,
+                0,
+                -50,
+                0,
+                0,
+                0,
+                -50,
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "Command": {
+            "$type": "KeySeqCommand",
+            "IsSystemHotKey": false,
+            "Keys": [
+              "Command",
+              "Delete"
+            ]
+          }
+        },
+        {
+          "Name": "弹出",
+          "ExecuteOnRecognize": false,
+          "Gesture": [
+            {
+              "$type": "KeyDownStep",
+              "Key": "MOUSE:1"
+            },
+            {
+              "$type": "StrokeStep",
+              "IsSimple": true,
+              "P": [
+                0,
+                50,
+                -50,
+                50,
+                -50,
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "Command": {
+            "$type": "KeySeqCommand",
+            "IsSystemHotKey": false,
+            "Keys": [
+              "Command",
+              "ANSI_E"
+            ]
+          }
+        }
+      ],
+      "Triggers": []
+    }
+  ],
+  "Specials": [
+    {
+      "$type": "MacDesktopTarget",
+      "Id": "2Lw_wzJNfEmPH3L1hcoZgw",
+      "Name": "Desktop",
+      "Intents": [],
+      "Triggers": []
+    }
+  ]
+}

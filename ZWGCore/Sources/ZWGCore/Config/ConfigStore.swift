@@ -183,6 +183,26 @@ public final class ConfigStore: @unchecked Sendable {
         return result
     }
 
+    /// Seeds zWGestures' storage from the factory-default pack that ships inside the app bundle.
+    ///
+    /// Same shape as `importLegacyConfiguration` on purpose — the two sources differ only in where
+    /// they come from, and `ConfigController` applies the same "the system owns the login item"
+    /// correction to both. The directory is passed in rather than resolved here, so a test can drive
+    /// the whole path without an app bundle.
+    ///
+    /// (`LegacyConfigImporter.load` reads any directory holding a `gestures.json` / `prefs.json` in
+    /// the original's format; the bundled pack is exactly that. Its `sourceVersion` — the directory's
+    /// own name — is not meaningful for this path and the caller does not use it.)
+    @discardableResult
+    public func importDefaultConfiguration(from directory: URL) throws -> WGImportResult {
+        let result = try LegacyConfigImporter.load(from: directory)
+        try saveConfig(result.config)
+        if let preferences = result.preferences {
+            try savePreferences(preferences)
+        }
+        return result
+    }
+
     // MARK: - Private
 
     private func ensureDirectory() throws {

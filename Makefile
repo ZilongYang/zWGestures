@@ -66,6 +66,17 @@ icon:
 	SWIFT_MODULECACHE_OVERRIDE="$(CURDIR)/build/swift-module-cache" \
 	swift scripts/make-app-icon.swift $(or $(VARIANT),corner)
 
+## Regenerate the factory-default gesture pack that ships inside the app bundle.
+##
+## Needs the original WGestures installed at /Applications/WGestures.app, or pass its resource
+## directory: make default-gestures ORIGINAL=/path/to/WGestures.app/Contents/Resources
+##
+## The output (zWGestures/Resources/Defaults/) is committed on purpose and is deliberately NOT part
+## of `build`: only a machine that has the original installed can produce it. Where the data comes
+## from, and why it is safe to ship, is documented in scripts/make-default-gestures.py.
+default-gestures:
+	python3 scripts/make-default-gestures.py $(ORIGINAL)
+
 ## Source-level guards that unit tests cannot express (see docs/ROADMAP.md §8)
 lint:
 	@python3 scripts/check-appkit-isolation.py
@@ -111,7 +122,7 @@ install: stop build
 run-settings: stop build
 	open --env ZWG_SETTINGS_PANEL=1 "$(APP)"
 
-.PHONY: all gen bootstrap unlock-signing build lint test run run-debug run-settings stop install icon clean info
+.PHONY: all gen bootstrap unlock-signing build lint test run run-debug run-settings stop install icon default-gestures clean info
 
 clean:
 	rm -rf $(DERIVED) ZWGCore/.build

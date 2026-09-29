@@ -161,6 +161,28 @@ JSON to be **identical key by key**. That test has already caught two real defec
 written as `LabelExecuted` (the correct name is `LabelColorExecuted`), and `SkipVersion: null` being
 dropped entirely by `encodeIfPresent`.
 
+### What you get without ever having installed WGestures
+
+**48 Chinese-named gestures out of the box**, taken from the original's own factory set and using the
+original's own Chinese name table:
+
+| Gesture set | Count |
+|---|---|
+| Global | 45 |
+| Finder | 3 |
+
+The usual ones are all there: "up" copies, "down" pastes, left goes back, right goes forward, an `L`
+closes the window, a `C` switches apps. Use them as they are, or change anything in the settings.
+
+The pack is **configuration data** from the original (`gestures.json` + `prefs.json` + its Chinese name
+table); it contains none of the original's binaries, fonts, icons or licence keys. It is a **generated
+artifact committed to the repository**, produced by `make default-gestures` from a local installation —
+deliberately **not** part of `make build`, because only a machine with the original can produce it. See
+[`docs/ROADMAP.md`](docs/ROADMAP.md) §16 (in Chinese).
+
+The first-launch order is: **an existing configuration → the original's installation → the built-in
+default**. So anyone who has WGestures installed gets their own gestures imported, not the default pack.
+
 ## Why zWGestures exists
 
 WGestures 2 is an excellent mouse-gesture tool. Its ideas — "a gesture is the sum of its steps",

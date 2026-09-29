@@ -37,6 +37,7 @@ Rosetta。
 | P6j | **应用手势集继承全局**（自己的优先，其余继承；每目标一个开关） | ✅ 已实机验证 |
 | 修复 | AppKit 覆写导致的崩溃（`zWGestures-2026-09-28-211050.ips`）+ 源码守卫脚本 | ✅ 已修复；修复后连续使用约 1 小时无新崩溃报告（此类偶发崩溃只能说「观察中」） |
 | 修复 | **整机输入冻结**（2026-09-29，发布阻断级）：tap 退出键盘同步路径 + 超时主动停用 + 掩码回归测试 | ✅ 已修复并装上（详见 §13）；修复后行为待实机确认 |
+| 开源 | **出厂默认手势包**：48 条中文手势随 App 发布，没装过原版的人开箱可用（§16） | ✅ 已生成并提交；新增 12 项单测，CI 断言产物路径 |
 | P9 | 开机自启：`SMAppService` 优先 + **LaunchAgent 兜底** + 菜单栏开关 | ✅ 已实机验证（**重启后自动启动**：开机 22:59:28，5 分钟后进程已是 `/Applications` 那份、无 LaunchAgent 兜底、无新崩溃） |
 
 **可以日常使用的程度**：右键基本手势全部工作 —— 识别、执行命令、轨迹与手势名实时显示、
@@ -784,3 +785,52 @@ error: external macro implementation type 'ObservationMacros.ObservableMacro' co
 这两个数字只用来判断量级，不能直接当作「待抽条数」。
 
 顺带能修掉一个现存的不一致：`WGCommand.summary` 这类**给用户看的**文案，本来就不该住在核心逻辑包里。
+
+---
+
+## 16. 出厂默认手势包（随 App 发布）
+
+**要解决的问题**：没装过原版 WGestures 的人装完 App、授权完辅助功能，画任何手势都没反应 ——
+会被直接判定为坏软件。这是下载版能不能用的第一道门槛。
+
+**做法**：随 App 发布一份 48 条中文手势的出厂默认包，直接取自原版自己的出厂手势集。
+
+| 手势集 | 条数 | 来源 |
+|---|---|---|
+| 全局 | 45 | `/Applications/WGestures.app/Contents/Resources/gestures.json` |
+| Finder | 3 | 同上 |
+
+- 中文名来自原版自带的中文译名表 `zh_CN.lproj/tr_bootstrap.json`：48 条 / 42 个不同名字，
+  **100% 覆盖**，一个都查不到就报错退出（不猜）。`WGIntent.name` 没有任何运行时翻译，
+  所以名字必须烘进 JSON。
+- 偏好抄原版，但 `AutoStart` 强制改为 `false`；`SkipVersion: null` 原样保留
+  —— 它守着 `encodeIfPresent` 那条编码路径。
+- 本机实测：产出与原版 `gestures.json` 的差异**只有 47 处 `Name` 取值**，其余逐字节相同 ——
+  脚本按原版自己的 JSON 风格（2 空格缩进、无结尾换行）写回，评审时肉眼可看。
+- 原版出厂就带着重名条目（`关闭`×2、`新建`×2、`上一标签`×3、`下一标签`×3），靠手势修饰键区分，
+  是数据不是错误；单测把这份名册钉死了。
+
+**出处与重生成方式**（三处，不再另加文档文件）：
+
+1. `scripts/make-default-gestures.py` 的 docstring —— 数据来源、为什么安全、怎么重新生成；
+2. `Makefile` 的 `default-gestures` 目标注释；
+3. 本节。
+
+```bash
+make default-gestures                # 用 /Applications/WGestures.app
+make default-gestures ORIGINAL=/path/to/WGestures.app/Contents/Resources
+```
+
+生成物 `zWGestures/Resources/Defaults/{gestures.json,prefs.json}` **提交进仓库**，但**不挂进 `build`**
+—— 只有装了原版的机器才生成得出来。它必须以**目录**形式进 bundle
+（`Contents/Resources/Defaults/`），所以 `project.yml` 里单独给它一条 **folder reference**
+（普通的 `.json` 资源会被 XcodeGen 平铺到 Resources 根目录）；产物路径由 CI 的一条断言守着。
+
+**首启顺序**：已有配置 → 原版的安装 → 内置默认。决策逻辑在 `ConfigBootstrapper`（有单测），
+`ConfigController.start()` 按它分三支，`Status` 增加 `.seeded(intents:)`。
+**首次用到默认包或导入成功时会自动打开设置窗口** —— `LSUIElement`（无 Dock 图标）的 App
+否则只有一个菜单栏小图标，看起来像没启动。
+
+**版权**：默认包是**原版的配置数据 + 它自带的中文译名表**，属配置数据，而非二进制、字体、图标或代码。
+README 与 `README.en.md` 的「许可证与商标」已写明「独立的重新实现、非官方、无隶属关系」并链接官网。
+后备方案：换成一份手写精简默认，`ConfigStore.importDefaultConfiguration(from:)` 这个接口不变。

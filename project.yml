@@ -48,6 +48,13 @@ targets:
       - path: zWGestures
         excludes:
           - "Resources/Info.plist"
+          # 出厂默认手势包必须**保持目录结构**进 bundle，即
+          # `Contents/Resources/Defaults/gestures.json`：XcodeGen 默认会把普通的 .json 资源平铺到
+          # Resources 根目录。所以它单独用下面的 folder reference 引入，这里排除以免重复添加。
+          # 目录是否真的是 folder reference，以 `xcodebuild build` 后的产物路径为准。
+          - "Resources/Defaults"
+      - path: zWGestures/Resources/Defaults
+        type: folder
       # ZWGCore is a SwiftPM package so that `swift test` can exercise the testable logic
       # without an app host (see Makefile). Its sources are compiled directly into the app
       # target rather than linked as a package product: Xcode 26 fails to resolve a local
