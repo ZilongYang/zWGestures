@@ -88,8 +88,9 @@ final class InputCoordinator: @unchecked Sendable {
     private var previewName: String?
     private static let previewInterval: TimeInterval = 0.05
 
-    /// Invoked on the tap thread when the emergency-stop shortcut is pressed.
-    var onPanic: (@Sendable () -> Void)?
+    /// Invoked on the tap thread when the tap has been taken down on purpose because its callback
+    /// kept missing the system's deadline. The payload is how many timeouts were seen.
+    var onTapGaveUp: (@Sendable (Int) -> Void)?
 
     /// Invoked on the tap thread when a stroke matches a configured gesture. The handler must
     /// return promptly — it must hand off anything slow to another queue.
@@ -139,6 +140,16 @@ final class InputCoordinator: @unchecked Sendable {
         tap.onTapThreadTeardown = { [weak self] in
             self?.cancelPendingTimer()
         }
+        tap.onGiveUp = { [weak self] timeoutCount in
+            // The tap is already down: drop the in-flight state so nothing is replayed later, then
+            // let the owner decide what to tell the user.
+            guard let self else { return }
+            self.cancelPendingTimer()
+            self.engine.reset()
+            self.clearTrail()
+            self.updateSnapshot(with: .suppress, state: self.engine.state)
+            self.onTapGaveUp?(timeoutCount)
+        }
 
         let installed = tap.start()
         if !installed {
@@ -158,17 +169,9 @@ final class InputCoordinator: @unchecked Sendable {
         // Never react to our own synthetic events.
         guard !SyntheticEventPoster.isSynthetic(event) else { return event }
 
-        // Emergency stop. Handled here rather than through a separate global monitor so that
-        // it works even while a gesture is in flight.
-        if event.type == .keyDown, PanicShortcut.matches(event) {
-            Log.app.error("panic shortcut pressed; stopping the input engine")
-            cancelPendingTimer()
-            engine.reset()
-            clearTrail()
-            onPanic?()
-            return nil
-        }
-
+        // `EventTapController.eventMask` deliberately contains no keyboard events: the
+        // emergency-stop shortcut is watched with listen-only `NSEvent` monitors instead, so a
+        // slow tap callback can never hold up typing across the whole system.
         guard let pointerEvent = Self.pointerEvent(from: event) else { return event }
 
         let decision = engine.handle(pointerEvent)
@@ -538,6 +541,7 @@ final class InputCoordinator: @unchecked Sendable {
         case .stopped: "stopped"
         case .running: "running"
         case .systemDisabled: "systemDisabled"
+        case .gaveUp(let count): "gaveUp(\(count))"
         case .failed(let reason): "failed: \(reason)"
         }
     }
