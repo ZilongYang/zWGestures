@@ -84,12 +84,8 @@ public enum TargetResolver {
         // Overlay the general set for inheriting targets. The merge happens here rather than in the
         // recogniser so that everything downstream — matching, the debug panel, the trigger matrix —
         // keeps working on a single "effective target" unchanged.
-        var effective = chosen
-        var inherited = 0
-        if kind != .general, chosen.inheritsGlobal {
-            inherited = config.general.intents.count
-            effective.intents = chosen.intents + config.general.intents
-        }
+        let effective = effectiveTarget(for: chosen, in: config)
+        let inherited = effective.intents.count - chosen.intents.count
 
         return WGResolvedTarget(
             target: effective,
@@ -98,6 +94,19 @@ public enum TargetResolver {
             triggerMatrix: WGTriggerMatrix.effective(for: chosen, inheriting: config.general),
             inheritedIntentCount: inherited
         )
+    }
+
+    /// The gesture set that actually applies to a chosen target: the target's own gestures, with the
+    /// general set appended when it inherits.
+    ///
+    /// Split out of `resolve` so the recognition index can build **exactly the same** set — the index
+    /// is looked up by `id`, so the two must agree down to the last intent. Duplicating the merge rule
+    /// would be a correctness trap.
+    public static func effectiveTarget(for chosen: WGTarget, in config: WGConfig) -> WGTarget {
+        guard chosen.kind != .general, chosen.inheritsGlobal else { return chosen }
+        var effective = chosen
+        effective.intents = chosen.intents + config.general.intents
+        return effective
     }
 
     /// Finds the application target for `application`.

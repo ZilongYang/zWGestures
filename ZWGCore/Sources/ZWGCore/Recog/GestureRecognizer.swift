@@ -42,6 +42,109 @@ public struct GestureRecognizer: Sendable {
         self.settings = settings
     }
 
+    // MARK: - Matching against a prepared index（拦截器线程走这条）
+
+    /// Scores every gesture in `index`, nearest first.
+    ///
+    /// This is the form the event-tap thread uses. The live stroke is normalised **once** — its shape
+    /// is identical for every candidate, and re-normalising it per candidate was ~45× wasted work —
+    /// and every stored shape was normalised when the index was built, so the loop allocates nothing.
+    public func scoredCandidates(
+        stroke: Stroke,
+        button: MouseButton,
+        modifiers: [PointerEvent.Kind],
+        in index: GestureIndex,
+        triggerMatrix: WGTriggerMatrix = .empty
+    ) -> [RecognitionMatch] {
+        guard stroke.pathLength >= index.settings.minimumStrokeLength else { return [] }
+
+        let live = StrokeNormalizer.normalize(stroke.points, sampleCount: index.settings.sampleCount)
+        guard live.count == index.settings.sampleCount else { return [] }
+
+        var candidates: [RecognitionMatch] = []
+        candidates.reserveCapacity(index.gestures.count)
+        for prepared in index.gestures {
+            guard prepared.triggerButton == button else { continue }
+            if let signature = prepared.triggerSignature, !triggerMatrix.allows(signature) { continue }
+            guard areModifiersSatisfied(prepared.modifierRequirements, recorded: modifiers) else { continue }
+
+            candidates.append(RecognitionMatch(
+                intent: prepared.intent,
+                intentIndex: prepared.intentIndex,
+                distance: StrokeMatcher.distance(live, prepared.shape),
+                modifierCount: prepared.modifierCount
+            ))
+        }
+        return candidates.sorted { lhs, rhs in
+            if lhs.distance != rhs.distance { return lhs.distance < rhs.distance }
+            return lhs.intentIndex < rhs.intentIndex
+        }
+    }
+
+    /// The best match, or `nil` when nothing is close enough.
+    public func recognize(
+        stroke: Stroke,
+        button: MouseButton,
+        modifiers: [PointerEvent.Kind],
+        in index: GestureIndex,
+        triggerMatrix: WGTriggerMatrix = .empty
+    ) -> RecognitionMatch? {
+        let scored = scoredCandidates(
+            stroke: stroke,
+            button: button,
+            modifiers: modifiers,
+            in: index,
+            triggerMatrix: triggerMatrix
+        )
+        return bestCandidate(in: scored.filter { $0.distance <= index.settings.matchThreshold })
+    }
+
+    /// The best match **and** the nearest candidate, in a single pass.
+    ///
+    /// The tap thread needs both: a miss has to be reported together with the closest configured
+    /// gesture, so "nothing matched" comes with a number instead of being a mystery. Scoring every
+    /// gesture twice made the *miss* path — the slowest one there is — twice as slow as it needed
+    /// to be.
+    public func recognizeWithNearest(
+        stroke: Stroke,
+        button: MouseButton,
+        modifiers: [PointerEvent.Kind],
+        in index: GestureIndex,
+        triggerMatrix: WGTriggerMatrix = .empty
+    ) -> (match: RecognitionMatch?, nearest: RecognitionMatch?) {
+        let scored = scoredCandidates(
+            stroke: stroke,
+            button: button,
+            modifiers: modifiers,
+            in: index,
+            triggerMatrix: triggerMatrix
+        )
+        let passing = scored.filter { $0.distance <= index.settings.matchThreshold }
+        return (bestCandidate(in: passing), scored.first)
+    }
+
+    // MARK: - Convenience: match straight against a target
+
+    /// Builds an index on the spot and matches against it.
+    ///
+    /// Convenient for tests and diagnostics, but it rebuilds the index on **every call**. The
+    /// event-tap thread must use the `GestureIndex` form instead — see `GestureIndex`.
+    public func scoredCandidates(
+        stroke: Stroke,
+        button: MouseButton,
+        modifiers: [PointerEvent.Kind],
+        in target: WGTarget,
+        triggerMatrix: WGTriggerMatrix = .empty
+    ) -> [RecognitionMatch] {
+        scoredCandidates(
+            stroke: stroke,
+            button: button,
+            modifiers: modifiers,
+            in: GestureIndex(target: target, settings: settings),
+            triggerMatrix: triggerMatrix
+        )
+    }
+
     /// - Parameters:
     ///   - stroke: the trajectory that was just drawn.
     ///   - button: the button that triggered it.
@@ -55,54 +158,13 @@ public struct GestureRecognizer: Sendable {
         in target: WGTarget,
         triggerMatrix: WGTriggerMatrix = .empty
     ) -> RecognitionMatch? {
-        guard stroke.pathLength >= settings.minimumStrokeLength else { return nil }
-        let passing = scoredCandidates(
+        recognize(
             stroke: stroke,
             button: button,
             modifiers: modifiers,
-            in: target,
+            in: GestureIndex(target: target, settings: settings),
             triggerMatrix: triggerMatrix
         )
-        .filter { $0.distance <= settings.matchThreshold }
-        return bestCandidate(in: passing)
-    }
-
-    /// Every eligible intent and how far its trajectory is from the drawn stroke, nearest
-    /// first. Includes candidates that are too far to match, which is what makes a failed
-    /// recognition diagnosable instead of a mystery.
-    public func scoredCandidates(
-        stroke: Stroke,
-        button: MouseButton,
-        modifiers: [PointerEvent.Kind],
-        in target: WGTarget,
-        triggerMatrix: WGTriggerMatrix = .empty
-    ) -> [RecognitionMatch] {
-        guard stroke.pathLength >= settings.minimumStrokeLength else { return [] }
-
-        var candidates: [RecognitionMatch] = []
-        for (index, intent) in target.intents.enumerated() {
-            // 被禁用的手势保留在列表里，但不参与任何匹配 —— 这就是「禁用」的全部语义。
-            guard intent.enabled else { continue }
-            guard let definition = intent.strokeStep else { continue }
-            guard isTriggerSatisfied(intent.triggerSteps, button: button, matrix: triggerMatrix) else { continue }
-            guard areModifiersSatisfied(intent.modifierSteps, recorded: modifiers) else { continue }
-
-            let distance = StrokeMatcher.distance(
-                stroke: stroke,
-                definition: definition,
-                sampleCount: settings.sampleCount
-            )
-            candidates.append(RecognitionMatch(
-                intent: intent,
-                intentIndex: index,
-                distance: distance,
-                modifierCount: intent.modifierSteps.count
-            ))
-        }
-        return candidates.sorted { lhs, rhs in
-            if lhs.distance != rhs.distance { return lhs.distance < rhs.distance }
-            return lhs.intentIndex < rhs.intentIndex
-        }
     }
 
     /// The closest eligible intent regardless of the threshold — used only for diagnostics.
@@ -151,59 +213,26 @@ public struct GestureRecognizer: Sendable {
 
     // MARK: - Eligibility
 
-    /// Whether the steps leading up to the stroke describe the trigger we just saw, and whether
-    /// the trigger matrix allows that trigger for this target.
-    private func isTriggerSatisfied(
-        _ steps: [WGStep],
-        button: MouseButton,
-        matrix: WGTriggerMatrix
+    /// Whether every 手势修饰键 this gesture declares actually happened while the stroke was drawn.
+    ///
+    /// The requirements are already parsed and classified, so this loop does no string work.
+    private func areModifiersSatisfied(
+        _ requirements: [ModifierRequirement],
+        recorded: [PointerEvent.Kind]
     ) -> Bool {
-        guard !steps.isEmpty else { return false }
-        var sawButton = false
-
-        for step in steps {
-            switch step {
-            case .keyDown(let key):
-                guard case .mouse(let candidate) = WGInputToken(key: key.key), candidate == button else {
-                    // Keyboard-as-trigger and scroll-as-trigger are handled by the edge and
-                    // scroll detector in a later phase.
-                    return false
-                }
-                sawButton = true
-            case .moveToEdgeCorner:
-                // Screen-edge gestures need the edge detector; not eligible until then.
+        for requirement in requirements {
+            switch requirement {
+            case .impossible:
+                // A modifier this build cannot satisfy (a keyboard key).
                 return false
-            default:
-                return false
-            }
-        }
-        guard sawButton else { return false }
-
-        // A gesture whose trigger the user switched off in the 触发方式 matrix must not fire.
-        if let signature = WGTriggerSignature.make(from: steps) {
-            return matrix.allows(signature)
-        }
-        return true
-    }
-
-    /// Whether every gesture-modifier step actually happened while the stroke was drawn.
-    private func areModifiersSatisfied(_ steps: [WGStep], recorded: [PointerEvent.Kind]) -> Bool {
-        for step in steps {
-            guard case .keyDown(let key) = step else { return false }
-            let token = WGInputToken(key: key.key)
-
-            switch token {
-            case .mouse(let button):
+            case .button(let button):
                 guard recorded.contains(.down(button)) else { return false }
-            case .verticalScroll, .horizontalScroll:
-                guard let direction = token.scrollDirection else { return false }
+            case .scroll(let direction):
                 guard recorded.contains(where: { kind in
                     guard case .scroll(_, let deltaY) = kind else { return false }
                     let recordedDirection = deltaY == 0 ? 0 : (deltaY > 0 ? 1 : -1)
                     return recordedDirection == direction
                 }) else { return false }
-            case .key:
-                return false
             }
         }
         return true

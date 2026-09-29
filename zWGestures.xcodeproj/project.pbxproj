@@ -53,6 +53,7 @@
 		A357BBF22FFA1BA6552F81C2 /* EventTapMask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7993AE24CE38B6C285A5D2BD /* EventTapMask.swift */; };
 		A818D9E18687807FC919C00D /* WGStrokeConflict.swift in Sources */ = {isa = PBXBuildFile; fileRef = F66A3DC1C6690D07CDB62CDF /* WGStrokeConflict.swift */; };
 		AAA7D11E8C47A9C5D9E08DE0 /* CommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92CBA6DC86C7A9DB15273C50 /* CommandExecutor.swift */; };
+		ADD55155908459B4AC4869B8 /* GestureIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FD6A025387147AB629B55A1 /* GestureIndex.swift */; };
 		B74F84187764E1C1B2C31B3D /* PermissionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD120B910B3EAAF21113B6A /* PermissionGate.swift */; };
 		BE0AB9F149CF95824F4041B9 /* TargetResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D609A7BD92EC1F5F4BA9BF0 /* TargetResolver.swift */; };
 		C050C9CB5FC43CADF7E4B46A /* WGColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6AB7125FAF11D6211A6791A /* WGColor.swift */; };
@@ -96,6 +97,7 @@
 		4B3261300424B06F6A1DFA1D /* WGConfigCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGConfigCodec.swift; sourceTree = "<group>"; };
 		4DD120B910B3EAAF21113B6A /* PermissionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionGate.swift; sourceTree = "<group>"; };
 		4E642F91C963A1195967A57C /* ConfigController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigController.swift; sourceTree = "<group>"; };
+		4FD6A025387147AB629B55A1 /* GestureIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureIndex.swift; sourceTree = "<group>"; };
 		5376AF66A75D62EF0403C889 /* WindowProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowProbe.swift; sourceTree = "<group>"; };
 		539C0147342363EA2357D96B /* WGModifierKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGModifierKind.swift; sourceTree = "<group>"; };
 		54FC8A50F77DDF46B3EC6C08 /* WGInputToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGInputToken.swift; sourceTree = "<group>"; };
@@ -194,6 +196,7 @@
 		5E460AE5900A25361D6B25CE /* Recog */ = {
 			isa = PBXGroup;
 			children = (
+				4FD6A025387147AB629B55A1 /* GestureIndex.swift */,
 				37BF10BA5362196075C3E339 /* GestureRecognizer.swift */,
 				C390F8040B68014AF2B56727 /* StrokeNormalizer.swift */,
 			);
@@ -495,6 +498,7 @@
 				A357BBF22FFA1BA6552F81C2 /* EventTapMask.swift in Sources */,
 				8BB1D3773C46133ECCFD8099 /* GestureEditorModel.swift in Sources */,
 				A1EAC0817279C44D9055EDE0 /* GestureEditorSheet.swift in Sources */,
+				ADD55155908459B4AC4869B8 /* GestureIndex.swift in Sources */,
 				1ADA97FF6B1AB8935CE567FB /* GestureRecognizer.swift in Sources */,
 				0ABBA99ECD0A9BFD2D208516 /* InputCoordinator.swift in Sources */,
 				960C0E6B6A845CA2A6D7634C /* InputEngine.swift in Sources */,

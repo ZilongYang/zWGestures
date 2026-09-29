@@ -46,6 +46,34 @@ struct RecognitionContext: Sendable {
     }
 }
 
+/// Everything the tap thread needs, in one immutable object.
+///
+/// Two reasons this is a class held by reference rather than a pair of stored properties:
+///
+/// 1. Taking it under the lock costs a retain instead of copying the configuration and the recogniser.
+/// 2. The expensive half of recognition — splitting each gesture's step lists, normalising every
+///    stored trajectory — is done **once here**, when the configuration changes on the main thread,
+///    instead of inside the tap callback. That callback is synchronous and the system waits for it;
+///    doing ~8 heap allocations per gesture per event on that thread is what made it slow enough to
+///    be disabled repeatedly (docs/ROADMAP.md §18).
+final class RecognitionSnapshot: @unchecked Sendable {
+    let context: RecognitionContext
+    let indexes: RecognitionIndex
+    let recognizer: GestureRecognizer
+
+    init(context: RecognitionContext, settings: RecognitionSettings) {
+        self.context = context
+        indexes = RecognitionIndex(config: context.config, settings: settings)
+        recognizer = GestureRecognizer(settings: settings)
+    }
+
+    /// The prepared gestures for a resolved target, or `nil` if the resolution produced a target the
+    /// index does not know about (which would be a bug in `TargetResolver.effectiveTarget`).
+    func index(for resolved: WGResolvedTarget) -> GestureIndex? {
+        indexes.index(for: resolved)
+    }
+}
+
 /// A recognised gesture together with everything the command needs to run.
 struct GestureOutcome: Sendable {
     var match: RecognitionMatch
@@ -68,8 +96,10 @@ final class InputCoordinator: @unchecked Sendable {
 
     /// Written from the main thread, read on the tap thread.
     private let recognitionLock = NSLock()
-    private var recognizer = GestureRecognizer()
-    private var recognitionContext = RecognitionContext()
+    private var recognition = RecognitionSnapshot(
+        context: RecognitionContext(),
+        settings: RecognitionSettings()
+    )
 
     /// Tap-thread state.
     private var pendingTimer: CFRunLoopTimer?
@@ -113,10 +143,10 @@ final class InputCoordinator: @unchecked Sendable {
 
     /// Publishes the gesture sets, the targeting mode and the application directory.
     func updateRecognition(_ context: RecognitionContext, settings: RecognitionSettings = RecognitionSettings()) {
-        recognitionLock.withLock {
-            recognitionContext = context
-            recognizer = GestureRecognizer(settings: settings)
-        }
+        // Build the (expensive) snapshot outside the lock, then swap the reference in. Holding the
+        // lock while normalising every stored gesture would block the tap thread for no reason.
+        let snapshot = RecognitionSnapshot(context: context, settings: settings)
+        recognitionLock.withLock { recognition = snapshot }
     }
 
     // MARK: - Lifecycle
@@ -204,31 +234,31 @@ final class InputCoordinator: @unchecked Sendable {
     /// Ordinary clicks are unaffected — those never reach this method, they are replayed by the
     /// engine's `.replay` effect when the press turns out to be a plain click.
     private func handleCompletedGesture(_ candidate: GestureCandidate) {
-        let (recognizer, context) = recognitionLock.withLock { (self.recognizer, self.recognitionContext) }
-        let resolved = pressTarget ?? resolveTarget(at: candidate.stroke.startPoint, in: context)
+        let snapshot = recognitionLock.withLock { recognition }
+        let resolved = pressTarget ?? resolveTarget(at: candidate.stroke.startPoint, in: snapshot.context)
         let windowID = pressWindowID
         pressTarget = nil
         pressWindowID = nil
 
-        let match = recognizer.recognize(
-            stroke: candidate.stroke,
-            button: candidate.button,
-            modifiers: candidate.modifiers,
-            in: resolved.target,
-            triggerMatrix: resolved.triggerMatrix
-        )
-
-        // Diagnose a miss by reporting the closest configured gesture anyway: "nothing
-        // matched" without a number is impossible to act on.
-        let nearest = match == nil
-            ? recognizer.nearestCandidate(
+        // One pass yields both: diagnosing a miss needs the closest configured gesture anyway
+        // ("nothing matched" without a number is impossible to act on), and scoring every gesture
+        // twice made the miss path — the slowest one — twice as slow as it had to be.
+        let outcome = snapshot.index(for: resolved).map { index in
+            snapshot.recognizer.recognizeWithNearest(
                 stroke: candidate.stroke,
                 button: candidate.button,
                 modifiers: candidate.modifiers,
-                in: resolved.target,
+                in: index,
                 triggerMatrix: resolved.triggerMatrix
             )
-            : nil
+        }
+        if outcome == nil {
+            // 只可能是 TargetResolver 与 RecognitionIndex 的合并规则不一致。记下来，而不是让手势
+            // 「静默不响应」—— 那种现象最难查。
+            Log.recog.error("目标不在识别索引里，本次未识别：\(resolved.displayName, privacy: .public)")
+        }
+        let match = outcome?.match
+        let nearest = outcome?.nearest
 
         record(match, nearest: nearest, candidate: candidate, resolved: resolved)
         publishCompletion(candidate, name: match?.intent.name)
@@ -275,7 +305,7 @@ final class InputCoordinator: @unchecked Sendable {
         }
         guard pressTarget == nil else { return }
 
-        let context = recognitionLock.withLock { recognitionContext }
+        let context = recognitionLock.withLock { recognition.context }
         // In focused mode the probe is usually unnecessary, so only pay for it when the result
         // can change the answer.
         let probe = needsWindowProbe(for: context) ? WindowProbe.probe(at: press.startPoint) : nil
@@ -407,13 +437,17 @@ final class InputCoordinator: @unchecked Sendable {
         guard now - lastPreviewAt >= Self.previewInterval else { return previewName }
         lastPreviewAt = now
 
-        let (recognizer, context) = recognitionLock.withLock { (self.recognizer, self.recognitionContext) }
-        let resolved = pressTarget ?? resolveTarget(at: gesture.stroke.startPoint, in: context)
-        previewName = recognizer.recognize(
+        let snapshot = recognitionLock.withLock { recognition }
+        let resolved = pressTarget ?? resolveTarget(at: gesture.stroke.startPoint, in: snapshot.context)
+        guard let index = snapshot.index(for: resolved) else {
+            previewName = nil
+            return nil
+        }
+        previewName = snapshot.recognizer.recognize(
             stroke: gesture.stroke,
             button: gesture.button,
             modifiers: gesture.modifiers,
-            in: resolved.target,
+            in: index,
             triggerMatrix: resolved.triggerMatrix
         )?.intent.name
         return previewName
