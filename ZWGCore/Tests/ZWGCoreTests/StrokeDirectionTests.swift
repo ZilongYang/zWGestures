@@ -106,14 +106,13 @@ struct StrokeDirectionTests {
     }
 }
 
-@Suite("轨迹编码：与真实配置对照")
+@Suite("轨迹编码：与参考配置对照")
 struct RealConfigurationDirectionTests {
     @Test(
-        "真实配置里每个手势的方向都能对上手势名",
-        .enabled(if: LegacyConfigImporter.locateVersionDirectory() != nil)
+        "参考配置里每个手势的方向都能对上手势名"
     )
     func namedDirectionsMatchTheConfiguration() throws {
-        let directory = try #require(LegacyConfigImporter.locateVersionDirectory())
+        let directory = FixtureConfig.directory
         let config = try LegacyConfigImporter.load(from: directory).config
 
         func directions(_ name: String) -> [String] {

@@ -367,14 +367,11 @@ struct LegacyImportTests {
         #expect(LegacyConfigImporter.compareVersions("2.3.2", "2.3.3") == -1)
     }
 
-    /// Runs against the real installation when there is one; reported as disabled otherwise,
-    /// so a silent skip is impossible.
-    @Test(
-        "导入本机真实的 WGestures 配置",
-        .enabled(if: LegacyConfigImporter.locateVersionDirectory() != nil)
-    )
-    func importsTheRealConfiguration() throws {
-        let directory = try #require(LegacyConfigImporter.locateVersionDirectory())
+    /// 跑在提交进仓库的参考配置上（`Fixtures/legacy/2.3.3`），所以任何机器、以及 CI 上都会真的
+    /// 执行。下面的数字是这份文件的基线 —— 换 fixture 就要一起改，见 `Fixtures/README.md`。
+    @Test("导入参考配置")
+    func importsTheReferenceConfiguration() throws {
+        let directory = FixtureConfig.directory
         let result = try LegacyConfigImporter.load(from: directory)
 
         // 现有这份配置的实际内容：全局 49 条、Finder 3 条、桌面目标 0 条
@@ -387,22 +384,19 @@ struct LegacyImportTests {
         #expect(result.statistics.stepsByType["StrokeStep"] == 39)
         #expect(result.statistics.stepsByType["MoveToEdgeCornerStep"] == 50)
         #expect(result.statistics.commandsByType["KeySeqCommand"] == 38)
-        #expect(result.warnings.isEmpty, "真实配置不应该有未知类型：\(result.warnings)")
+        #expect(result.warnings.isEmpty, "参考配置不应该有未知类型：\(result.warnings)")
 
         // 偏好也要能读出来
         #expect(result.preferences?.startDragTimeout == 250)
         #expect(result.preferences?.showPath == true)
     }
 
-    /// The strongest compatibility check available: read the real files, write them back out,
+    /// The strongest compatibility check available: read the reference files, write them back out,
     /// and require the JSON to be identical key for key. This is what catches a mistyped
     /// coding key or a field dropped by `encodeIfPresent`.
-    @Test(
-        "真实配置文件重新编码后与原文件逐键一致",
-        .enabled(if: LegacyConfigImporter.locateVersionDirectory() != nil)
-    )
-    func reencodesRealFilesWithoutLoss() throws {
-        let directory = try #require(LegacyConfigImporter.locateVersionDirectory())
+    @Test("参考配置重新编码后与原文件逐键一致")
+    func reencodesReferenceFilesWithoutLoss() throws {
+        let directory = FixtureConfig.directory
         let result = try LegacyConfigImporter.load(from: directory)
 
         let originalConfig = try loadJSON(directory.appendingPathComponent("gestures.json"))
@@ -413,6 +407,22 @@ struct LegacyImportTests {
         let preferences = try #require(result.preferences)
         let reencodedPreferences = try loadJSON(from: try WGConfigCodec.encodePreferences(preferences))
         #expect(reencodedPreferences == originalPreferences, "prefs.json 重新编码后与原文件不一致")
+    }
+
+    /// 唯一一条仍然读**本机安装**的测试：用来发现真实世界里出现了仓库副本没覆盖到的版本或格式。
+    /// 没装原版的机器上它被明确标为**跳过**（不是静默通过），所以不会让 CI 变红。
+    ///
+    /// 这里刻意只断言结构性事实 —— 具体条数随每台机器的配置而变，写死必然误报。
+    @Test(
+        "本机安装的原版配置能读进来（可选）",
+        .enabled(if: LegacyConfigImporter.locateVersionDirectory() != nil)
+    )
+    func loadsALocalInstallWhenThereIsOne() throws {
+        let directory = try #require(LegacyConfigImporter.locateVersionDirectory())
+        let result = try LegacyConfigImporter.load(from: directory)
+
+        #expect(!result.config.general.intents.isEmpty)
+        #expect(result.warnings.isEmpty, "本机配置里出现了无法识别的类型：\(result.warnings)")
     }
 
     private func loadJSON(_ url: URL) throws -> NSDictionary {
@@ -447,7 +457,7 @@ struct IntentEnabledTests {
         let general = try #require(json["General"] as? [String: Any])
         let intents = try #require(general["Intents"] as? [[String: Any]])
         let first = try #require(intents.first)
-        #expect(first["Enabled"] == nil, "启用状态不写键，否则真实配置往返就不再逐键一致")
+        #expect(first["Enabled"] == nil, "启用状态不写键，否则参考配置往返就不再逐键一致")
         #expect(Set(first.keys) == ["Name", "ExecuteOnRecognize", "Gesture", "Command"])
     }
 

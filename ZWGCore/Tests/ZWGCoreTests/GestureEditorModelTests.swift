@@ -262,7 +262,7 @@ struct GestureModifierTests {
         #expect(model.intent.gesture.count == 3)
     }
 
-    @Test("修饰键的量级用 1（与真实配置一致）")
+    @Test("修饰键的量级用 1（与参考配置一致）")
     func usesTheSameScrollMagnitudeAsTheRealConfig() {
         #expect(WGModifierKind.scrollUp.key == "VSCROLL:1")
         #expect(WGModifierKind.scrollDown.key == "VSCROLL:-1")

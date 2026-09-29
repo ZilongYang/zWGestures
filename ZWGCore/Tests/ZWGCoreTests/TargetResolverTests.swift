@@ -119,14 +119,13 @@ struct TargetResolverTests {
     }
 }
 
-@Suite("目标解析：与真实配置对照")
+@Suite("目标解析：与参考配置对照")
 struct RealConfigurationTargetTests {
     @Test(
-        "真实配置里的 Finder：自身 3 条手势排在最前，其余继承全局",
-        .enabled(if: LegacyConfigImporter.locateVersionDirectory() != nil)
+        "参考配置里的 Finder：自身 3 条手势排在最前，其余继承全局"
     )
     func resolvesRealFinderTarget() throws {
-        let directory = try #require(LegacyConfigImporter.locateVersionDirectory())
+        let directory = FixtureConfig.directory
         let config = try LegacyConfigImporter.load(from: directory).config
 
         let resolved = TargetResolver.resolve(config: config, application: finder)
@@ -135,12 +134,12 @@ struct RealConfigurationTargetTests {
 
         // **应用自己的手势排在最前面** —— 顺序就是优先级（见 GestureRecognizer.bestCandidate），
         // 所以同形状时应用自己的赢，这正是「优先自己程序下的手势」的实现方式。
-        // 注意：真实配置里的 Finder 目标**只有 Path、没有 BundleId**（见 matchApplication 的注释），
+        // 注意：参考配置里的 Finder 目标**只有 Path、没有 BundleId**（见 matchApplication 的注释），
         // 所以这里按数组取，不能按 bundleId 找。
         let own = try #require(config.apps.first)
         let ownCount = own.intents.count
         #expect(ownCount == 3)
-        #expect(own.bundleId == nil, "真实配置的 Finder 目标本来就没有 BundleId")
+        #expect(own.bundleId == nil, "参考配置的 Finder 目标本来就没有 BundleId")
         // 顺序就是文件里的顺序，且必须排在继承来的之前。
         #expect(resolved.target.intents.prefix(ownCount).map(\.name) == ["Close All", "Move To Trash", "Eject"])
 

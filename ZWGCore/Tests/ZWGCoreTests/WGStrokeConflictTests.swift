@@ -54,9 +54,9 @@ struct WGStrokeConflictTests {
     ///
     /// 断言的是规则本身（任何被报出来的冲突，两条手势的触发与修饰键签名必须完全一致），
     /// 所以用户继续编辑配置也不会让这条测试失效。
-    @Test("真实配置：报出来的冲突一律是「触发与修饰键都相同」的", .enabled(if: LegacyConfigImporter.locateVersionDirectory() != nil))
+    @Test("参考配置：报出来的冲突一律是「触发与修饰键都相同」的")
     func realConfigOnlyReportsSameSignatureCollisions() throws {
-        let directory = try #require(LegacyConfigImporter.locateVersionDirectory())
+        let directory = FixtureConfig.directory
         let intents = try LegacyConfigImporter.load(from: directory).config.general.intents
 
         let collisions = WGStrokeConflict.collisions(in: intents)
@@ -88,9 +88,9 @@ struct WGStrokeConflictTests {
     /// 这一条把上面查到的**既存事实**固化下来：用户从原版导入的配置里本来就有同形且同样不带
     /// 修饰键的手势（`P` 逐字节相同），任何匹配算法都不可能区分它们，所以其中一条永远抢不到。
     /// 记录成测试是为了以后有人「顺手删掉一段看似多余的代码」时立刻被拦下。
-    @Test("真实配置里确实存在导入时就有的同形重复", .enabled(if: LegacyConfigImporter.locateVersionDirectory() != nil))
+    @Test("参考配置里确实存在导入时就有的同形重复")
     func realConfigHasPreExistingDuplicates() throws {
-        let directory = try #require(LegacyConfigImporter.locateVersionDirectory())
+        let directory = FixtureConfig.directory
         let intents = try LegacyConfigImporter.load(from: directory).config.general.intents
 
         func intent(_ name: String) throws -> WGIntent {

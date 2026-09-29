@@ -89,11 +89,10 @@ struct OverlayStyleTests {
     }
 
     @Test(
-        "真实偏好能完整映射成 Overlay 样式",
-        .enabled(if: LegacyConfigImporter.locateVersionDirectory() != nil)
+        "参考偏好能完整映射成 Overlay 样式"
     )
     func mapsRealPreferences() throws {
-        let directory = try #require(LegacyConfigImporter.locateVersionDirectory())
+        let directory = FixtureConfig.directory
         let preferences = try #require(LegacyConfigImporter.load(from: directory).preferences)
         let style = OverlayStyle(preferences: preferences)
 

@@ -20,7 +20,7 @@ struct ConfusionReportTests {
     }
 
     private func entries() throws -> [Entry] {
-        let directory = try #require(LegacyConfigImporter.locateVersionDirectory())
+        let directory = FixtureConfig.directory
         let config = try LegacyConfigImporter.load(from: directory).config
         let settings = GestureRecognizer().settings
 
@@ -39,8 +39,7 @@ struct ConfusionReportTests {
     }
 
     @Test(
-        "打印真实配置里彼此最接近的手势对",
-        .enabled(if: LegacyConfigImporter.locateVersionDirectory() != nil)
+        "打印参考配置里彼此最接近的手势对"
     )
     func reportsClosePairs() throws {
         let all = try entries()
@@ -70,8 +69,7 @@ struct ConfusionReportTests {
     }
 
     @Test(
-        "重新载入 与 其他窗口 必须能区分开",
-        .enabled(if: LegacyConfigImporter.locateVersionDirectory() != nil)
+        "重新载入 与 其他窗口 必须能区分开"
     )
     func reloadAndOtherWindowsStayDistinct() throws {
         let all = try entries()
@@ -90,11 +88,10 @@ struct ConfusionReportTests {
     }
 
     @Test(
-        "打印可疑手势的原始方向",
-        .enabled(if: LegacyConfigImporter.locateVersionDirectory() != nil)
+        "打印可疑手势的原始方向"
     )
     func printsTheSuspects() throws {
-        let directory = try #require(LegacyConfigImporter.locateVersionDirectory())
+        let directory = FixtureConfig.directory
         let config = try LegacyConfigImporter.load(from: directory).config
 
         print("### SUSPECT-BEGIN")

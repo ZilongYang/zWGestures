@@ -84,7 +84,7 @@ struct WGStrokeRecorderTests {
         let encoded = try WGStrokeRecorder.encode(screenPoints: drawn)
         #expect(encoded.directionDescription == "上→下（闭环）")
         #expect(encoded.isSimple)
-        // 与真实配置里 Web Search（`[0,0,0,50,0,0]`）同形。
+        // 与参考配置里 Web Search（`[0,0,0,50,0,0]`）同形。
         #expect(encoded.points == [0, 0, 0, 50, 0, 0])
     }
 
@@ -148,13 +148,13 @@ struct WGStrokeRecorderTests {
 
     /// 最重要的一条：录一个向上笔画，必须与原版配置里真实的「Copy」定义几乎重合。
     /// 这一条直接钉住 y 轴方向与绘制顺序 —— 历史上这两点各错过一次。
-    @Test("录出来的向上笔画 ≈ 真实配置里的「拷贝」", .enabled(if: LegacyConfigImporter.locateVersionDirectory() != nil))
+    @Test("录出来的向上笔画 ≈ 参考配置里的「拷贝」")
     func recordedUpStrokeMatchesTheRealCopyGesture() throws {
-        let directory = try #require(LegacyConfigImporter.locateVersionDirectory())
+        let directory = FixtureConfig.directory
         let config = try LegacyConfigImporter.load(from: directory).config
         let copy = try #require(config.general.intents.first { $0.name == "Copy" })
         let copyStroke = try #require(copy.strokeStep)
-        #expect(copyStroke.directionDescription == "上", "真实配置里的 Copy 必须是向上")
+        #expect(copyStroke.directionDescription == "上", "参考配置里的 Copy 必须是向上")
 
         // 用户在画布上向上画（屏幕坐标 y 变小）。
         let drawn = stroke(from: CGPoint(x: 500, y: 600), [CGPoint(x: 0, y: -250)])

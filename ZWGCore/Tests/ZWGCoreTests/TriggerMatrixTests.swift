@@ -95,17 +95,16 @@ struct TriggerMatrixTests {
     }
 }
 
-@Suite("触发矩阵：与真实配置对照")
+@Suite("触发矩阵：与参考配置对照")
 struct RealConfigurationTriggerTests {
     /// The reference configuration disables the whole top edge and the bottom-edge scroll row.
     /// Without honouring the matrix those gestures would fire — including `睡眠` and `关机`,
     /// which is exactly the kind of accident the matrix exists to prevent.
     @Test(
-        "真实配置禁用的触发方式必须真的被禁用",
-        .enabled(if: LegacyConfigImporter.locateVersionDirectory() != nil)
+        "参考配置禁用的触发方式必须真的被禁用"
     )
     func respectsTheRealConfiguration() throws {
-        let directory = try #require(LegacyConfigImporter.locateVersionDirectory())
+        let directory = FixtureConfig.directory
         let config = try LegacyConfigImporter.load(from: directory).config
         let resolved = TargetResolver.resolve(config: config, application: nil)
         let m = resolved.triggerMatrix

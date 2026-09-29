@@ -552,7 +552,7 @@ struct SettingsModelAppTargetTests {
 @MainActor
 @Suite("设置：本版本无法触发的手势默认隐藏")
 struct UnsupportedGestureVisibilityTests {
-    /// 一条边角触发、一条滚轮触发、一条正常的右键手势 —— 与真实配置里的形态一致。
+    /// 一条边角触发、一条滚轮触发、一条正常的右键手势 —— 与参考配置里的形态一致。
     private func makeConfig() -> WGConfig {
         func intent(_ name: String, trigger: [WGStep]) -> WGIntent {
             WGIntent(
@@ -586,9 +586,9 @@ struct UnsupportedGestureVisibilityTests {
         #expect(model.rows.filter { !$0.hasSupportedTrigger }.count == 2)
     }
 
-    @Test("真实配置里确实存在这类手势（边角 10 条 + 滚轮 2 条）")
+    @Test("参考配置里确实存在这类手势（边角 10 条 + 滚轮 2 条）")
     func realConfigHasUnsupportedGestures() throws {
-        let directory = try #require(LegacyConfigImporter.locateVersionDirectory())
+        let directory = FixtureConfig.directory
         let config = try LegacyConfigImporter.load(from: directory).config
         let model = SettingsModel(config: config)
 

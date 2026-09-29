@@ -1,0 +1,16 @@
+{
+  "AutoStart": true,
+  "StartDragTimeout": 250,
+  "ShowStartDragTimeoutIndicator": true,
+  "ShowPath": true,
+  "ShowGestureName": true,
+  "ShowStatusIcon": true,
+  "PathColorNormal": "#7F7F7FC4",
+  "PathColorRecognized": "#20D697E6",
+  "LabelColorNormal": "#60606080",
+  "LabelColorExecuted": "#20D697E6",
+  "TargetMode": "Focused",
+  "PathLineWidth": 2.25,
+  "GesturePos": 0.25,
+  "SkipVersion": null
+}

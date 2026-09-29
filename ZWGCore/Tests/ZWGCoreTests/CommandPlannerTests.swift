@@ -132,17 +132,16 @@ struct OtherCommandPlanningTests {
     }
 }
 
-@Suite("命令：与真实配置的一致性")
+@Suite("命令：与参考配置的一致性")
 struct RealConfigurationKeyTests {
     /// The strongest check available for the key table: every key name that appears in the
     /// real configuration must resolve to an actual key code. A gap here would silently break
     /// a gesture the user already relies on.
     @Test(
-        "真实配置里出现的每个键名都能映射到键码",
-        .enabled(if: LegacyConfigImporter.locateVersionDirectory() != nil)
+        "参考配置里出现的每个键名都能映射到键码"
     )
     func everyKeyNameInTheRealConfigurationResolves() throws {
-        let directory = try #require(LegacyConfigImporter.locateVersionDirectory())
+        let directory = FixtureConfig.directory
         let config = try LegacyConfigImporter.load(from: directory).config
 
         var keyNames: Set<String> = []
@@ -159,16 +158,15 @@ struct RealConfigurationKeyTests {
             }
         }
 
-        #expect(keyNames.count > 20, "真实配置里应当有相当数量的键名，实测 \(keyNames.count)")
+        #expect(keyNames.count > 20, "参考配置里应当有相当数量的键名，实测 \(keyNames.count)")
         #expect(unknownKeys.isEmpty, "以下键名没有对应键码：\(Set(unknownKeys).sorted())")
     }
 
     @Test(
-        "真实配置里的每条命令都能规划出动作",
-        .enabled(if: LegacyConfigImporter.locateVersionDirectory() != nil)
+        "参考配置里的每条命令都能规划出动作"
     )
     func everyCommandInTheRealConfigurationIsExecutable() throws {
-        let directory = try #require(LegacyConfigImporter.locateVersionDirectory())
+        let directory = FixtureConfig.directory
         let config = try LegacyConfigImporter.load(from: directory).config
 
         var failures: [String] = []
@@ -185,7 +183,7 @@ struct RealConfigurationKeyTests {
             }
         }
 
-        #expect(count == 52, "真实配置有 52 条手势，实测 \(count)")
+        #expect(count == 52, "参考配置有 52 条手势，实测 \(count)")
         #expect(failures.isEmpty, "以下手势无法执行：\(failures)")
     }
 }
