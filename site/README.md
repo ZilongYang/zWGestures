@@ -28,7 +28,69 @@ cd site && python3 -m http.server 8080
 语言切换的优先级：`?lang=` 显式指定 > 上次选择（`localStorage`）> 默认中文。
 没有 JS 时中文照常可读。
 
-## 部署方式
+## 本项目的实际部署（2026-09-30 已执行并验证）
+
+目标服务器：`ssh root@gz01-deb`（Debian）。站点目录：
+
+```
+宿主机：  /opt/1panel/www/sites/zwg.zlmix.com/index
+容器内：  /www/sites/zwg.zlmix.com/index        ← OpenResty 跑在容器里，1Panel 把前者挂载为后者
+```
+
+**服务器上没有 rsync**，所以用的是 tar over SSH。完整命令（含备份与收尾）：
+
+```bash
+SITE=/opt/1panel/www/sites/zwg.zlmix.com/index
+
+# 1) 备份 1Panel 的默认占位页（挪到 web 根之外）
+ssh root@gz01-deb "mkdir -p $(dirname $SITE)/1panel-default-backup \
+  && cp -a $SITE/. $(dirname $SITE)/1panel-default-backup/"
+
+# 2) 传（COPYFILE_DISABLE=1 防止 macOS 生成 ._* 影子文件）
+COPYFILE_DISABLE=1 tar czf - -C site --exclude README.md --exclude '.DS_Store' . \
+  | ssh root@gz01-deb "tar xzf - -C $SITE"
+
+# 3) 收尾：属主与权限（**这一步不能省，见下**）
+ssh root@gz01-deb "chown -R root:root $SITE \
+  && find $SITE -type d -exec chmod 755 {} + \
+  && find $SITE -type f -exec chmod 644 {} +"
+```
+
+### ⚠️ 为什么第 3 步不能省
+
+`tar` **原样保留本地文件的属主与权限**。第一次部署后远端出现的是：
+
+```
+-rw------- 1 501 staff 33937 index.html     ← 501 是 macOS 的 uid，600 表示只有它能读
+```
+
+结果就是 Web 服务器**读不到文件**，访客拿到 403。所以每次用 tar/scp 部署之后都要
+`chown` + `chmod`。（本次已顺手把本地的 `site/index.html` 从 600 改成 644，
+但**别依赖这一点** —— 换一台机器或换个编辑器就可能又变回去。）
+
+rsync 没有这个问题：它默认按远端 umask 新建文件。
+
+### 部署后的验证（本次实际执行的）
+
+```bash
+curl -sI https://zwg.zlmix.com/                     # 期望 200 text/html
+curl -sI https://zwg.zlmix.com/assets/icon.png      # 期望 200 image/png
+# 逐字节比对线上与本地（确认没有传坏）
+curl -s https://zwg.zlmix.com/ -o /tmp/live.html && shasum -a 256 /tmp/live.html site/index.html
+```
+
+本次结果：HTTP→HTTPS 301、首页与 4 张素材**逐字节一致**、gzip 已启用。
+`zwg.zlmix.com` 与 `zwgestures.zlmix.com` **两个域名都生效**（1Panel 的 `server_name` 里两个都写了）。
+
+### 已知的两处未处理
+
+1. **`assets/` 没有长缓存头。** 1Panel 生成的配置里没有 `expires` / `Cache-Control`，
+   而这份配置由面板管理，**手改可能在面板重新生成时丢失** —— 要加请走 1Panel 的网站配置界面。
+   单页站点 + 5 个文件，影响很小，所以先没动。
+2. **404 页还是 1Panel 的默认样式**，与站点风格不一致。`404.html` 在站点目录里，
+   属于站点内容、可以安全替换（不用改 nginx 配置）。
+
+## 部署方式（其它选择）
 
 按「有没有 SSH、想不想维护服务器」选一种。
 
