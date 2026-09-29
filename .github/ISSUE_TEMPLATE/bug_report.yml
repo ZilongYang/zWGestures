@@ -1,0 +1,97 @@
+name: 缺陷报告
+description: 报告一个可以复现的问题
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈。请尽量把下面的信息填全 —— 尤其是崩溃报告与运行日志，它们往往能直接定位问题。
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已经在最新版本上复现过，并搜索过现有 issue
+          required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: zWGestures 版本
+      description: 菜单栏 →「关于 zWGestures」里的版本号与构建号
+      placeholder: 0.1.0 (1)
+    validations:
+      required: true
+
+  - type: input
+    id: macos
+    attributes:
+      label: macOS 版本与机型
+      description: 「关于本机」里的系统版本与芯片
+      placeholder: macOS 27.0 (26A428) / MacBookPro18,3 (M1 Pro)
+    validations:
+      required: true
+
+  - type: input
+    id: xcode
+    attributes:
+      label: Xcode 版本（自行构建时填写）
+      placeholder: Xcode 26.6
+    validations:
+      required: false
+
+  - type: dropdown
+    id: source
+    attributes:
+      label: 你用的是哪一种
+      options:
+        - 从 Releases 下载的 dmg
+        - 自己构建的（make build / make install）
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 越具体越好 —— 画的是什么形状、在哪个应用里、之前做了什么
+      placeholder: |
+        1. 在 Safari 窗口里按住右键画「向上」
+        2. 再画一次同样的形状
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: behaviour
+    attributes:
+      label: 期望行为 vs 实际行为
+      placeholder: |
+        期望：触发拷贝
+        实际：什么都没发生
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 崩溃报告与运行日志
+      description: |
+        崩溃报告在 `~/Library/Logs/DiagnosticReports/zWGestures-*.ips`（`.ips` 是文本，可直接拖进来）。
+
+        运行日志：
+        `log show --last 10m --predicate 'subsystem == "io.github.zilongyang.zwgestures"' --info --debug`
+      render: text
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 已经做过的排查
+      options:
+        - label: 已在「系统设置 › 隐私与安全性 › 辅助功能」里勾选 zWGestures
+        - label: 如果这是从旧版本更新的，我已经**重新授权**辅助功能（未签名的构建每次更新授权都会失效）
+        - label: 已打开菜单栏 →「显示调试面板」，并读过 state / tap / events / replays 四行
+        - label: 如果涉及界面无响应或输入异常，我已经看过 `docs/ROADMAP.md` §13（整机输入冻结事故）
