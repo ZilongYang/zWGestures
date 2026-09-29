@@ -12,38 +12,80 @@ site/
 **页面不引用任何外部资源** —— 没有 CDN、没有网络字体、没有统计脚本。断网也能正常显示，
 也不会把访客暴露给第三方。唯一的网络请求是同目录下的 `assets/`。
 
+计划部署地址：**`https://zwg.zlmix.com/`**（已写进 `index.html` 的 `canonical` 与 `og:*` 标签；
+换域名时记得一起改）。
+
 ## 本地预览
 
-直接双击 `index.html` 就能看。但想用 `?lang=en` 与刷新后记住语言这两个行为，建议起一个本地服务：
+直接双击 `index.html` 就能看。但想用 `?lang=en` 与「刷新后记住语言」这两个行为，建议起个本地服务：
 
 ```bash
 cd site && python3 -m http.server 8080
-# 打开 http://127.0.0.1:8080/          → 中文
-# 打开 http://127.0.0.1:8080/?lang=en  → 英文
+# http://127.0.0.1:8080/          → 中文
+# http://127.0.0.1:8080/?lang=en  → 英文
 ```
 
-语言切换逻辑：`?lang=` 显式指定 > 上次选择（`localStorage`）> 默认中文。没有 JS 时中文照常可读。
+语言切换的优先级：`?lang=` 显式指定 > 上次选择（`localStorage`）> 默认中文。
+没有 JS 时中文照常可读。
 
-## 部署
+## 部署方式
+
+按「有没有 SSH、想不想维护服务器」选一种。
+
+### 1. rsync over SSH（推荐，适合反复发版）
 
 ```bash
-# --delete 让远端与本地一致；README.md 不必上传
-rsync -avz --delete --exclude README.md site/ user@host:/var/www/zwgestures/
+rsync -avz --delete --exclude README.md site/ user@host:/var/www/zwg.zlmix.com/
 ```
 
-用 `scp` 也可以，注意别漏了 `assets/`：
+`--delete` 让远端与本地完全一致。**用之前确认目标目录是对的** —— 写错路径会删掉别的站点的文件。
+
+### 2. tar over SSH（服务器没装 rsync 时）
 
 ```bash
-scp -r site/index.html site/assets user@host:/var/www/zwgestures/
+tar czf - -C site --exclude README.md . | ssh user@host 'mkdir -p /var/www/zwg.zlmix.com && tar xzf - -C /var/www/zwg.zlmix.com'
 ```
 
-### nginx 片段
+### 3. scp / sftp（一次性拷贝）
+
+```bash
+scp -r site/index.html site/assets user@host:/var/www/zwg.zlmix.com/
+# 或交互式：sftp user@host  然后  put -r index.html assets
+```
+
+不增量、也不会删掉远端多余文件。适合只上一次。
+
+### 4. 面板上传
+
+本地打包 → 在宝塔 / 1Panel 之类的文件管理器里上传解压：
+
+```bash
+cd site && zip -r ../zwg-site.zip . -x 'README.md'
+```
+
+### 5. 对象存储 + CDN
+
+把 `site/` 传进 OSS / COS / S3，域名 CNAME 过去开静态托管。没有服务器要维护，
+但要自己配 HTTPS 证书与缓存刷新。
+
+### 6. Cloudflare Tunnel（服务器在内网或没有公网 IP）
+
+```bash
+cloudflared tunnel --url http://127.0.0.1:8080
+# 或把 site/ 用任意静态服务器跑起来，再用 tunnel 暴露
+```
+
+不用开放端口，也不用公网 IP。
+
+### nginx 片段（子域名直接作为站点根目录）
 
 ```nginx
 server {
     listen 443 ssl;
-    server_name zwgestures.example.com;
-    root /var/www/zwgestures;
+    http2 on;
+    server_name zwg.zlmix.com;
+
+    root /var/www/zwg.zlmix.com;
     index index.html;
 
     location / {
@@ -64,25 +106,37 @@ server {
 }
 ```
 
-`?lang=en` 这类查询串不影响缓存：`index.html` 本来就不缓存。
+`?lang=en` 这类查询串不影响缓存 —— `index.html` 本来就不缓存。
 
-## 发版时要改的地方
-
-页面里的**版本号与下载地址是手写的**（刻意不请求 GitHub API —— 那有每小时 60 次的限流，
-而且会把一个失败态引入到页面里）：
+## 发版时要同步的地方
 
 | 位置 | 改什么 |
 |---|---|
 | `index.html` 的 `<span class="meta">` | `v0.1.0 · macOS 14+ · Apple Silicon` |
-| 下载按钮的 `href` | 指向 `releases/latest/download/zWGestures-arm64.dmg`，**固定文件名所以不用改** |
+| `index.html` 的下载按钮 `href` | 指向 `releases/latest/download/zWGestures-arm64.dmg` —— **固定文件名，发版不用改** |
+| 三处版本号 | `project.yml` 的 `MARKETING_VERSION`、本页、`CHANGELOG.md` |
 
-> 版本号同步三处：`project.yml` 的 `MARKETING_VERSION`、本页、`CHANGELOG.md`。
+页面刻意**不请求 GitHub API**：那有每小时 60 次的限流，而且会把一个失败态引入到页面里。
 
 ## 素材来源
 
 `assets/` 里 4 张图的来历、以及为什么轨迹那张的背景是衬底而不是屏幕截图，
-写在 [`docs/ROADMAP.md`](../docs/ROADMAP.md) §18 里 —— 那里也记了「截图里不得出现本机信息」
+写在 [`docs/ROADMAP.md`](../docs/ROADMAP.md) §18 —— 那里也记了「截图里不得出现本机信息」
 这条规则是怎么踩出来的。
 
 `assets/install-gatekeeper.png` 还没拍（计划挪到「全新 macOS 用户账号」验收时拍，那个账号没有
 任何个人信息）。拿到之后把 `index.html` 安装那节里注释掉的 `<figure>` 取消注释即可。
+
+## ⚠️ 一个还没决定的问题：下载源在国内的可用性
+
+下载按钮目前指向 **GitHub Releases**。GitHub 在国内的可达性与速度都不稳定 —— 对一个中文为主的
+项目来说，这可能是访客卡住的第一道坎。
+
+三个选项，各有代价：
+
+1. **就这么用**：海外用户与会自备代理的用户没问题，其他人可能下不动。
+2. **在 `zwg.zlmix.com` 上放一份镜像**（例如 `/download/zWGestures-arm64.dmg`）：
+   国内访客立刻能下。代价是**二进制有了两个源**，发版时要记得两边都更新，否则会出现版本不一致。
+3. **主按钮指向镜像、GitHub 作为备用**：对国内访客最友好，但对外国访客来说你的服务器可能更慢。
+
+**没有决定之前不要动**：现在页面上只有 GitHub 一个源，是自洽的。
