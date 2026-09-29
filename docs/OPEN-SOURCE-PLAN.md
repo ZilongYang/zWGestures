@@ -2,6 +2,9 @@
 
 > 本文件是 2026-09-29 经作者批准的《开源 + 发布计划》原样存档。
 > 执行进度与实施细节见 [`ROADMAP.md`](ROADMAP.md)；本文件不再更新。
+>
+> ⚠️ **本文件在公开发布前做过一次脱敏**：原稿引用的作者邮箱、邮箱前缀、激活码前缀与个人
+> 主目录名已替换为 `<…>` 占位符；除此之外内容与批准原稿一致。
 
 ## 决策汇总
 
@@ -33,7 +36,7 @@ make bootstrap && make test && make build   # 全绿，make test 0 failed / 0 sk
 **B. 下载版真的能用**（新建 macOS 用户账号验证）：
 挂载 dmg → 拖进 Applications → 绕过 Gatekeeper → 授权辅助功能 → **开箱 48 条中文手势，画「上」触发拷贝**。
 
-**C. 无隐私泄漏**：全树 grep 不到 `/Users/zilong`、`~/.dsh`、`zilong.yang@gmail.com`、`com.zilong`、**`license.json` / 激活码 `D3A9D6E5…`**。
+**C. 无隐私泄漏**：全树 grep 不到 `<作者邮箱>`、`<个人主目录>`、`~/.dsh`、`com.zilong`、**`license.json` / 激活码 `<激活码前缀>…`**。
 
 ---
 
@@ -133,13 +136,13 @@ runner 优先 `macos-26`，取不到退 `macos-15`；**用一次真实 workflow 
 
 | 文件:行 | 改法 |
 |---|---|
-| `docs/PLAN.md:3` | `来源：DSH 会话记录 ~/.dsh/sessions/--Users-zilong-…` **整行删除** |
-| `docs/PLAN.md:2` | 「经**子龙**批准」→「经作者批准」 |
-| `docs/PLAN.md:37,130` | `/Users/zilong/zWork/ai/zWGestures` → `~/zWork/ai/zWGestures` |
-| `docs/ROADMAP.md:72` | `cd /Users/zilong/…` → `cd /path/to/zWGestures` |
+| `docs/PLAN.md:3` | `来源：DSH 会话记录 ~/.dsh/sessions/--Users-<个人主目录>-…` **整行删除** |
+| `docs/PLAN.md:2` | 「经**<作者名>**批准」→「经作者批准」 |
+| `docs/PLAN.md:37,130` | `/Users/<个人主目录>/zWork/ai/zWGestures` → `~/zWork/ai/zWGestures` |
+| `docs/ROADMAP.md:72` | `cd /Users/<个人主目录>/…` → `cd /path/to/zWGestures` |
 | `docs/ROADMAP.md:296,303,323,441` | 旧 bundle id → 新 bundle id |
 | `docs/ROADMAP.md` 开头 | 加一句：文中「真实配置/参考配置」指原版 WGestures 2.3.3 配置的副本（含作者改动），已脱敏提交为 `ZWGCore/Tests/ZWGCoreTests/Fixtures/legacy/2.3.3/` |
-| 全树 | 收尾 `git grep -niE "zilong\.yang|@gmail|/Users/|\.dsh|com\.zilong|license\.json"`，只允许剩新 bundle id |
+| 全树 | 收尾 `git grep -niE "<作者邮箱用户名>|@gmail|/Users/|\.dsh|com\.zilong|license\.json"`，只允许剩新 bundle id |
 
 ### 3.7 git 历史作者邮箱改写
 内置 `git filter-branch --env-filter`（36 个提交、线性历史，秒级）改写 `GIT_AUTHOR_EMAIL` / `GIT_COMMITTER_EMAIL` 为 `8017854+ZilongYang@users.noreply.github.com`，名字保持 `ZilongYang`。随后 `git reflog expire --expire=now --all && git gc --prune=now`，校验 `git log --format='%an <%ae>|%cn <%ce>' | sort -u` 只剩一行；`git config user.email` 也设为 noreply。**必须在建远端之前完成**。
@@ -229,7 +232,7 @@ ad-hoc 的 designated requirement 基于 CDHash → **用户每更新一版，�
 `make dist` 与建仓前各跑一次：
 ```bash
 git ls-files | grep -iE "license\.json|\.p12$|\.pem$|\.key$" && exit 1
-git grep -n "D3A9D6E5\|zlmiix" && exit 1
+git grep -n "<激活码前缀>\|<邮箱前缀>" && exit 1
 find <dist staging> -name "license.json"   # 产物内不得含
 ```
 **规则**：任何从 `~/Library/Application Support/com.yingdev.wgestures/` 拷数据的步骤，**只允许拷 `2.3.3/` 子目录**，拷完立刻跑扫描。
@@ -341,7 +344,7 @@ site/
 - [ ] 干净环境 + 无原版安装 + 删掉钥匙串证书 → `make bootstrap && make test && make build` 三步成功
 - [ ] `make test` 输出 **0 failed / 0 skipped**
 - [ ] CI 两个 job 全绿；`app-build` 断言到 `Contents/Resources/Defaults/gestures.json`
-- [ ] `git grep -niE "zilong\.yang|@gmail|/Users/|\.dsh|com\.zilong|license\.json|D3A9D6E5"` 只剩新 bundle id
+- [ ] `git grep -niE "<作者邮箱用户名>|@gmail|/Users/|\.dsh|com\.zilong|license\.json|<激活码前缀>"` 只剩新 bundle id
 - [ ] `git log --format='%ae' | sort -u` 只有 noreply
 - [ ] `git status --short` 干净；`build/`、`dist/`、`docs/icon/AppIcon.icns` 均未入库
 - [ ] `Info.plist` 的 `CFBundleLocalizations` 与仓库实际资源一致（无 `en`）

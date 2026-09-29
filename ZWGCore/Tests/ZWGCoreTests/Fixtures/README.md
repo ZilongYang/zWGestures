@@ -41,7 +41,8 @@ let config = try LegacyConfigImporter.load(from: directory).config
 `license.json` 含购买者的邮箱与激活码，`LastLaunchedVersion` 是机器状态。拷完立刻检查：
 
 ```bash
-grep -rniE "zlmiix|Serial|D3A9D6E5|/Users/" ZWGCore/Tests/ZWGCoreTests/Fixtures/
+# 把两个占位符换成真实值（购买者邮箱前缀、激活码前缀）后再跑
+grep -rniE "<邮箱前缀>|Serial|<激活码前缀>|/Users/" ZWGCore/Tests/ZWGCoreTests/Fixtures/
 ```
 
 `Version` 文件带 UTF-8 BOM（导入器靠它判版本号），拷贝时要保持原样。
