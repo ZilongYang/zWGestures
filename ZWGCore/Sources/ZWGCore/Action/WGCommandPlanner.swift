@@ -25,6 +25,20 @@ public struct WGCommandPlan: Sendable, Equatable {
     public var problems: [String]
 
     public var isExecutable: Bool { !actions.isEmpty }
+
+    /// Whether anything here needs the target window's **title**.
+    ///
+    /// Only shell scripts do (they get it as `WG_TARGET_WIN_NAME`). Everything else — key sequences,
+    /// system function keys, web search — does not, and that matters a lot: the title comes from the
+    /// Accessibility API, which is a cross-process call that blocks for seconds when the target
+    /// application is not responding. Asking for it on every gesture once froze the app's main
+    /// thread for 47 seconds (docs/ROADMAP.md §22).
+    public var needsTargetWindowTitle: Bool {
+        actions.contains { action in
+            if case .runShellScript = action { return true }
+            return false
+        }
+    }
 }
 
 /// Turns a configuration command into executable steps.

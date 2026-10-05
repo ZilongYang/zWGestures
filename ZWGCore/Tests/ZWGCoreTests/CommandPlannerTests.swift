@@ -221,3 +221,48 @@ struct CommandSummaryTests {
         #expect(WGCommand.describe(inputKey: "HSCROLL:-5") == "滚动→")
     }
 }
+
+/// 2026-10-06：主线程曾被「取目标窗口标题」的辅助功能调用卡了 47 秒（ROADMAP §22）。
+/// 那次之后 `WGCommandPlan.needsTargetWindowTitle` 决定要不要去问这件事 —— 只有 shell 脚本
+/// 用得到 `WG_TARGET_WIN_NAME`，其余动作一个都不需要，这个性质必须钉住。
+@Suite("动作规划：谁才需要目标窗口标题")
+struct TargetWindowTitleRequirementTests {
+    @Test("只有 shell 脚本需要窗口标题，其余动作都不需要")
+    func onlyShellScriptsNeedTheWindowTitle() {
+        let shell = WGCommandPlanner.plan(.shellScript(WGShellScriptCommand(script: "echo hi")))
+        #expect(shell.needsTargetWindowTitle)
+
+        let keys = WGCommandPlanner.plan(.keySequence(
+            WGKeySequenceCommand(isSystemHotKey: false, keys: ["Command", "ANSI_C"])
+        ))
+        #expect(!keys.needsTargetWindowTitle)
+
+        let search = WGCommandPlanner.plan(.webSearch(
+            WGWebSearchCommand(searchEngine: "https://example.com/?q={0}")
+        ))
+        #expect(!search.needsTargetWindowTitle)
+
+        let systemKey = WGCommandPlanner.plan(.systemFunctionKey(
+            WGSystemFunctionKeyCommand(selectedIndex: 4)
+        ))
+        #expect(!systemKey.needsTargetWindowTitle)
+
+        let unknown = WGCommandPlanner.plan(.unknown(type: "LuaCommand"))
+        #expect(!unknown.needsTargetWindowTitle)
+    }
+
+    @Test("shell 脚本与其它动作混不进同一份计划，所以这个标志不会漏")
+    func planNeverMixesShellScriptsWithOtherActions() {
+        // 一个命令只会规划出一类动作（见 WGCommandPlanner.plan），所以「有没有 shell 脚本」
+        // 就是「要不要取标题」。
+        for command: WGCommand in [
+            .shellScript(WGShellScriptCommand(script: "true")),
+            .keySequence(WGKeySequenceCommand(isSystemHotKey: true, keys: ["Command", "ANSI_V"])),
+            .webSearch(WGWebSearchCommand(searchEngine: "https://example.com/?q={0}")),
+        ] {
+            let plan = WGCommandPlanner.plan(command)
+            let hasShell = plan.actions.contains { if case .runShellScript = $0 { true } else { false } }
+            #expect(plan.needsTargetWindowTitle == hasShell, "\(command.typeName) 的判断不一致")
+        }
+    }
+}

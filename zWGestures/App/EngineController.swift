@@ -54,7 +54,7 @@ final class EngineController {
         overlay = StrokeOverlayController(coordinator: coordinator)
         coordinator.onGestureMatched = { [weak self] outcome in
             Task { @MainActor in
-                self?.run(outcome)
+                await self?.run(outcome)
             }
         }
         coordinator.onTapGaveUp = { [weak self] timeoutCount in
@@ -73,16 +73,22 @@ final class EngineController {
         overlay.apply(style: overlayStyle)
     }
 
-    private func run(_ outcome: GestureOutcome) {
+    private func run(_ outcome: GestureOutcome) async {
         // 时间戳在拦截器线程上取，这里量的是「识别完成 → 主线程开始执行」这一段 —— 用户感觉
         // 「松手后动作慢半拍」量的就是它。
         coordinator.noteRecognizedToExecution(since: outcome.recognizedAt)
         let plan = WGCommandPlanner.plan(outcome.match.intent.command)
-        let context = ActionContextProvider.current(
+        var context = ActionContextProvider.current(
             gestureStart: outcome.candidate.stroke.startPoint,
             application: outcome.target.application,
             windowID: outcome.windowID
         )
+        // 窗口标题走辅助功能 API，是**跨进程**调用：目标应用一旦无响应，它会把调用方阻塞数秒到
+        // 数十秒。2026-10-06 就是这样把主线程卡了 47 秒（ROADMAP §22）。所以只有 shell 脚本
+        // 真正需要 `WG_TARGET_WIN_NAME` 时才去取，而且在后台取、带 0.25 秒超时。
+        if plan.needsTargetWindowTitle, let pid = context.targetPID {
+            context.targetWindowName = await ActionContextProvider.windowTitle(for: pid)
+        }
         executor.execute(plan: plan, intentName: outcome.match.name, context: context)
         coordinator.noteExecuted(WGCommandPlanner.summary(of: outcome.match.intent.command))
     }

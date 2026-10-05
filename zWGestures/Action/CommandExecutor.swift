@@ -94,6 +94,8 @@ final class CommandExecutor {
 /// Builds the action context for a gesture that has just been recognised.
 @MainActor
 enum ActionContextProvider {
+    /// Everything that can be collected **without any cross-process call**.
+    ///
     /// - Parameters:
     ///   - application: the application the gesture was aimed at, when it was resolved.
     ///   - windowID: window server id of the window under the gesture's start point.
@@ -117,29 +119,57 @@ enum ActionContextProvider {
             targetExecutablePath: resolved?.executablePath,
             targetWindowID: windowID,
             targetAppName: resolved?.localizedName,
-            targetWindowName: windowTitle(for: resolved?.pid),
             gestureStart: gestureStart,
             screenHeight: NSScreen.screens.first?.frame.height ?? 0
         )
     }
 
+    /// How long a single Accessibility query may take before we give up on it.
+    ///
+    /// The system default is 6 seconds, and against an application that is not responding it can be
+    /// far worse. `AXUIElementSetMessagingTimeout` is the only way to bound it.
+    /// `nonisolated` so it can be a default argument of the nonisolated reader below.
+    nonisolated static let windowTitleTimeout: Float = 0.25
+
     /// The focused window's title, read through the Accessibility API.
     ///
     /// Window titles are not available from `CGWindowListCopyWindowInfo` unless the process also
     /// holds Screen Recording permission, so the AX API is used instead.
-    private static func windowTitle(for pid: Int32?) -> String? {
-        guard let pid else { return nil }
+    ///
+    /// 🔴 **Never call this from the main actor.** It is a cross-process call: when the target
+    /// application is busy or hung it blocks, and on 2026-10-06 a momentarily unresponsive browser
+    /// held the main thread for **47 seconds** — every recognised gesture in that window silently
+    /// failed to run and the app looked frozen until it crashed (docs/ROADMAP.md §22).
+    ///
+    /// It therefore runs on a background task with a short messaging timeout, and only for the
+    /// commands that actually need it (`WGCommandPlan.needsTargetWindowTitle`).
+    nonisolated static func windowTitle(
+        for pid: Int32,
+        timeout: Float = windowTitleTimeout
+    ) async -> String? {
+        await Task.detached(priority: .userInitiated) {
+            readWindowTitle(pid: pid, timeout: timeout)
+        }.value
+    }
+
+    /// The blocking half, on whatever thread the caller put it on.
+    nonisolated private static func readWindowTitle(pid: Int32, timeout: Float) -> String? {
         let application = AXUIElementCreateApplication(pid)
+        // Bound the wait *before* asking anything: the default is 6 s per message.
+        AXUIElementSetMessagingTimeout(application, timeout)
+
         var windowValue: CFTypeRef?
         guard AXUIElementCopyAttributeValue(
             application,
             kAXFocusedWindowAttribute as CFString,
             &windowValue
         ) == .success, let window = windowValue else { return nil }
+        let element = window as! AXUIElement
+        AXUIElementSetMessagingTimeout(element, timeout)
 
         var titleValue: CFTypeRef?
         guard AXUIElementCopyAttributeValue(
-            window as! AXUIElement,
+            element,
             kAXTitleAttribute as CFString,
             &titleValue
         ) == .success else { return nil }
