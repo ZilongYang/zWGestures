@@ -1,8 +1,21 @@
 import AppKit
 
 /// The menu-bar item.
+///
+/// 🔴 **不要让它实现 `NSMenuDelegate`（或任何 AppKit 会从非事件路径回调的协议）。**
+/// 2026-10-06 的崩溃 `zWGestures-2026-10-06-024535.ips` 就是这么来的：本类带 `@MainActor`，
+/// 于是 `menuWillOpen(_:)` 这个 `NSMenuDelegate` 实现会**继承隔离并在入口插入「我在主 actor 上吗」
+/// 的运行时检查**；AppKit 从状态栏菜单的场景路径（`FrontBoardServices scene:handlePrivateActions:`
+/// → `NSSceneStatusItem _beginExpandedInterfaceSession`）调用它时，那个检查自己 fault 了
+/// （SIGBUS in `SerialExecutorRef::isMainExecutor`）—— 与 09-28 那两次（Timer block、
+/// `TrailView.isFlipped`）是同一族。
+///
+/// 所以菜单文案靠**推送式刷新**：`onStateChange` 回调 + 每次菜单动作后 + 应用被激活时。
+/// 唯一会短暂过期的情形：在「系统设置」里改开机自启、且期间本应用从未被激活 —— 点一下那条
+/// 菜单项就会刷新。宁可这样，也不要一个会偶发崩溃的回调入口。
+/// `scripts/check-appkit-isolation.py` 已把这类协议回调列入守卫（原先只查 `override`，是盲区）。
 @MainActor
-final class StatusItemController: NSObject, NSMenuDelegate {
+final class StatusItemController: NSObject {
     private let statusItem: NSStatusItem
     private let menu = NSMenu()
 
@@ -41,6 +54,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
 
         configureButton()
         configureMenu()
+        observeActivation()
         refresh()
     }
 
@@ -55,17 +69,26 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             button.title = "zW"
         }
         statusItem.menu = menu
-        // 打开菜单时再刷新一次，作为 `onStateChange` 之外的兜底：引擎会因为权限轮询自己启动、
-        // 也会被急停快捷键暂停，而一个把状态写错的菜单栏比没有菜单栏更糟。
-        menu.delegate = self
     }
 
-    /// 每次打开菜单都按实时状态重建文案。
+    /// 应用被激活时再刷新一次，作为 `onStateChange` 之外的兜底。
     ///
-    /// 静态 `NSMenu` 不会自己更新，不刷新就永远显示构建那一刻的文案。这个 bug 真实发生过：
-    /// 启动时菜单写「等待辅助功能授权」，而引擎其实已经跑起来了。
-    func menuWillOpen(_ menu: NSMenu) {
-        refresh()
+    /// 注意这里**不能**用 `NSMenuDelegate.menuWillOpen` 做兜底 —— 那正是 2026-10-06 崩溃的入口
+    /// （见类注释）。`NotificationCenter` 的闭包不是主 actor 隔离的，所以用 `Task` 正常跳回主 actor，
+    /// 而不是让编译器插入 `assumeIsolated`：后者是 09-28 那次 SIGBUS 的成因。
+    ///
+    /// 不保存 token、也不注销：本对象与 App 同生命周期，而 token 是非 Sendable 的，
+    /// 存下来只会让 `deinit`（在 Swift 6 里是非隔离的）无法访问它。
+    private func observeActivation() {
+        _ = NotificationCenter.default.addObserver(
+            forName: NSApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.refresh()
+            }
+        }
     }
 
     private func configureMenu() {

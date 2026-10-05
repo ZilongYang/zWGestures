@@ -43,6 +43,7 @@ Rosetta。
 | P9 | 开机自启：`SMAppService` 优先 + **LaunchAgent 兜底** + 菜单栏开关 | ✅ 已实机验证（**重启后自动启动**：开机 22:59:28，5 分钟后进程已是 `/Applications` 那份、无 LaunchAgent 兜底、无新崩溃） |
 | 修复 | **识别改成按「形状结构」判别**（2026-10-06）：L 形不再因横不够长而漏识别、三段手势不再按横的长短在 Enter / Minimize 之间跳 | ✅ 已实机验收 + 284 项单测全绿（提交 `26d6a9d`，详见 §21） |
 | 修复 | **「松手后动作偶尔慢半拍」**（2026-10-06）：规则变更与目录刷新拆开、索引构建移出主线程；顺带让用户输入导致的 tap 停用立刻恢复 | ✅ 已实机验收（提交 `71d2fb0`，详见 §21） |
+| 修复 | **主线程被辅助功能调用卡死 + 菜单栏崩溃**（2026-10-06 事故二，发布阻断级）：Web 搜索手势把主线程卡 47 秒、随后在 `menuWillOpen` 上崩溃 | ✅ 已修复（详见 §22）；`check-appkit-isolation.py` 扩到协议回调，新增 2 项单测 |
 
 **可以日常使用的程度**：右键基本手势全部工作 —— 识别、执行命令、轨迹与手势名实时显示、
 命中变绿淡出、未识别不弹菜单、急停快捷键；**并且改手势不再需要手改 JSON**：
@@ -82,6 +83,8 @@ Rosetta。
 - **手势修饰键**：`拷贝`（不按左键）与 `剪切`（画线时按住左键）都还能用；
   `粘贴` / `粘贴并回车` 同理。
 - **应用目标继承**：在 Brave 里自有手势优先、其余继承全局的那几条仍然生效。
+- **Web 搜索手势**（前台是浏览器时画）：应当立刻打开页面，**不该**出现界面卡住、动作不执行
+  —— 2026-10-06 的卡死就是这条路径（§22），修复后必须专门试一次。
 - **设置界面**：形状冲突的橙色告警、按列表顺序调优先级、按手势禁用，三者行为与之前一致；
   打开编辑器录制笔画时引擎会暂停、关闭后按原状态恢复。
 - **开机自启**：菜单仍显示「已开启（系统登录项）」。
@@ -358,6 +361,26 @@ Command = KeySeqCommand{IsSystemHotKey, Keys} | WebSearchCommand{SearchEngine}
   `canBecomeMain`、`menu(for:)`。**新增任何 AppKit 覆写时先跑一遍 `make lint`。**
   注意 `draw(_:)` 与鼠标事件处理**故意保持隔离**：它们走正常事件派发，实测没问题，
   而且它们要读实例状态，标 `nonisolated` 会引发一片隔离错误。若将来在那里也崩，再单独处理。
+
+- 🔴 **同一个雷区的第三条路径：`@MainActor` 类型实现的 AppKit 协议回调（不是 `override`）。**
+  协议实现同样继承类的隔离、同样在入口插检查，而 AppKit 会从**状态栏菜单的场景路径**调用它们。
+  2026-10-06 崩在这里：
+
+  ```
+  crash report zWGestures-2026-10-06-024535.ips
+  EXC_BAD_ACCESS / SIGBUS in swift_task_isMainExecutorImpl
+    _checkExpectedExecutor
+    zWGestures  @objc StatusItemController.menuWillOpen(_:)   ← 崩在这里
+    AppKit      -[NSMenu _sendMenuOpeningNotification:]
+    AppKit      -[NSSceneStatusItem _beginExpandedInterfaceSession:]
+    FrontBoardServices -[FBSSceneObserver scene:handlePrivateActions:]
+  ```
+
+  **守则是「干脆别实现它」**：菜单文案改成推送式刷新（`onStateChange` + 动作后 + 应用激活时），
+  而不是在打开菜单的那一刻去问。`check-appkit-isolation.py` 现在也检查
+  `menuWillOpen` / `menuNeedsUpdate` / `menuWillClose` / `validateMenuItem` 这四个名字；
+  如果再实现它们，必须标 `nonisolated`，并且**只碰非隔离状态**（碰实例状态会引发隔离错误）。
+  完整经过见 §22。
 
 - **不要在 `Timer` 的 block 里访问 actor 隔离状态**。`Timer` 的 block 是 `@Sendable` 闭包，
   会迫使编译器插入 `MainActor.assumeIsolated`，本工程里它**直接 SIGBUS 崩掉过整个 App**
@@ -1254,3 +1277,71 @@ context（几乎零成本）。而它的调用点有两个：
   「画出来的东西几何上像不像那几条网格直线」，而结构度量问的是「会不会被识别成那个形状」——
   后者会把真正的圆弧也判成两段折线（`curvedStrokesStayFreehand` 就是钉这个的）。代价是手画一条
   竖横比很大的 L 会被存成自由形状（不再吸到网格）：**只是不好看，识别两种都正常**。
+
+---
+
+## 22. 2026-10-06 事故二：Web Search 手势 → 主线程卡 47 秒 → 菜单栏崩溃
+
+### 现象
+
+用户画了一个「竖线 + 绕在竖线旁边的环」，被识别成 `Web Search`；**后续动作没有触发**，
+界面卡住一段时间后应用自动退出。
+
+### 证据（全部可复查）
+
+| 证据 | 内容 |
+|---|---|
+| 崩溃报告 | `~/Library/Logs/DiagnosticReports/zWGestures-2026-10-06-024535.ips`，主线程 `EXC_BAD_ACCESS / SIGBUS (KERN_PROTECTION_FAILURE at 0x1800001120)` |
+| 崩溃栈 | `@objc StatusItemController.menuWillOpen(_:)` → `_checkExpectedExecutor` → `SerialExecutorRef::isMainExecutor()` |
+| 应用日志 | 02:44:46.086 命中「Web Search」；**之后没有** `执行手势「Web Search」`；02:45:05/06/07 又命中三条手势，也一条都没执行 |
+| 对照 | 02:44:34 与 02:44:38 的 `Backspace` 命中后 50~60 ms 内都有 `执行手势` 日志 |
+| 崩溃报告的 HIE 线程 | `SOME_OTHER_THREAD_SWALLOWED_AT_LEAST_ONE_EXCEPTION`，时间戳 **02:44:46.139** —— 系统判定应用无响应的时刻，比那次识别晚 53 ms |
+| 崩溃 captureTime | 02:45:33（主线程那时正在弹状态栏菜单） |
+
+### 两个独立缺陷叠在一起
+
+**① 崩溃：同族问题的第三个入口 —— 非 `override` 的 AppKit 协议实现**
+
+`StatusItemController` 是 `@MainActor`，而 `menuWillOpen(_:)` 是 `NSMenuDelegate` 协议实现，
+于是入口被插入「我在主 actor 上吗」的运行时检查；AppKit 从状态栏菜单的**场景路径**
+（`FrontBoardServices scene:handlePrivateActions:` → `NSSceneStatusItem _beginExpandedInterfaceSession`
+→ `popUpStatusItemMenu`）调用它时，那个检查自己 fault。与 09-28 的两次（Timer block、
+`TrailView.isFlipped`）同族，都是 `SerialExecutorRef::isMainExecutor` 自己 fault。
+
+为什么没被守卫拦住：`scripts/check-appkit-isolation.py` 当时只匹配带 `override` 的
+NSView/NSWindow 覆写，**协议实现是它的盲区** —— 而 `menuWillOpen` 正是 09-30 修「菜单栏状态
+不刷新」时新加的（那次真正的修复是给 `engine.onStateChange` 赋值，这个回调只是「兜底」）。
+
+修法：**不再实现 `NSMenuDelegate`**，改成推送式刷新（`onStateChange` + 每个菜单动作后 +
+应用被激活时）；守卫补上协议回调这一类（`menuWillOpen` / `menuNeedsUpdate` / `menuWillClose` /
+`validateMenuItem`，见脚本注释里的完整崩溃栈）。
+代价：在「系统设置」里改开机自启、且期间应用从未被激活时，那一条菜单文案会短暂过期 ——
+点一下就刷新。宁可这样，也不要一个会偶发崩溃的回调入口。
+
+**② 卡死：主线程上的同步辅助功能（AX）调用**
+
+`ActionContextProvider.windowTitle(for:)` 为了填 `WG_TARGET_WIN_NAME`，**每执行一次手势都在主线程
+同步调用 `AXUIElementCopyAttributeValue`**。这是**跨进程**调用：目标应用一旦无响应（当时前台是
+浏览器），它就会阻塞数秒到数十秒（系统默认 6 秒超时，对「无响应」的应用会更久）。卡住的时刻、
+以及「命令一律没执行」，都与它吻合 —— 命令压根没走到执行那一步。
+
+修法：`WGCommandPlan.needsTargetWindowTitle` —— 只有 **shell 脚本**用得到窗口标题，
+其余动作（按键序列 / 系统功能键 / Web 搜索）一律不问；真要问时放到后台 `Task.detached`，
+并先 `AXUIElementSetMessagingTimeout(0.25)` 把单次询问限时。
+写进代码注释的原则：**执行路径的同步段里不允许出现跨进程调用。**
+
+这条大概也是 2026-10-06 那次「偶尔慢半拍」的大头 —— §21 第四节修的主线程索引重建是真的，
+但每次手势同步问一次 AX 更贵。调试面板新增的 `交接 ms` 正是用来抓这种等待的（这次它自己也没
+打出来，因为主线程卡在 `run()` 里）。
+
+### 留下的守卫
+
+- `scripts/check-appkit-isolation.py`：新增「AppKit 协议回调」这一类检查（原先只查 `override`），
+  并把两份崩溃报告写进脚本注释，让「为什么不能这么写」不依赖记忆。
+- `TargetWindowTitleRequirementTests`（2 项）：只有 shell 脚本需要窗口标题。
+- `StatusItemController` 的类注释：写明**不要**再实现 `NSMenuDelegate` 这类协议。
+
+### 一条可以复用的判断方法
+
+「识别成功但动作没执行」这类报告，先查**日志里成对出现的两行**：`命中手势「X」`（tap 线程）
+与 `执行手势「X」`（主线程）。缺后者 = 主线程被占住或没轮到，而不是识别器的问题。
