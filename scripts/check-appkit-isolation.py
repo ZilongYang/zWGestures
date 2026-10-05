@@ -79,12 +79,60 @@ CALLBACK = re.compile(
     r"func\s+(" + "|".join(DELEGATE_CALLBACKS) + r")\s*\("
 )
 
+# Callbacks that must be handed a **function reference**, never a closure literal written in a
+# main-actor context. The same isolation inference bites here: a closure literal formed inside a
+# `@MainActor` method inherits that isolation, and passing it to a plain (non-`@Sendable`) callback
+# makes the compiler emit an `assumeIsolated` thunk.
+#
+# This is exactly how the 2026-10-06 crash happened (`zWGestures-2026-10-06-030632.ips`):
+#
+#     closure #1 in EngineController.startPanicMonitors()
+#     → swift_task_isMainExecutorImpl → SIGSEGV (0x0)
+#     ← AppKit GlobalObserverHandler ← HIToolbox DispatchEventToHandlers
+#
+# The fix is to pass a file-scope / `nonisolated` function that only reads non-isolated state.
+NEEDS_FUNCTION_REFERENCE = (
+    "addGlobalMonitorForEvents",
+    "addLocalMonitorForEvents",
+)
+
+# GCD/Timer entry points that swallow a closure which then inherits main-actor isolation. The
+# documented remedy is a `Task` loop (`Task { @MainActor in … }` / `try await Task.sleep`), which
+# hops properly instead of asserting that it is already on the main actor.
+FORBIDDEN_ASYNC_HOSTS = (
+    "DispatchQueue.main.async",
+    "DispatchQueue.main.sync",
+    "Timer.scheduledTimer",
+    "Timer(timeInterval",
+)
+
+
+def code_only(line: str) -> str:
+    """把行内注释去掉：注释里提到这些写法（本节就在反复提）不该被误报。"""
+    index = line.find("//")
+    return line if index < 0 else line[:index]
+
 
 def check(root: pathlib.Path) -> list[str]:
     problems: list[str] = []
     for path in sorted(root.rglob("*.swift")):
-        lines = path.read_text().splitlines()
+        lines = [code_only(line) for line in path.read_text().splitlines()]
         for number, line in enumerate(lines, start=1):
+            if any(host in line for host in FORBIDDEN_ASYNC_HOSTS):
+                problems.append(
+                    f"{path}:{number}: {line.strip()}  ← 改用 Task 循环（见 ROADMAP 第 8、23 节）"
+                )
+                continue
+
+            if any(host in line for host in NEEDS_FUNCTION_REFERENCE):
+                window = "\n".join(lines[number - 1:number + 4])
+                if "handler:" not in window:
+                    problems.append(
+                        f"{path}:{number}: {line.strip()}"
+                        "  ← 必须传函数引用（不能写闭包字面量，见 ROADMAP 第 23 节）"
+                    )
+                continue
+
             if not (OVERRIDE.search(line) or CALLBACK.search(line)):
                 continue
             # The marker may sit on the same line or just above it (long declarations wrap).
@@ -109,16 +157,19 @@ def main(argv: list[str]) -> int:
         problems.extend(check(root))
 
     if problems:
-        print("AppKit 覆写/协议回调缺少 nonisolated（会插入运行时主 actor 检查，已知会崩）：")
+        print("AppKit 覆写/协议回调/异步回调写法检查未通过（都会插入运行时主 actor 检查，已知会崩）：")
         for problem in problems:
             print(f"  {problem}")
         print()
-        print("修法：加上 nonisolated，例如 `nonisolated override var isFlipped: Bool { true }`；")
-        print("协议回调（如 NSMenuDelegate.menuWillOpen）更稳的做法是干脆不实现它，改成推送式刷新。")
-        print("理由与三份崩溃报告见 docs/ROADMAP.md 第 8、22 节。")
+        print("修法：")
+        print("  · 覆写：加 nonisolated，例如 `nonisolated override var isFlipped: Bool { true }`")
+        print("  · 协议回调（如 NSMenuDelegate.menuWillOpen）：更稳的做法是干脆不实现它，改成推送式刷新")
+        print("  · NSEvent 监听：把处理器写成文件作用域 / nonisolated 函数，用 `handler:` 传函数引用")
+        print("  · 周期性或延后执行：用 `Task { @MainActor in … }` + `try await Task.sleep`")
+        print("理由与三份崩溃报告见 docs/ROADMAP.md 第 8、22、23 节。")
         return 1
 
-    print("AppKit 覆写/协议回调检查通过")
+    print("AppKit 覆写/协议回调/异步回调写法检查通过")
     return 0
 
 

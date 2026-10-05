@@ -113,7 +113,12 @@ struct KeyCaptureField: NSViewRepresentable {
 
         // Focus is handed over asynchronously: during `updateNSView` the view may not be in a
         // window yet, and a responder change made too early is silently dropped.
-        DispatchQueue.main.async {
+        //
+        // A `Task` rather than `DispatchQueue.main.async` on purpose: a plain GCD block written in a
+        // main-actor context inherits that isolation, which makes the compiler insert an
+        // `assumeIsolated` check — the pattern that has crashed this app twice (see the Timer/SIGBUS
+        // note in ROADMAP §8, and §23). `Task { @MainActor in }` hops properly instead.
+        Task { @MainActor in
             guard let window = view.window else { return }
             if isRecording {
                 guard window.firstResponder !== view else { return }

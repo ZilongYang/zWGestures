@@ -1345,3 +1345,74 @@ NSView/NSWindow 覆写，**协议实现是它的盲区** —— 而 `menuWillOpe
 
 「识别成功但动作没执行」这类报告，先查**日志里成对出现的两行**：`命中手势「X」`（tap 线程）
 与 `执行手势「X」`（主线程）。缺后者 = 主线程被占住或没轮到，而不是识别器的问题。
+
+---
+
+## 23. 2026-10-06 事故三：Web 搜索再次崩（急停监听的闭包继承了主 actor 隔离）
+
+### 现象
+
+装上 §22 的修复后，用户再次报「又崩溃了」。截图里轨迹是绿色、显示 `Web Search`，
+调试面板显示 `交接 1.0 ms / 最差 1.6 ms`、`idx rebuilds 1` —— 也就是说 §21 的修复在正常工作，
+这次是**另外两个**缺陷。
+
+### 证据
+
+| 证据 | 内容 |
+|---|---|
+| 崩溃报告 | `zWGestures-2026-10-06-030632.ips`（pid 81257 = §22 修复后那份），主线程 `EXC_BAD_ACCESS / SIGSEGV (KERN_INVALID_ADDRESS at 0x0)` |
+| 崩溃栈 | `closure #1 in EngineController.startPanicMonitors()` → `swift_getObjectType` → `swift_task_isMainExecutorImpl` → `isMainExecutor()`；由 `AppKit GlobalObserverHandler` ← `HIToolbox DispatchEventToHandlers` 调用 |
+| 日志 | 03:05:32.829 命中「Web Search」，之后没有 `执行手势「Web Search」`；崩溃报告的 HIE 线程标记 **03:05:32.860** |
+| 对照（同一分钟） | 03:04:57 Backspace、03:05:01 Forward、03:05:04 Back、03:05:09 重新载入 —— 四个手势全都正常执行 |
+| 粘贴板 | 事发时通用粘贴板里是一张图：`«class PNGf» 2.5MB · TIFF picture 20.4MB · «class 8BPS» 9.8MB · BMP 20.4MB · JPEG 0.56MB …` |
+
+### 两个缺陷（都在同一条路径上，所以每次都只发生在 Web 搜索）
+
+**① 崩溃：急停快捷键的全局 `NSEvent` 监听闭包继承了主 actor 隔离**
+
+`NSEvent.addGlobalMonitorForEvents(matching:handler:)` 的 handler 参数是普通的
+`@escaping (NSEvent) -> Void`（**不是** `@Sendable`）。写在 `@MainActor` 方法里的**闭包字面量**
+会继承那份隔离，于是编译器给 AppKit 的回调插一个 `MainActor.assumeIsolated` thunk；AppKit 从
+HIToolbox 的事件派发路径调用它时，那个检查自己 fault —— 与 09-28 的 Timer block、10-06 的
+`menuWillOpen` 是同一族，这已经是**第四次**。
+
+**把它点燃的是我们自己合成的 ⌘C**：Web 搜索为了读选中文字会合成 ⌘C，而急停监听器当时没有
+过滤合成事件 —— 等于自己踩自己的雷，所以两次事故都紧随 Web 搜索手势。
+
+修法：处理器改成**文件作用域的非隔离函数**（不继承隔离 → 不插检查），通过一条通知把
+「匹配上了」交给主 actor 处理；并且**忽略我们自己合成的按键**（合成事件永远不该能触发急停）。
+
+**② 卡死：粘贴板的深拷贝**
+
+`WebSearchRunner` 为了「搜选中文字」，原来先把整个通用粘贴板**深拷贝**
+（`PasteboardSnapshot.capture()` → `NSPasteboardItem.copy()`，而 `copy()` 会把每一项的**每个表示**
+都实体化），再合成 ⌘C、读完、还原。事发时粘贴板里是一张 70+ MB 的多表示图片 → 主线程卡约一分钟。
+同一分钟里其它四个手势都正常执行，正是因为只有 Web 搜索会碰粘贴板。
+
+修法：
+- 选中文字优先走**辅助功能 API**（`AXSelectedText`，后台 `Task.detached`、限时 0.25 秒，
+  **完全不碰粘贴板**）；
+- 兜底才用 ⌘C，而且**只有当粘贴板里本来就装着文本时才用**（图片剪贴板一根汗毛都不碰），
+  150 ms 后把原来的文本写回；
+- 删掉 `DispatchQueue.main.asyncAfter` 那个闭包（与 09-28 崩过的 Timer block 同族），
+  `KeyCaptureView` 里同样的 GCD 写法也一并改成 `Task { @MainActor in … }`。
+
+### 留下的守卫
+
+- `scripts/check-appkit-isolation.py` 新增两类检查（脚本注释里附了这次的崩溃栈）：
+  - `addGlobalMonitorForEvents` / `addLocalMonitorForEvents` **必须传函数引用**，不能写闭包字面量；
+  - `DispatchQueue.main.async` / `.sync` / `Timer.scheduledTimer` / `Timer(timeInterval` 一律禁止，
+    改用 `Task` 循环。
+  已用一份「故意写错」的样例手工验证过：三个坏写法全被拦下，注释里提到这些名字不会误报。
+- `run()` 的每一步（规划动作 / 构造上下文 / 取窗口标题 / 执行动作）都计时，任何一步超过 50 ms
+  记一条 warning —— 前两次卡顿都只能靠推断定位，下次日志会直接点名。
+- Web 搜索的日志会写明「已取到选中文字」还是「没选中文字，按空查询」，这样下次就知道
+  AX 这条路在浏览器里到底通不通。
+
+### 可以推广的教训
+
+**「闭包写在哪里」和「闭包体里写了什么」一样重要。** 只要闭包**字面量**出现在 `@MainActor`
+上下文里，并被交给**非 `@Sendable`** 的回调（AppKit 的 handler、`DispatchQueue.main.async`、
+`Timer`），就会多出一个运行时隔离检查点，而它在某些 AppKit/GCD 调用路径上会自己 fault。
+本项目已经因此崩了四次。两个正确写法：**传函数引用**（文件作用域或 `nonisolated`），
+或者让闭包显式 `@Sendable` 并把隔离状态通过 `Task` 跳着访问。

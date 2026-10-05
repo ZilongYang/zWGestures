@@ -34,6 +34,14 @@ enum KeyEventPoster {
         }
     }
 
+    /// Posts ⌘C, for the web-search gesture's clipboard fallback.
+    ///
+    /// Marked as synthetic like every other event we post, so nothing of ours reacts to it — in
+    /// particular the emergency-stop key monitor skips synthetic events (docs/ROADMAP.md §23).
+    static func postCopyShortcut() {
+        postKeyStroke(modifiers: [0x37], flags: .maskCommand, keyCode: 0x08)
+    }
+
     private static func post(keyCode: CGKeyCode, down: Bool, flags: CGEventFlags, source: CGEventSource) {
         guard let event = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: down) else {
             Log.action.error("无法构造按键事件 keyCode=\(keyCode, privacy: .public)")

@@ -70,7 +70,7 @@ final class CommandExecutor {
             ShellScriptRunner.run(script: script, environment: context.environment())
 
         case .webSearch(let template):
-            WebSearchRunner.open(template: template)
+            WebSearchRunner.open(template: template, targetPID: context.targetPID)
         }
     }
 
