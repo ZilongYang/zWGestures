@@ -52,10 +52,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             statusItemController?.refresh()
         }
         config.start()
+        // 先把规则集交给引擎，再启动应用目录。目录启动时会立刻刷新一次并回调一次；如果那时引擎
+        // 拿到的还是空配置，就会先白白构建一份「0 条手势」的索引（启动日志里会看到两次构建，
+        // 调试面板的 `idx rebuilds` 也会从 2 起跳）。顺序反过来正好只构建一次。
+        engine.apply(config: config.config, targetMode: config.preferences.targetMode)
         appDirectory.start()
         engine.apply(startDragTimeout: config.preferences.startDragTimeoutSeconds)
         engine.apply(overlayStyle: OverlayStyle(preferences: config.preferences))
-        engine.apply(config: config.config, targetMode: config.preferences.targetMode)
 
         if ProcessInfo.processInfo.environment["ZWG_DEBUG_HUD"] == "1" {
             debugHUD.show()

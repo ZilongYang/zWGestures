@@ -128,6 +128,8 @@ final class DebugHUDWindow {
             target       \(snapshot.targetName ?? "—")
             executed     \(snapshot.lastExecuted ?? "—")
             stroke pts   \(snapshot.strokePointCount)   长度 \(Int(snapshot.strokeLength))
+            idx rebuilds \(snapshot.indexBuildCount)   交接 \(String(format: "%.1f", snapshot.lastHandoffMilliseconds)) ms\
+             / 最差 \(String(format: "%.1f", snapshot.worstHandoffMilliseconds)) ms
             panic        \(PanicShortcut.displayName)
             """
     }
@@ -135,13 +137,22 @@ final class DebugHUDWindow {
     private func gestureDescription(_ snapshot: InputSnapshot) -> String {
         if let name = snapshot.lastGestureName {
             let distance = snapshot.lastGestureDistance.map { String(format: "%.3f", $0) } ?? "-"
-            return "「\(name)」 距离 \(distance)"
+            return "「\(name)」 距离 \(distance)\(metricSuffix(snapshot.lastGestureMetric))"
         }
         if snapshot.gestureCount > 0 {
             let nearest = snapshot.nearestGestureName ?? "无候选"
             let distance = snapshot.nearestGestureDistance.map { String(format: "%.3f", $0) } ?? "-"
-            return "未识别（最近：\(nearest) \(distance)）"
+            return "未识别（最近：\(nearest) \(distance)\(metricSuffix(snapshot.nearestGestureMetric))）"
         }
         return "—"
+    }
+
+    /// The two metrics are different scales, so a bare number is not comparable between gestures.
+    private func metricSuffix(_ metric: StrokeMetric?) -> String {
+        switch metric {
+        case .structure: " [形状]"
+        case .arcLength: " [弧长]"
+        case nil: ""
+        }
     }
 }

@@ -16,15 +16,27 @@ struct InputSnapshot: Sendable, Equatable {
     /// Name of the last recognised gesture, or nil when the last stroke matched nothing.
     var lastGestureName: String?
     var lastGestureDistance: CGFloat?
+    /// Which metric produced `lastGestureDistance`; the two scales are not comparable.
+    var lastGestureMetric: StrokeMetric?
     /// Closest configured gesture when the stroke did *not* match — for diagnosing misses.
     var nearestGestureName: String?
     var nearestGestureDistance: CGFloat?
+    var nearestGestureMetric: StrokeMetric?
     var strokeLength: CGFloat = 0
     var matchedCount: Int = 0
     /// Short description of the last command that actually ran.
     var lastExecuted: String?
     /// Which gesture set applied to the last stroke: the general one, or an application's.
     var targetName: String?
+    /// How many times the recognition index has been rebuilt since launch. The index is expensive
+    /// to build, so this number should only move when the configuration changes — **not** on every
+    /// three-second application-directory refresh (docs/ROADMAP.md §21).
+    var indexBuildCount: Int = 0
+    /// Milliseconds between "the stroke was recognised on the tap thread" and "the command started
+    /// on the main thread". This is the hand-off the user feels as an action firing late.
+    var lastHandoffMilliseconds: Double = 0
+    /// Largest `lastHandoffMilliseconds` seen, for spotting occasional stalls.
+    var worstHandoffMilliseconds: Double = 0
 }
 
 /// Everything the tap thread needs in order to decide which gesture set applies.
@@ -52,19 +64,31 @@ struct RecognitionContext: Sendable {
 ///
 /// 1. Taking it under the lock costs a retain instead of copying the configuration and the recogniser.
 /// 2. The expensive half of recognition — splitting each gesture's step lists, normalising every
-///    stored trajectory — is done **once here**, when the configuration changes on the main thread,
-///    instead of inside the tap callback. That callback is synchronous and the system waits for it;
-///    doing ~8 heap allocations per gesture per event on that thread is what made it slow enough to
-///    be disabled repeatedly (docs/ROADMAP.md §18).
+///    stored trajectory, reducing every stored shape to its corner structure — is done **once here**,
+///    when the configuration changes, instead of inside the tap callback. That callback is
+///    synchronous and the system waits for it; doing ~8 heap allocations per gesture per event on
+///    that thread is what made it slow enough to be disabled repeatedly (docs/ROADMAP.md §18).
+///
+/// The index is deliberately *shared* between snapshots: an application-directory refresh builds a
+/// new snapshot around the same index instead of rebuilding it (see `applyConfiguration` and
+/// `updateTargeting`).
 final class RecognitionSnapshot: @unchecked Sendable {
     let context: RecognitionContext
     let indexes: RecognitionIndex
     let recognizer: GestureRecognizer
+    /// Index builds so far, as of this snapshot — for the debug HUD.
+    let indexBuildCount: Int
 
-    init(context: RecognitionContext, settings: RecognitionSettings) {
+    init(
+        context: RecognitionContext,
+        recognizer: GestureRecognizer,
+        indexes: RecognitionIndex,
+        indexBuildCount: Int = 0
+    ) {
         self.context = context
-        indexes = RecognitionIndex(config: context.config, settings: settings)
-        recognizer = GestureRecognizer(settings: settings)
+        self.recognizer = recognizer
+        self.indexes = indexes
+        self.indexBuildCount = indexBuildCount
     }
 
     /// The prepared gestures for a resolved target, or `nil` if the resolution produced a target the
@@ -81,6 +105,9 @@ struct GestureOutcome: Sendable {
     var target: WGResolvedTarget
     /// Window server id of the window the gesture started over, when one was found.
     var windowID: Int?
+    /// Monotonic time the tap thread finished recognising, so the main-actor hand-off can be
+    /// measured instead of guessed at.
+    var recognizedAt: TimeInterval
 }
 
 /// Wires the event tap to the gesture engine and carries out the engine's decisions.
@@ -98,8 +125,19 @@ final class InputCoordinator: @unchecked Sendable {
     private let recognitionLock = NSLock()
     private var recognition = RecognitionSnapshot(
         context: RecognitionContext(),
-        settings: RecognitionSettings()
+        recognizer: GestureRecognizer(),
+        indexes: RecognitionIndex(config: WGConfig())
     )
+
+    /// Builds recognition indexes off the main actor. Serial, so two configuration changes are
+    /// applied in the order they happened.
+    ///
+    /// `indexCache` is touched **only** from this queue.
+    private let buildQueue = DispatchQueue(
+        label: "io.github.zilongyang.zwgestures.recognition-index",
+        qos: .utility
+    )
+    private var indexCache = RecognitionIndexCache()
 
     /// Tap-thread state.
     private var pendingTimer: CFRunLoopTimer?
@@ -141,11 +179,64 @@ final class InputCoordinator: @unchecked Sendable {
         overlayLock.withLock { overlayStorage }
     }
 
-    /// Publishes the gesture sets, the targeting mode and the application directory.
-    func updateRecognition(_ context: RecognitionContext, settings: RecognitionSettings = RecognitionSettings()) {
-        // Build the (expensive) snapshot outside the lock, then swap the reference in. Holding the
-        // lock while normalising every stored gesture would block the tap thread for no reason.
-        let snapshot = RecognitionSnapshot(context: context, settings: settings)
+    /// Publishes a **changed gesture set**: the recogniser and the index are rebuilt.
+    ///
+    /// The build is expensive — every stored trajectory is normalised and reduced to a structure —
+    /// so it happens on `buildQueue`, never on the main actor. That path is the one a released
+    /// gesture travels: the tap thread hands the match to the main actor, and main-actor work at
+    /// that moment is what the user experiences as "the action fired late". This method used to run
+    /// the whole build inline, on every three-second application-directory refresh, which is
+    /// exactly how that latency got introduced (docs/ROADMAP.md §21).
+    func applyConfiguration(
+        _ context: RecognitionContext,
+        settings: RecognitionSettings = RecognitionSettings()
+    ) {
+        let recognizer = GestureRecognizer(settings: settings)
+        buildQueue.async { [weak self] in
+            guard let self else { return }
+            let (indexes, rebuilt) = self.indexCache.index(for: context.config, settings: settings)
+            if rebuilt {
+                Log.recog.notice("""
+                    识别索引已重建（第 \(self.indexCache.buildCount, privacy: .public) 次，\
+                    \(indexes.gestureCount, privacy: .public) 条手势）
+                    """)
+            }
+            self.publish(RecognitionSnapshot(
+                context: context,
+                recognizer: recognizer,
+                indexes: indexes,
+                indexBuildCount: self.indexCache.buildCount
+            ))
+        }
+    }
+
+    /// Publishes a **changed targeting snapshot** — which applications are running, which one is
+    /// frontmost — without rebuilding anything.
+    ///
+    /// This is the three-second path. It reuses the index that is already published, so the whole
+    /// update is an allocation and a lock: nothing here can delay a gesture that just finished.
+    func updateTargeting(_ context: RecognitionContext) {
+        let current = recognitionLock.withLock { recognition }
+
+        // The published index must belong to *this* configuration. Two things can break that: the
+        // launch order (the application directory refreshes once before the configuration is
+        // applied), and a configuration change whose build is still queued. Republishing an index
+        // that does not match would look like "gestures silently stop responding", which is the
+        // hardest kind of bug to find — so fall back to a real rebuild instead.
+        guard current.context.config == context.config else {
+            applyConfiguration(context, settings: current.recognizer.settings)
+            return
+        }
+
+        publish(RecognitionSnapshot(
+            context: context,
+            recognizer: current.recognizer,
+            indexes: current.indexes,
+            indexBuildCount: current.indexBuildCount
+        ))
+    }
+
+    private func publish(_ snapshot: RecognitionSnapshot) {
         recognitionLock.withLock { recognition = snapshot }
     }
 
@@ -266,7 +357,7 @@ final class InputCoordinator: @unchecked Sendable {
         if let match {
             Log.recog.notice("""
                 命中手势「\(match.intent.name, privacy: .public)」\
-                （距离 \(match.distance, privacy: .public)，\
+                （距离 \(match.distance, privacy: .public) [\(match.metric == .structure ? "形状" : "弧长", privacy: .public)]，\
                 目标 \(resolved.displayName, privacy: .public)，\
                 \(candidate.stroke.points.count, privacy: .public) 个轨迹点）
                 """)
@@ -274,7 +365,8 @@ final class InputCoordinator: @unchecked Sendable {
                 match: match,
                 candidate: candidate,
                 target: resolved,
-                windowID: windowID
+                windowID: windowID,
+                recognizedAt: MonotonicClock.now
             ))
         } else {
             Log.recog.debug("""
@@ -375,8 +467,10 @@ final class InputCoordinator: @unchecked Sendable {
             var next = snapshotStorage
             next.lastGestureName = match?.intent.name
             next.lastGestureDistance = match?.distance
+            next.lastGestureMetric = match?.metric
             next.nearestGestureName = match == nil ? nearest?.intent.name : nil
             next.nearestGestureDistance = match == nil ? nearest?.distance : nil
+            next.nearestGestureMetric = match == nil ? nearest?.metric : nil
             next.strokeStart = candidate.stroke.startPoint
             next.strokeEnd = candidate.stroke.endPoint
             next.strokeLength = candidate.stroke.pathLength
@@ -389,6 +483,29 @@ final class InputCoordinator: @unchecked Sendable {
     /// Records that a command ran, for the debug HUD. Safe to call from any thread.
     func noteExecuted(_ summary: String) {
         snapshotLock.withLock { snapshotStorage.lastExecuted = summary }
+    }
+
+    /// Records how long the tap thread's match took to reach the main actor, and complains when it
+    /// is long enough for the user to feel it.
+    ///
+    /// The whole point of the split between `applyConfiguration` and `updateTargeting` is that
+    /// nothing expensive runs on this path (docs/ROADMAP.md §21), so this number is the check
+    /// rather than an opinion.
+    func noteRecognizedToExecution(since recognizedAt: TimeInterval) {
+        let milliseconds = (MonotonicClock.now - recognizedAt) * 1000
+        snapshotLock.withLock {
+            snapshotStorage.lastHandoffMilliseconds = milliseconds
+            snapshotStorage.worstHandoffMilliseconds = max(
+                snapshotStorage.worstHandoffMilliseconds,
+                milliseconds
+            )
+        }
+        if milliseconds > 50 {
+            Log.recog.warning("""
+                识别完成到开始执行隔了 \(milliseconds, privacy: .public) ms —— \
+                主线程被占住了，检查是否有耗时工作跑在了这条路径上
+                """)
+        }
     }
 
     // MARK: - On-screen trail
@@ -540,11 +657,15 @@ final class InputCoordinator: @unchecked Sendable {
         state: EngineState,
         isTimeout: Bool = false
     ) {
+        // Read before taking `snapshotLock`: the two locks are never nested anywhere in this class
+        // (docs/ROADMAP.md §8).
+        let indexBuilds = recognitionLock.withLock { recognition.indexBuildCount }
         snapshotLock.withLock {
             var next = snapshotStorage
             next.eventCount += 1
             next.stateName = state.name
             next.tapStatus = Self.describe(tap.status)
+            next.indexBuildCount = indexBuilds
             if isTimeout { next.timeoutCount += 1 }
             switch effect {
             case .passThrough:

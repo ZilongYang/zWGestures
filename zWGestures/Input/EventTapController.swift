@@ -20,8 +20,10 @@ import Foundation
 ///   instead (see `PanicShortcut`).
 /// - **A chronically slow callback is a failure, not something to retry forever.** Re-enabling
 ///   the tap the instant the system disables it drags the system straight back into the slow tap.
-///   After `maxTimeouts` inside `timeoutWindow` the tap is taken down and reported, so a gesture
-///   tool can never hold the user's input hostage.
+///   A `tapDisabledByTimeout` therefore backs off before retrying and, after `maxTimeouts` inside
+///   `timeoutWindow`, takes the tap down and reports it. `tapDisabledByUserInput` is **not** a
+///   slowness signal — `EventTapHealthPolicy.action(for:at:)` re-enables it immediately, as the app
+///   did before the freeze fix, so a gesture never pauses for half a second for no reason.
 /// - Every piece of gesture logic runs on the tap thread. `performOnTapThread` is the only
 ///   supported way to touch that state from elsewhere, which is what lets `InputEngine`
 ///   stay lock-free.
@@ -63,10 +65,6 @@ final class EventTapController: @unchecked Sendable {
     private var health = EventTapHealthPolicy()
     /// Tap-thread only: a re-enable that is waiting out the backoff.
     private var reenableTimer: CFRunLoopTimer?
-
-    /// How long to leave the tap off before trying again. Re-enabling immediately puts the system
-    /// back into a tap that just missed its deadline.
-    private static let reenableDelay: TimeInterval = 0.5
 
     /// Signalled once the previous tap thread has fully torn down. `start()` waits on it so
     /// that a quick pause/resume pair cannot race with the old thread's cleanup.
@@ -232,18 +230,25 @@ final class EventTapController: @unchecked Sendable {
     fileprivate func process(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
         switch type {
         case .tapDisabledByTimeout, .tapDisabledByUserInput:
-            let timedOut = type == .tapDisabledByTimeout
+            let reason: EventTapDisableReason = type == .tapDisabledByTimeout ? .timeout : .userInput
             Log.input.error("""
                 event tap disabled by system \
                 (type \(type.rawValue, privacy: .public), \
-                \(timedOut ? "timeout" : "user input", privacy: .public)); \
-                scheduling re-enable
+                \(reason == .timeout ? "timeout" : "user input", privacy: .public))
                 """)
             lock.withLock { statusStorage = .systemDisabled }
-            if timedOut, giveUpIfChronicallySlow() {
+            switch health.action(for: reason, at: CFAbsoluteTimeGetCurrent()) {
+            case .reEnableNow:
+                // The system did not disable us for being slow (user input does this on its own),
+                // so put the tap back at once. Waiting out the backoff here is what made gestures
+                // feel sticky after the 2026-09-29 freeze fix.
+                reenableNow()
+            case .reEnableAfterBackoff(let delay):
+                scheduleReenable(after: delay)
+            case .giveUp(let count):
+                giveUp(timeoutCount: count)
                 return nil
             }
-            scheduleReenable()
             onSystemDisable?()
             return nil
         default:
@@ -256,16 +261,12 @@ final class EventTapController: @unchecked Sendable {
         return nil
     }
 
-    /// Records a timeout and reports whether the tap should be abandoned.
+    /// Records that the callback has missed the system's deadline too often and stops the tap.
     ///
     /// Runs on the tap thread inside the callback, so it must not block — and it deliberately does
     /// not re-enable anything. Leaving the run loop tears the tap down via
     /// `removeTapOnCurrentThread`, which preserves the `.gaveUp` status.
-    private func giveUpIfChronicallySlow() -> Bool {
-        let now = CFAbsoluteTimeGetCurrent()
-        guard health.recordTimeout(at: now) else { return false }
-
-        let count = health.recentTimeoutCount
+    private func giveUp(timeoutCount count: Int) {
         Log.input.error("""
             事件拦截器在 \(Int(self.health.window), privacy: .public) 秒内超时 \
             \(count, privacy: .public) 次，主动停用以免拖慢系统输入
@@ -275,17 +276,29 @@ final class EventTapController: @unchecked Sendable {
         if let runLoop = lock.withLock({ self.runLoop }) {
             CFRunLoopStop(runLoop)
         }
-        return true
     }
 
-    /// Re-enables the tap after the backoff rather than immediately.
-    private func scheduleReenable() {
+    /// Re-enables the tap immediately, cancelling any pending backoff.
+    private func reenableNow() {
+        cancelReenable()
+        let tap = lock.withLock { self.tap }
+        guard let tap else { return }
+        CGEvent.tapEnable(tap: tap, enable: true)
+        lock.withLock { statusStorage = .running }
+    }
+
+    private func cancelReenable() {
         if let pending = lock.withLock({ reenableTimer }) {
             CFRunLoopTimerInvalidate(pending)
             lock.withLock { reenableTimer = nil }
         }
+    }
 
-        let fireDate = CFAbsoluteTimeGetCurrent() + Self.reenableDelay
+    /// Re-enables the tap after the backoff rather than immediately.
+    private func scheduleReenable(after delay: TimeInterval) {
+        cancelReenable()
+
+        let fireDate = CFAbsoluteTimeGetCurrent() + delay
         let timer = CFRunLoopTimerCreateWithHandler(
             kCFAllocatorDefault,
             fireDate,

@@ -57,6 +57,26 @@ struct EventTapHealthPolicyTests {
         #expect(reason.contains("4"))
         #expect(reason.contains("停用"))
     }
+
+    /// 2026-10-06：用户报「画手势时偶尔有一丁点迟滞」。冻结修复把 **两种** 系统停用都塞进
+    /// 了 0.5 秒退避，而旧逻辑是立刻重新启用。只有 `tapDisabledByTimeout` 才是「回调慢」的证据；
+    /// `tapDisabledByUserInput` 与回调速度无关，让它等半秒等于白白丢掉半秒的手势输入。
+    @Test("用户输入导致的停用立刻恢复，只有超时才退避")
+    func userInputDisableIsReEnabledImmediately() {
+        var policy = EventTapHealthPolicy()
+
+        #expect(policy.action(for: .userInput, at: 0) == .reEnableNow)
+        // 连来多次也一样：它不是超时，不该累积、更不该放弃。
+        #expect(policy.action(for: .userInput, at: 1) == .reEnableNow)
+        #expect(policy.action(for: .userInput, at: 2) == .reEnableNow)
+        #expect(policy.action(for: .userInput, at: 3) == .reEnableNow)
+        #expect(policy.recentTimeoutCount == 0, "用户输入的停用不该计入超时预算")
+
+        #expect(policy.action(for: .timeout, at: 10) == .reEnableAfterBackoff(0.5))
+        #expect(policy.action(for: .timeout, at: 11) == .reEnableAfterBackoff(0.5))
+        #expect(policy.action(for: .timeout, at: 12) == .reEnableAfterBackoff(0.5))
+        #expect(policy.action(for: .timeout, at: 13) == .giveUp(timeoutCount: 4))
+    }
 }
 
 @Suite("急停快捷键：只认 ⌃⌥⌘⎋")

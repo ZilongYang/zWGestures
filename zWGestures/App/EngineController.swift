@@ -63,7 +63,7 @@ final class EngineController {
             }
         }
         appDirectory.onChange = { [weak self] in
-            self?.pushRecognitionContext()
+            self?.pushTargeting()
         }
     }
 
@@ -74,6 +74,9 @@ final class EngineController {
     }
 
     private func run(_ outcome: GestureOutcome) {
+        // 时间戳在拦截器线程上取，这里量的是「识别完成 → 主线程开始执行」这一段 —— 用户感觉
+        // 「松手后动作慢半拍」量的就是它。
+        coordinator.noteRecognizedToExecution(since: outcome.recognizedAt)
         let plan = WGCommandPlanner.plan(outcome.match.intent.command)
         let context = ActionContextProvider.current(
             gestureStart: outcome.candidate.stroke.startPoint,
@@ -89,20 +92,36 @@ final class EngineController {
         coordinator.engine.settings.startDragTimeout = startDragTimeout
     }
 
-    /// Publishes the gesture sets, the targeting mode and the current application directory.
+    /// Publishes the gesture sets and the targeting mode.
+    ///
+    /// The rule set changed, so the recognition index has to be rebuilt — that is the expensive
+    /// path, and `InputCoordinator` takes it off the main actor.
     func apply(config: WGConfig, targetMode: WGTargetMode) {
         self.config = config
         self.targetMode = targetMode
-        pushRecognitionContext()
+        pushRecognitionContext(rulesChanged: true)
     }
 
-    private func pushRecognitionContext() {
-        coordinator.updateRecognition(RecognitionContext(
+    /// Only the targeting picture changed (an application started/stopped or focus moved).
+    ///
+    /// Deliberately does **not** touch the index: this runs every three seconds, and the index does
+    /// not depend on it.
+    private func pushTargeting() {
+        pushRecognitionContext(rulesChanged: false)
+    }
+
+    private func pushRecognitionContext(rulesChanged: Bool) {
+        let context = RecognitionContext(
             config: config,
             targetMode: targetMode,
             applications: appDirectory.applications,
             focusedPID: appDirectory.focusedPID
-        ))
+        )
+        if rulesChanged {
+            coordinator.applyConfiguration(context)
+        } else {
+            coordinator.updateTargeting(context)
+        }
     }
 
     var isPermitted: Bool { PermissionGate.isAccessibilityTrusted }
