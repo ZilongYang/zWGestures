@@ -291,6 +291,7 @@ make lint && make test
 | 文件 | 内容 |
 |---|---|
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | **计划与进度**，接手开发从这里开始读 |
+| [`docs/PLAN-2026-10-06.md`](docs/PLAN-2026-10-06.md) | **当次发版的可执行清单**（识别度量修复的验收 + 发 0.2.0 步骤），做完即归档 |
 | [`docs/INSTALL.md`](docs/INSTALL.md) | **安装说明**：Gatekeeper 放行、授权辅助功能、卸载、常见问题 |
 | [`CHANGELOG.md`](CHANGELOG.md) | 每个版本值得用户知道的变化 |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | 构建方式、提交前清单、必须遵守的约定 |
