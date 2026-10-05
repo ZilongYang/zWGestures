@@ -31,7 +31,14 @@ public struct PreparedGesture: Sendable {
     /// Index into the original `WGTarget.intents`, which is what the list-order tie-break uses.
     public var intentIndex: Int
     /// The stored trajectory, already normalised to the index's `sampleCount`.
+    ///
+    /// Used by the arc-length metric (retracing gestures) and kept for diagnostics; the structure
+    /// metric does not need it.
     public var shape: [CGPoint]
+    /// The corner structure, precomputed for the structure metric.
+    public var structure: StrokeStructure?
+    /// Which metric this gesture is scored with, derived from its own stored shape.
+    public var metric: StrokeMetric
     /// The mouse button the trigger requires. `nil` never appears: a gesture whose trigger this build
     /// cannot fire is left out of the index entirely, because it could never be a candidate.
     public var triggerButton: MouseButton
@@ -41,6 +48,25 @@ public struct PreparedGesture: Sendable {
     public var modifierRequirements: [ModifierRequirement]
 
     public var modifierCount: Int { modifierRequirements.count }
+
+    /// Distance from a live stroke (already normalised / already reduced) to this gesture.
+    ///
+    /// The live side is passed in precomputed because it is identical for every candidate: only
+    /// the stored side differs here.
+    func distance(
+        liveArc: [CGPoint],
+        liveStructure: StrokeStructure?,
+        settings: RecognitionSettings
+    ) -> CGFloat {
+        switch metric {
+        case .arcLength:
+            return StrokeMatcher.distance(liveArc, shape)
+
+        case .structure:
+            guard let liveStructure, let structure else { return .infinity }
+            return StrokeStructure.distance(liveStructure, structure, settings: settings.structure)
+        }
+    }
 }
 
 extension PreparedGesture {
@@ -51,8 +77,9 @@ extension PreparedGesture {
     /// event — the answer cannot change while the configuration does not.
     init?(intent: WGIntent, intentIndex: Int, settings: RecognitionSettings) {
         guard intent.enabled, let stroke = intent.strokeStep else { return nil }
+        let drawingOrderPoints = stroke.drawingOrderPoints
         let shape = StrokeNormalizer.normalize(
-            stroke.drawingOrderPoints,
+            drawingOrderPoints,
             sampleCount: settings.sampleCount
         )
         guard shape.count == settings.sampleCount else { return nil }
@@ -60,9 +87,19 @@ extension PreparedGesture {
         let triggers = intent.triggerSteps
         guard let button = Self.triggerButton(of: triggers) else { return nil }
 
+        let metric = StrokeMatching.metric(forStoredPoints: drawingOrderPoints)
+        let structure = metric == .structure
+            ? StrokeStructure.make(from: drawingOrderPoints, settings: settings.structure)
+            : nil
+        // A structure gesture whose stored shape cannot be reduced to a structure could never
+        // match anything, so leaving it in the index would only cost time per event.
+        if metric == .structure, structure == nil { return nil }
+
         self.intent = intent
         self.intentIndex = intentIndex
         self.shape = shape
+        self.structure = structure
+        self.metric = metric
         triggerButton = button
         triggerSignature = WGTriggerSignature.make(from: triggers)
         modifierRequirements = Self.modifierRequirements(of: intent.modifierSteps)
@@ -111,11 +148,16 @@ public struct GestureIndex: Sendable {
     public var settings: RecognitionSettings
     public var gestures: [PreparedGesture]
 
+    /// Whether any gesture here is scored by structure — lets the hot path skip computing the
+    /// live stroke's structure when it would be wasted.
+    public var usesStructure: Bool
+
     public init(target: WGTarget, settings: RecognitionSettings = RecognitionSettings()) {
         self.settings = settings
         gestures = target.intents.enumerated().compactMap { index, intent in
             PreparedGesture(intent: intent, intentIndex: index, settings: settings)
         }
+        usesStructure = gestures.contains { $0.metric == .structure }
     }
 }
 
@@ -145,5 +187,40 @@ public struct RecognitionIndex: Sendable {
     /// Total prepared gestures across every target, for logging and tests.
     public var gestureCount: Int {
         byTargetID.values.reduce(0) { $0 + $1.gestures.count }
+    }
+}
+
+/// Keeps a built `RecognitionIndex` and hands it back until the configuration actually changes.
+///
+/// The distinction this type exists to enforce: the *application directory* is refreshed every few
+/// seconds (and on every app switch), but the *index* only depends on the configuration. Rebuilding
+/// it on the directory path put roughly a millisecond of work on the main actor every three
+/// seconds — on the very path a finished gesture travels to reach its command — which showed up as
+/// the action occasionally firing a beat late (docs/ROADMAP.md §21).
+///
+/// `buildCount` makes that observable: a test (and the debug HUD) can assert that a directory
+/// refresh does not move it.
+public struct RecognitionIndexCache: Sendable {
+    public private(set) var buildCount = 0
+    private var configuration: WGConfig?
+    private var settings: RecognitionSettings?
+    private var index: RecognitionIndex?
+
+    public init() {}
+
+    /// - Returns: the index for this configuration, and whether it had to be built.
+    public mutating func index(
+        for configuration: WGConfig,
+        settings: RecognitionSettings = RecognitionSettings()
+    ) -> (index: RecognitionIndex, rebuilt: Bool) {
+        if let index, self.configuration == configuration, self.settings == settings {
+            return (index, false)
+        }
+        let built = RecognitionIndex(config: configuration, settings: settings)
+        self.configuration = configuration
+        self.settings = settings
+        self.index = built
+        buildCount += 1
+        return (built, true)
     }
 }

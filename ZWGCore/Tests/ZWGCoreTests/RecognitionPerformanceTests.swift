@@ -42,12 +42,25 @@ struct RecognitionPerformanceTests {
     }
 
     /// Runs `body` `iterations` times and returns microseconds per call.
-    private func microsecondsPerCall(iterations: Int = 200, _ body: () -> Void) -> Double {
+    ///
+    /// Takes the best of `batches` batches. Swift Testing runs tests in parallel, so a single timing
+    /// batch competes with whatever else is running and the raw mean flaps by a factor of two —
+    /// which is what made these guards look flaky. The minimum is what the code can actually do,
+    /// and it is the number a regression would move.
+    private func microsecondsPerCall(
+        iterations: Int = 200,
+        batches: Int = 5,
+        _ body: () -> Void
+    ) -> Double {
         for _ in 0..<10 { body() }  // 预热
-        let start = DispatchTime.now().uptimeNanoseconds
-        for _ in 0..<iterations { body() }
-        let elapsed = DispatchTime.now().uptimeNanoseconds - start
-        return Double(elapsed) / Double(iterations) / 1000
+        var best = Double.greatestFiniteMagnitude
+        for _ in 0..<batches {
+            let start = DispatchTime.now().uptimeNanoseconds
+            for _ in 0..<iterations { body() }
+            let elapsed = Double(DispatchTime.now().uptimeNanoseconds - start)
+            best = min(best, elapsed / Double(iterations) / 1000)
+        }
+        return best
     }
 
     @Test("一次候选评分要远低于回调预算")

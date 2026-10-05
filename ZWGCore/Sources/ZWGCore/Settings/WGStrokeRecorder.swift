@@ -30,9 +30,15 @@ public enum WGStrokeRecorder {
     /// Grid spacing of a simple stroke, in the configuration's units.
     public static let gridUnit: CGFloat = 50
 
-    /// Largest normalised distance between the drawing and its snapped simple form that is still
-    /// accepted. Well under `RecognitionSettings.matchThreshold` (0.10) so the stored gesture keeps
-    /// a comfortable margin against the live strokes it must recognise.
+    /// Largest normalised arc-length distance between the drawing and its snapped simple form that
+    /// is still accepted. Well under `RecognitionSettings.matchThreshold` (0.10) so the stored
+    /// gesture keeps a comfortable margin against the live strokes it must recognise.
+    ///
+    /// Kept as the arc-length metric on purpose — see the comment in `simpleForm(for:)`. The
+    /// consequence is that a hand-drawn L whose arms are very unequal (a 2.2:1「下→右」scores
+    /// 0.109) is stored as a freehand shape rather than snapped to the grid. That is cosmetic: the
+    /// structure metric recognises it either way, and tightening this to the structure metric would
+    /// snap genuine curves into right angles.
     public static let simpleFormTolerance: CGFloat = 0.06
 
     /// Most points stored for a freehand stroke. The original app stores 3–8; more than this only
@@ -135,6 +141,14 @@ public enum WGStrokeRecorder {
 
         // Accept only if the snapped shape still matches the drawing under the recogniser's own
         // metric — this is what makes "stored but unrecognisable" impossible.
+        //
+        // Deliberately the **arc-length** metric, not the structure one. This check asks "is the
+        // drawing geometrically close to these straight grid segments", and a curvy drawing must
+        // stay freehand (`curvedStrokesStayFreehand`). The structure metric answers a different
+        // question — "would this be recognised as that shape" — and a smooth arc *is* structurally
+        // a two-segment shape, so using it here would snap genuine curves into right angles.
+        // Recognition of a stored freehand shape is unaffected either way: both metrics are built
+        // for the shape the user actually drew.
         let drawn = StrokeNormalizer.normalize(points, sampleCount: 32)
         let snapped = StrokeNormalizer.normalize(candidate.drawingOrderPoints, sampleCount: 32)
         guard StrokeMatcher.distance(drawn, snapped) <= simpleFormTolerance else { return nil }

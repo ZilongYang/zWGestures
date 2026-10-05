@@ -38,18 +38,17 @@ public enum WGStrokeConflict {
     ///   - gesture: the gesture that is about to be stored; it must carry its stroke.
     ///   - intents: every gesture in the same gesture set, including the candidate itself.
     ///   - index: the candidate's position in `intents`, so it is not compared with itself.
+    ///   - settings: the recogniser's thresholds, so "would this drawing be taken away" is answered
+    ///     with the same numbers the engine uses.
     public static func nearestTwin(
         toCandidate gesture: WGIntent,
         in intents: [WGIntent],
         excluding index: Int? = nil,
-        threshold: CGFloat = RecognitionSettings().matchThreshold
+        settings: RecognitionSettings = RecognitionSettings()
     ) -> Twin? {
         guard let stroke = gesture.strokeStep else { return nil }
-        let candidate = StrokeNormalizer.normalize(
-            stroke.drawingOrderPoints,
-            sampleCount: RecognitionSettings().sampleCount
-        )
-        guard !candidate.isEmpty else { return nil }
+        let candidatePoints = stroke.drawingOrderPoints
+        guard candidatePoints.count > 1 else { return nil }
 
         let expectedTrigger = triggerSignature(gesture.triggerSteps)
         let expectedModifiers = modifierSignature(gesture.modifierSteps)
@@ -63,12 +62,16 @@ public enum WGStrokeConflict {
                   modifierSignature(intent.modifierSteps) == expectedModifiers
             else { continue }
 
-            let points = StrokeNormalizer.normalize(
-                other.drawingOrderPoints,
-                sampleCount: RecognitionSettings().sampleCount
+            // 用**对方**的度量与阈值：引擎拿候选自己的规则去评分，所以「这条形状会不会被对方
+            // 抢走」问的正是对方的门槛。
+            let otherPoints = other.drawingOrderPoints
+            let metric = StrokeMatching.metric(forStoredPoints: otherPoints)
+            let distance = StrokeMatching.distance(
+                livePoints: candidatePoints,
+                storedPoints: otherPoints,
+                settings: settings
             )
-            let distance = StrokeMatcher.distance(candidate, points)
-            guard distance <= threshold else { continue }
+            guard distance <= StrokeMatching.threshold(for: metric, settings: settings) else { continue }
             if best == nil || distance < best!.distance {
                 best = Twin(index: position, name: intent.name, distance: distance)
             }
@@ -83,16 +86,13 @@ public enum WGStrokeConflict {
     /// of merely feeling broken.
     public static func collisions(
         in intents: [WGIntent],
-        threshold: CGFloat = RecognitionSettings().matchThreshold
+        settings: RecognitionSettings = RecognitionSettings()
     ) -> [Int: String] {
         let entries: [(index: Int, name: String, trigger: [String], modifiers: [String], points: [CGPoint])] =
             intents.enumerated().compactMap { position, intent in
                 guard intent.enabled, let stroke = intent.strokeStep else { return nil }
-                let points = StrokeNormalizer.normalize(
-                    stroke.drawingOrderPoints,
-                    sampleCount: RecognitionSettings().sampleCount
-                )
-                guard !points.isEmpty else { return nil }
+                let points = stroke.drawingOrderPoints
+                guard points.count > 1 else { return nil }
                 return (
                     position,
                     intent.name,
@@ -105,17 +105,35 @@ public enum WGStrokeConflict {
         var result: [Int: String] = [:]
         var closest: [Int: CGFloat] = [:]
 
+        func note(_ subject: Int, twin: Int, name: String, distance: CGFloat) {
+            if let previous = closest[subject], previous <= distance { return }
+            closest[subject] = distance
+            result[subject] = name
+        }
+
         for outer in entries.indices {
             for inner in entries.indices where inner > outer {
                 let lhs = entries[outer]
                 let rhs = entries[inner]
                 guard lhs.trigger == rhs.trigger, lhs.modifiers == rhs.modifiers else { continue }
-                let distance = StrokeMatcher.distance(lhs.points, rhs.points)
-                guard distance <= threshold else { continue }
-                for (subject, twin) in [(lhs, rhs), (rhs, lhs)] {
-                    if let previous = closest[subject.index], previous <= distance { continue }
-                    closest[subject.index] = distance
-                    result[subject.index] = twin.name
+
+                // 两条方向都要问：谁的形状会被谁抢走，用的是抢走那一方自己的度量与阈值。
+                let lhsTaken = StrokeMatching.distance(
+                    livePoints: lhs.points, storedPoints: rhs.points, settings: settings
+                )
+                if lhsTaken <= StrokeMatching.threshold(
+                    for: StrokeMatching.metric(forStoredPoints: rhs.points), settings: settings
+                ) {
+                    note(lhs.index, twin: rhs.index, name: rhs.name, distance: lhsTaken)
+                }
+
+                let rhsTaken = StrokeMatching.distance(
+                    livePoints: rhs.points, storedPoints: lhs.points, settings: settings
+                )
+                if rhsTaken <= StrokeMatching.threshold(
+                    for: StrokeMatching.metric(forStoredPoints: lhs.points), settings: settings
+                ) {
+                    note(rhs.index, twin: lhs.index, name: lhs.name, distance: rhsTaken)
                 }
             }
         }

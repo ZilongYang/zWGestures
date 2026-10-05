@@ -17,6 +17,8 @@ struct ConfusionReportTests {
         var directions: String
         var isSimple: Bool
         var path: [CGPoint]
+        /// 原始绘制顺序点（屏幕坐标），用来按引擎的度量复算距离。
+        var raw: [CGPoint]
     }
 
     private func entries() throws -> [Entry] {
@@ -33,7 +35,8 @@ struct ConfusionReportTests {
                 path: StrokeNormalizer.normalize(
                     stroke.drawingOrderPoints,
                     sampleCount: settings.sampleCount
-                )
+                ),
+                raw: stroke.drawingOrderPoints
             )
         }
     }
@@ -85,6 +88,17 @@ struct ConfusionReportTests {
         #expect(reload.directions == "下右→上右")
         #expect(other.directions == "上右→下右")
         #expect(StrokeMatcher.distance(reload.path, other.path) > threshold * 1.5)
+
+        // 引擎真正用的是「存储侧自己的度量」，所以能不能分开必须以它为准。这两条起终点相距很远，
+        // 都归折线类，走结构度量。
+        let settings = GestureRecognizer().settings
+        let engineDistance = StrokeMatching.distance(
+            livePoints: reload.raw, storedPoints: other.raw, settings: settings
+        )
+        #expect(
+            engineDistance > settings.structureThreshold * 1.5,
+            "引擎度量下「重新载入」与「其他窗口」只差 \(engineDistance)，区分余量不足"
+        )
     }
 
     @Test(
