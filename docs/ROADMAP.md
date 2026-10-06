@@ -155,13 +155,25 @@ Rosetta。
 
 ### 3. 0.1.0 遗留的站点与验收尾巴 —— **这就是下一步**
 
-> 仓库里的 `site/index.html` 已是 `v0.2.0`，但**线上还写着 v0.1.0**：下载按钮指向
-> `releases/latest` 所以它能自动拿到 0.2.0，只有那行版本号需要重新部署一次
-> （部署方式见 [`site/README.md`](../site/README.md)，用 rsync，别用 tar）。
+> ✅ **站点已重新部署（2026-10-06 14:29）**：线上版本号已是 `v0.2.0`，`index.html` 与仓库
+> **逐字节一致**（拉回来比对 sha256），4 张素材也一一比对一致，HTTP→HTTPS 301 正常。
+> 顺带更正一处我写错的做法：**这台服务器没有 rsync**，用的是 `tar` over SSH +
+> 远端 `chown root:root` / `chmod 644,755`（细节在 `docs/private/local-deploy.md`，
+> 公共说明在 [`site/README.md`](../site/README.md)）—— 直接 `tar` 上传会把本机的
+> `501:staff` 与 `600` 权限带上去，Web 服务器读不到会返回 403。
 
-- **把站点重新部署一次**（只为了那行版本号；顺手把 404 页一起做掉再部署更省事）。
+- ✅ 站点重新部署（只为了那行版本号；下载按钮走 `releases/latest`，本来就已指向 0.2.0）。
 - **404 页**（你已确认要做）：`site/404.html`，与站点同风格、单文件。它属于站点内容，
-  换掉它**不需要改 nginx 配置**。
+  换掉它**不需要改 nginx 配置**。⚠️ 注意远端 **已经有一个 130 字节的 `404.html`**
+  （面板/服务器默认页，不在仓库里）：部署用 `tar` 是**增量覆盖、不删除**，所以那个文件还在 ——
+  写好新的 `site/404.html` 上传即可覆盖它。
+- **全新 macOS 用户账号验收**：挂 dmg → 拖进 Applications → 按 `docs/INSTALL.md` 放行
+  Gatekeeper → 授权辅助功能 → 确认**开箱就有 48 条中文手势**、画「上」触发拷贝。
+  这一步同时完成 Release 配置的真机回归，并顺手拍 `site/assets/install-gatekeeper.png`；
+  拿到图后把 `site/index.html` 安装那节里注释掉的 `<figure>` 取消注释。
+- （可选）**`site/assets/` 长缓存头**：只用 `expires 30d;`，**不要**用
+  `add_header Cache-Control` —— nginx 的 `add_header` 在子级 location 会覆盖父级同类指令，
+  那会把站点现有的 `Strict-Transport-Security` 头在素材响应上抹掉。
 - **全新 macOS 用户账号验收**：挂 dmg → 拖进 Applications → 按 `docs/INSTALL.md` 放行
   Gatekeeper → 授权辅助功能 → 确认**开箱就有 48 条中文手势**、画「上」触发拷贝。
   这一步同时完成 Release 配置的真机回归，并顺手拍 `site/assets/install-gatekeeper.png`；
