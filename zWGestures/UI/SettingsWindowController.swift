@@ -50,13 +50,15 @@ final class SettingsWindowController {
 
     private func makeWindow() -> NSWindow {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 900, height: 560),
+            contentRect: NSRect(x: 0, y: 0, width: 1060, height: 700),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
         )
         window.title = L10n.text(.settingsWindowTitle)
         window.isReleasedWhenClosed = false
+        // 英文文案比中文长，窗口被拖得太窄会把分段标签和列表挤断行。
+        window.contentMinSize = NSSize(width: 900, height: 600)
         window.contentView = NSHostingView(rootView: makePanel())
         window.center()
         return window
@@ -188,12 +190,13 @@ final class SettingsWindowController {
         )
 
         let sheetWindow = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 560, height: 640),
+            contentRect: NSRect(x: 0, y: 0, width: 780, height: 740),
             styleMask: [.titled],
             backing: .buffered,
             defer: false
         )
         sheetWindow.title = existingIndex == nil ? L10n.text(.gestureNewName) : L10n.text(.gestureSheetEditTitle)
+        sheetWindow.contentMinSize = NSSize(width: 700, height: 640)
         sheetWindow.contentView = NSHostingView(rootView: sheet)
         commandSheet = sheetWindow
         coordinator.beginShapeEditing()

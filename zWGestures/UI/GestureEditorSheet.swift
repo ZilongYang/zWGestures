@@ -50,7 +50,7 @@ struct GestureEditorSheet: View {
             Divider()
             footer
         }
-        .frame(width: 560, height: 640)
+        .frame(width: 780, height: 740)
     }
 
     // MARK: - Header
@@ -93,9 +93,11 @@ struct GestureEditorSheet: View {
                 .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
             }
 
-            HStack(alignment: .top, spacing: 12) {
-                currentShapeColumn
-                newShapeColumn
+            // 两列等宽自适应：英文比中文长，写死 200pt 会把「(nothing drawn yet)」挤成四行、
+            // 把右边那排按钮挤出去（2026-10-06 作者验收截图）。
+            HStack(alignment: .top, spacing: 16) {
+                currentShapeColumn.frame(maxWidth: .infinity, alignment: .leading)
+                newShapeColumn.frame(maxWidth: .infinity, alignment: .leading)
             }
 
             modifierRow
@@ -179,7 +181,7 @@ struct GestureEditorSheet: View {
                 lineWidth: 3,
                 placeholder: L10n.text(.gestureSheetOriginalShapePlaceholder)
             )
-            .frame(width: 200, height: 110)
+            .frame(minWidth: 200, maxWidth: .infinity, minHeight: 120)
             .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
             Text(model.currentStrokeDescription)
                 .font(.callout.monospaced())
@@ -208,7 +210,7 @@ struct GestureEditorSheet: View {
                         .foregroundStyle(.secondary)
                     }
                 }
-                .frame(width: 200, height: 110)
+                .frame(minWidth: 200, maxWidth: .infinity, minHeight: 120)
                 .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
                 .contentShape(Rectangle())
             }
@@ -218,7 +220,10 @@ struct GestureEditorSheet: View {
             HStack(spacing: 8) {
                 Text(model.hasPendingStroke ? model.pendingStrokeDescription : L10n.text(.gestureNothingDrawn))
                     .font(.callout.monospaced())
-                Spacer()
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .layoutPriority(1)
+                Spacer(minLength: 8)
                 // 重画：丢掉刚画的，重新进入全屏录制。
                 Button(L10n.text(.gestureSheetRedraw)) { onRecordOnScreen() }
                     .help(L10n.text(.gestureSheetRedrawHelp))
@@ -227,7 +232,7 @@ struct GestureEditorSheet: View {
                     .disabled(!model.hasPendingStroke)
                     .help(L10n.text(.gestureSheetKeepOldHelp))
             }
-            .frame(width: 200)
+            .frame(maxWidth: .infinity)
         }
     }
 

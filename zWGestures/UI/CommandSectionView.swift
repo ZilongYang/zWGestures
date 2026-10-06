@@ -51,16 +51,25 @@ struct CommandSectionView: View {
     // MARK: - Kind
 
     private var kindPicker: some View {
-        Picker(L10n.text(.cmdViewKindLabel), selection: Binding(
-            get: { model.kind },
-            set: { model.setKind($0) }
-        )) {
-            ForEach(CommandEditorModel.Kind.allCases) { kind in
-                Text(kind.localizedName).tag(kind)
+        VStack(alignment: .leading, spacing: 4) {
+            // 标签单独一行：英文的「Command type」挤在分段控件旁边会被断成「Comman / d type」
+            // （2026-10-06 作者验收截图），所以不再用 Picker 自带的标签。
+            Text(L10n.text(.cmdViewKindLabel))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            Picker("", selection: Binding(
+                get: { model.kind },
+                set: { model.setKind($0) }
+            )) {
+                ForEach(CommandEditorModel.Kind.allCases) { kind in
+                    Text(kind.localizedName).tag(kind)
+                }
             }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+            .disabled(model.isReplacingUnknownCommand)
         }
-        .pickerStyle(.segmented)
-        .disabled(model.isReplacingUnknownCommand)
     }
 
     @ViewBuilder

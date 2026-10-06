@@ -110,7 +110,7 @@ struct PreferencesPane: View {
 
             HStack(spacing: 12) {
                 Text(L10n.text(.prefsTrailLineWidth))
-                    .frame(width: 70, alignment: .leading)
+                    .frame(minWidth: 70, alignment: .leading)
                 Slider(
                     value: Binding(
                         get: { model.pathLineWidth },
@@ -127,7 +127,7 @@ struct PreferencesPane: View {
 
             HStack(spacing: 12) {
                 Text(L10n.text(.prefsGestureNamePosition))
-                    .frame(width: 70, alignment: .leading)
+                    .frame(minWidth: 70, alignment: .leading)
                 Slider(value: $model.gesturePos, in: PreferencesModel.gesturePositionRange)
                     .frame(maxWidth: 260)
                 Text(String(format: "%.2f", model.gesturePos))
