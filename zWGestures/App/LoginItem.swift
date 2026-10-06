@@ -21,11 +21,11 @@ struct LoginItem {
 
         var localizedText: String {
             switch self {
-            case .notRegistered: "开机不自动启动"
-            case .enabled: "开机自动启动：已开启"
-            case .requiresApproval: "开机自动启动：等待系统设置里确认"
-            case .notFound: "开机自动启动：系统找不到该应用"
-            case .unknown: "开机自动启动：状态未知"
+            case .notRegistered: L10n.text(.loginItemOff)
+            case .enabled: L10n.text(.loginItemOn)
+            case .requiresApproval: L10n.text(.loginItemPending)
+            case .notFound: L10n.text(.loginItemNotFound)
+            case .unknown: L10n.text(.loginItemUnknown)
             }
         }
 
@@ -47,8 +47,8 @@ struct LoginItem {
 
         var localizedName: String {
             switch self {
-            case .none: "未启用"
-            case .serviceManagement: "系统登录项"
+            case .none: L10n.text(.mechanismDisabled)
+            case .serviceManagement: L10n.text(.mechanismLoginItem)
             case .launchAgent: "LaunchAgent"
             }
         }

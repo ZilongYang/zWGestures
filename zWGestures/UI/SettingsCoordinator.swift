@@ -124,6 +124,9 @@ final class SettingsCoordinator {
             preferences.markSaved()
         }
 
+        // 语言可能刚被改过：界面文案是渲染时取的，得让窗口重新读一遍。
+        reloadFromConfig()
+
         // 让运行中的引擎立刻用上新值：超时影响手感，外观影响轨迹，目标模式影响选哪套手势集。
         engine.apply(startDragTimeout: config.preferences.startDragTimeoutSeconds)
         engine.apply(overlayStyle: OverlayStyle(preferences: config.preferences))

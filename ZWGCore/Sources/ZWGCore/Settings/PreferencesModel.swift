@@ -26,6 +26,7 @@ public final class PreferencesModel: ObservableObject {
     @Published public var labelColorExecutedHex: String
     @Published public var pathLineWidth: Double
     @Published public var gesturePos: Double
+    @Published public var language: WGLanguagePreference
 
     /// The preferences as last loaded or saved. Everything the panel does not edit — `AutoStart`
     /// (owned by the login item) and `SkipVersion` — is carried over from here, so saving cannot
@@ -43,6 +44,7 @@ public final class PreferencesModel: ObservableObject {
         labelColorExecutedHex = preferences.labelColorExecuted
         pathLineWidth = preferences.pathLineWidth
         gesturePos = preferences.gesturePos
+        language = preferences.language
         loaded = preferences
     }
 
@@ -59,6 +61,7 @@ public final class PreferencesModel: ObservableObject {
         labelColorExecutedHex = reloaded.labelColorExecutedHex
         pathLineWidth = reloaded.pathLineWidth
         gesturePos = reloaded.gesturePos
+        language = reloaded.language
         loaded = preferences
     }
 
@@ -103,6 +106,7 @@ public final class PreferencesModel: ObservableObject {
         result.labelColorExecuted = labelColorExecutedHex
         result.pathLineWidth = pathLineWidth
         result.gesturePos = gesturePos
+        result.language = language
         return result
     }
 

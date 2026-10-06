@@ -292,6 +292,7 @@ make lint && make test
 |---|---|
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | **计划与进度**，接手开发从这里开始读 |
 | [`docs/PLAN-2026-10-06.md`](docs/PLAN-2026-10-06.md) | 2026-10-06 批准的那份实施方案**原样存档**（识别结构度量 + 慢半拍），文末附「与计划的差异」 |
+| [`docs/PLAN-2026-10-06-i18n.md`](docs/PLAN-2026-10-06-i18n.md) | 界面多语言（中/英）+ 手势名中文化的批准方案**原样存档**，分四期实施 |
 | [`docs/RELEASE-CHECKLIST-0.2.0.md`](docs/RELEASE-CHECKLIST-0.2.0.md) | 0.2.0 发版的打勾清单：发版前回归测试 + 发版步骤（做完即归档） |
 | [`docs/INSTALL.md`](docs/INSTALL.md) | **安装说明**：Gatekeeper 放行、授权辅助功能、卸载、常见问题 |
 | [`CHANGELOG.md`](CHANGELOG.md) | 每个版本值得用户知道的变化 |

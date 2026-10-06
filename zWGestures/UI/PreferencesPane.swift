@@ -11,6 +11,8 @@ struct PreferencesPane: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                languageSection
+                Divider()
                 timeoutSection
                 Divider()
                 trailSection
@@ -31,11 +33,30 @@ struct PreferencesPane: View {
         return lower...upper
     }
 
+    // MARK: - 语言
+
+    private var languageSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            heading(L10n.text(.languageSection), detail: nil)
+            Picker("", selection: $model.language) {
+                ForEach(WGLanguagePreference.allCases, id: \.self) { preference in
+                    Text(preference.localizedName).tag(preference)
+                }
+            }
+            .labelsHidden()
+            .pickerStyle(.radioGroup)
+            Text(L10n.text(.prefsLanguageHelp))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
     // MARK: - 手感
 
     private var timeoutSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            heading("手势起始超时", detail: "按住触发键后多久之内开始移动才算画手势")
+            heading(L10n.text(.prefsStartDragTimeout), detail: L10n.text(.prefsTimeoutDetail))
             HStack(spacing: 12) {
                 Slider(
                     value: Binding(
@@ -46,14 +67,11 @@ struct PreferencesPane: View {
                     step: 10
                 )
                 .frame(maxWidth: 320)
-                Text("\(model.startDragTimeout) 毫秒")
+                Text(L10n.format(.prefsMillisecondsFormat, model.startDragTimeout))
                     .font(.callout.monospacedDigit())
                     .frame(width: 90, alignment: .leading)
             }
-            Text("""
-                超过这个时间还没有移动，就当作普通点击 —— 右键菜单照常弹出。\
-                数值大：更容易画出手势，但点菜单略慢；数值小：点菜单更快，但起手要更干脆。
-                """)
+            Text(L10n.text(.prefsTimeoutHelp))
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -64,34 +82,34 @@ struct PreferencesPane: View {
 
     private var trailSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            heading("轨迹与手势名", detail: "画手势时的屏幕提示")
+            heading(L10n.text(.prefsTrailSection), detail: L10n.text(.prefsTrailSectionDetail))
 
             HStack(spacing: 24) {
-                Toggle("显示轨迹", isOn: $model.showPath)
-                Toggle("显示手势名", isOn: $model.showGestureName)
+                Toggle(L10n.text(.prefsShowTrail), isOn: $model.showPath)
+                Toggle(L10n.text(.prefsShowGestureName), isOn: $model.showGestureName)
             }
 
             HStack(spacing: 20) {
-                colorWell("轨迹（未识别）", value: Binding(
+                colorWell(L10n.text(.prefsTrailNormal), value: Binding(
                     get: { model.pathColorNormal.swiftUIColor },
                     set: { model.pathColorNormal = WGColor($0) }
                 ))
-                colorWell("轨迹（已识别）", value: Binding(
+                colorWell(L10n.text(.prefsTrailRecognized), value: Binding(
                     get: { model.pathColorRecognized.swiftUIColor },
                     set: { model.pathColorRecognized = WGColor($0) }
                 ))
-                colorWell("手势名（常态）", value: Binding(
+                colorWell(L10n.text(.prefsLabelNormal), value: Binding(
                     get: { model.labelColorNormal.swiftUIColor },
                     set: { model.labelColorNormal = WGColor($0) }
                 ))
-                colorWell("手势名（已执行）", value: Binding(
+                colorWell(L10n.text(.prefsLabelExecuted), value: Binding(
                     get: { model.labelColorExecuted.swiftUIColor },
                     set: { model.labelColorExecuted = WGColor($0) }
                 ))
             }
 
             HStack(spacing: 12) {
-                Text("轨迹线宽")
+                Text(L10n.text(.prefsTrailLineWidth))
                     .frame(width: 70, alignment: .leading)
                 Slider(
                     value: Binding(
@@ -108,7 +126,7 @@ struct PreferencesPane: View {
             }
 
             HStack(spacing: 12) {
-                Text("手势名位置")
+                Text(L10n.text(.prefsGestureNamePosition))
                     .frame(width: 70, alignment: .leading)
                 Slider(value: $model.gesturePos, in: PreferencesModel.gesturePositionRange)
                     .frame(maxWidth: 260)
@@ -116,7 +134,7 @@ struct PreferencesPane: View {
                     .font(.callout.monospacedDigit())
                     .frame(width: 60, alignment: .leading)
             }
-            Text("手势名位置：0 在最上面，1 在最下面（按屏幕高度比例）。")
+            Text(L10n.text(.prefsGestureNamePositionHelp))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -126,7 +144,7 @@ struct PreferencesPane: View {
 
     private var targetSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            heading("按哪个窗口选手势集", detail: "决定「按应用切换手势集」用哪个应用")
+            heading(L10n.text(.prefsTargetModeSection), detail: L10n.text(.prefsTargetModeDetail))
             Picker("", selection: $model.targetMode) {
                 ForEach(WGTargetMode.allCases, id: \.self) { mode in
                     Text(mode.localizedName).tag(mode)
@@ -134,10 +152,7 @@ struct PreferencesPane: View {
             }
             .labelsHidden()
             .pickerStyle(.radioGroup)
-            Text("""
-                应用目标会**替换**全局手势集，不叠加 —— 例如给 Finder 配了手势集，\
-                在 Finder 里就只用 Finder 那一套。
-                """)
+            Text(L10n.text(.prefsTargetModeHelp))
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -148,14 +163,10 @@ struct PreferencesPane: View {
 
     private var notImplementedNote: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Label("原版里还有两项本版本没有实现", systemImage: "info.circle")
+            Label(L10n.text(.prefsNotImplementedNote), systemImage: "info.circle")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            Text("""
-                「显示起始超时指示器」和「显示状态图标」在代码里都还没有被使用，\
-                所以这里不提供开关 —— 提供了也是点了没反应。\
-                （状态图标尤其要谨慎：本应用只有菜单栏图标一个入口，隐藏了就回不来。）
-                """)
+            Text(L10n.text(.prefsNotImplementedHelp))
                 .font(.caption)
                 .foregroundStyle(.tertiary)
                 .fixedSize(horizontal: false, vertical: true)

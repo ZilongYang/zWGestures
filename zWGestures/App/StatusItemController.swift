@@ -98,19 +98,15 @@ final class StatusItemController: NSObject {
         pauseItem.target = self
         pauseItem.action = #selector(handlePauseResume)
 
-        importItem.title = "从 WGestures 导入配置…"
         importItem.target = self
         importItem.action = #selector(handleImport)
 
-        settingsItem.title = "打开设置…"
         settingsItem.target = self
         settingsItem.action = #selector(handleOpenSettings)
         settingsItem.keyEquivalent = ","
 
-        quickStartItem.title = "打开快速入门"
         quickStartItem.isEnabled = false
 
-        debugHUDItem.title = "显示调试面板"
         debugHUDItem.target = self
         debugHUDItem.action = #selector(handleToggleDebugHUD)
 
@@ -120,11 +116,9 @@ final class StatusItemController: NSObject {
         permissionItem.target = self
         permissionItem.action = #selector(handlePermissionItem)
 
-        aboutItem.title = "关于 zWGestures"
         aboutItem.target = self
         aboutItem.action = #selector(handleAbout)
 
-        quitItem.title = "退出 zWGestures"
         quitItem.target = self
         quitItem.action = #selector(handleQuit)
         quitItem.keyEquivalent = "q"
@@ -145,23 +139,40 @@ final class StatusItemController: NSObject {
         menu.addItem(quitItem)
     }
 
+    /// 菜单里那些「静态」标题。
+    ///
+    /// 必须每次刷新都重设：语言可以在设置界面里改，而 `configureMenu()` 只在初始化时跑一次 ——
+    /// 写在那边就会出现「切了语言但菜单还是旧语言」。
+    private func applyLocalizedTitles() {
+        importItem.title = L10n.text(.menuImportFromWGestures)
+        settingsItem.title = L10n.text(.menuOpenSettings)
+        quickStartItem.title = L10n.text(.menuOpenQuickStart)
+        debugHUDItem.title = L10n.text(.menuShowDebugHUD)
+        aboutItem.title = L10n.text(.menuAbout)
+        quitItem.title = L10n.text(.menuQuit)
+    }
+
     func refresh() {
+        applyLocalizedTitles()
         configItem.title = config.status.localizedText
 
         if engine.isRunning {
-            engineItem.title = "手势引擎：运行中"
-            pauseItem.title = "暂停手势引擎"
+            engineItem.title = L10n.text(.menuEngineRunning)
+            pauseItem.title = L10n.text(.menuEnginePause)
             pauseItem.isEnabled = true
         } else if !engine.isPermitted {
             engineItem.title = switch engine.grantState {
-            case .lostAfterUpdate: "手势引擎：授权已失效（需重新授权）"
-            default: "手势引擎：等待辅助功能授权"
+            case .lostAfterUpdate: L10n.text(.menuEnginePermissionLost)
+            default: L10n.text(.menuEngineWaitingPermission)
             }
-            pauseItem.title = "手势引擎未运行"
+            pauseItem.title = L10n.text(.menuEngineNotRunning)
             pauseItem.isEnabled = false
         } else {
-            engineItem.title = "手势引擎：\(engine.lastFailureReason ?? "已暂停")"
-            pauseItem.title = "继续手势引擎"
+            engineItem.title = L10n.format(
+                .menuEngineStatusFormat,
+                engine.lastFailureReason ?? L10n.text(.menuEnginePausedByUser)
+            )
+            pauseItem.title = L10n.text(.menuEngineResume)
             pauseItem.isEnabled = true
         }
 
@@ -171,20 +182,20 @@ final class StatusItemController: NSObject {
         // mechanism matters — the LaunchAgent fallback does not appear in System Settings.
         let loginStatus = loginItem.status
         loginItemToggle.title = loginStatus.isOn
-            ? "开机自动启动：已开启（\(loginItem.mechanism.localizedName)）"
+            ? L10n.format(.menuLoginItemOnFormat, loginItem.mechanism.localizedName)
             : loginStatus.localizedText
         loginItemToggle.state = loginStatus.isOn ? .on : .off
         loginItemToggle.toolTip = Bundle.main.bundlePath
 
         permissionItem.title = switch engine.grantState {
-        case .granted: "辅助功能权限：已授权"
-        case .lostAfterUpdate: "辅助功能权限：已失效（点击重新授权）"
-        case .notGrantedYet: "辅助功能权限：未授权（点击前往授权）"
+        case .granted: L10n.text(.menuPermissionGranted)
+        case .lostAfterUpdate: L10n.text(.menuPermissionLost)
+        case .notGrantedYet: L10n.text(.menuPermissionMissing)
         }
     }
 
     @objc private func handlePauseResume() {
-        engine.isRunning ? engine.pause(reason: "用户从菜单暂停") : engine.resume()
+        engine.isRunning ? engine.pause(reason: L10n.text(.menuEnginePausedByUser)) : engine.resume()
         refresh()
     }
 
@@ -210,18 +221,13 @@ final class StatusItemController: NSObject {
         if let failure {
             NSApp.activate(ignoringOtherApps: true)
             let alert = NSAlert()
-            alert.messageText = wantEnabled ? "无法开启开机自启" : "无法关闭开机自启"
+            alert.messageText = wantEnabled
+                ? L10n.text(.menuCannotEnableLoginItem)
+                : L10n.text(.menuCannotDisableLoginItem)
             alert.alertStyle = .warning
-            alert.informativeText = """
-                \(failure)
-
-                当前应用路径：
-                \(Bundle.main.bundlePath)
-
-                登录项记录的是应用路径，请把 zWGestures.app 放到一个固定的位置\
-                （例如 /Applications），再重试。
-                """
-            alert.addButton(withTitle: "好")
+            alert.informativeText = "\(failure)\n\n"
+                + L10n.format(.menuLoginItemFailureHelpFormat, Bundle.main.bundlePath)
+            alert.addButton(withTitle: L10n.text(.menuOK))
             alert.runModal()
         } else if loginItem.status == .requiresApproval {
             // macOS 需要用户在「登录项」里手动放行，直接把面板打开。
@@ -258,9 +264,9 @@ final class StatusItemController: NSObject {
             .applicationName: "zWGestures",
             .applicationVersion: "\(Bundle.main.shortVersion) (\(Bundle.main.buildVersion))",
             .credits: NSAttributedString(
-                string: "原生的 Apple Silicon 鼠标手势工具\n"
-                    + "运行架构：\(BuildInfo.architecture)\n"
-                    + "急停快捷键：\(PanicShortcut.displayName)\n"
+                string: L10n.text(.aboutTagline) + "\n"
+                    + L10n.format(.aboutArchitectureFormat, BuildInfo.architecture) + "\n"
+                    + L10n.format(.aboutPanicShortcutFormat, PanicShortcut.displayName) + "\n"
                     + config.status.localizedText,
                 attributes: [.font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)]
             ),

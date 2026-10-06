@@ -17,11 +17,11 @@ final class ConfigController {
 
         var localizedText: String {
             switch self {
-            case .empty: "尚未导入配置"
-            case .loaded(let intents): "配置已载入（\(intents) 条手势）"
-            case .imported(let intents, let version): "已从 WGestures \(version) 导入 \(intents) 条手势"
-            case .seeded(let intents): "已载入内置默认手势（\(intents) 条）"
-            case .failed(let reason): "配置出错：\(reason)"
+            case .empty: L10n.text(.statusNotImported)
+            case .loaded(let intents): L10n.format(.statusLoadedFormat, intents)
+            case .imported(let intents, let version): L10n.format(.statusImportedFormat, version, intents)
+            case .seeded(let intents): L10n.format(.statusSeededFormat, intents)
+            case .failed(let reason): L10n.format(.statusErrorFormat, reason)
             }
         }
     }
@@ -87,8 +87,8 @@ final class ConfigController {
             seedFromFactoryDefaults(at: directory, loginItemWasEnabled: readLoginItem())
         case nil:
             status = .empty
-            warnings = ["既没有可用的配置，也没有内置默认手势包"]
-            Log.config.error("没有配置也没有内置默认手势包，手势集为空")
+            warnings = [L10n.text(.statusNoConfigReason)]
+            Log.config.error("\(L10n.text(.statusNoConfigReason), privacy: .public)")
         }
         onStateChange?()
     }
@@ -99,6 +99,7 @@ final class ConfigController {
             config = result.config
             warnings = result.warnings
             preferences = store.loadPreferences()
+            applyLanguage(from: preferences)
             status = .loaded(intents: intentCount)
         } catch {
             status = .failed(error.localizedDescription)
@@ -168,7 +169,19 @@ final class ConfigController {
     /// Takes over preferences that were edited in the settings window and already written to disk.
     func adopt(preferences newPreferences: WGPreferences) {
         preferences = newPreferences
+        applyLanguage(from: newPreferences)
         onStateChange?()
+    }
+
+    /// 把界面语言切到偏好设置要求的那一种。
+    ///
+    /// 每个会（重新）载入偏好的路径都要走这里：启动、导入、设置界面保存。语言是进程级状态，
+    /// 忘了调就会出现「改了语言但界面没变」。
+    private func applyLanguage(from preferences: WGPreferences) {
+        let resolved = WGLanguagePreference.resolve(preference: preferences.language)
+        guard L10n.language != resolved else { return }
+        L10n.setLanguage(resolved)
+        Log.config.notice("界面语言：\(resolved.rawValue, privacy: .public)")
     }
 
     /// Mirrors a preference that lives in the system (currently only the login item) back into
@@ -189,7 +202,7 @@ final class ConfigController {
         alert.messageText = status.localizedText
         alert.alertStyle = warnings.isEmpty ? .informational : .warning
         alert.informativeText = summaryBody
-        alert.addButton(withTitle: "好")
+        alert.addButton(withTitle: L10n.text(.menuOK))
         alert.runModal()
     }
 

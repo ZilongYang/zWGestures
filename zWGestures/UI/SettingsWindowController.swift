@@ -42,7 +42,7 @@ final class SettingsWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "zWGestures 设置"
+        window.title = L10n.text(.settingsWindowTitle)
         window.isReleasedWhenClosed = false
         window.contentView = NSHostingView(rootView: makePanel())
         window.center()

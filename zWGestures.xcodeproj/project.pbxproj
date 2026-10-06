@@ -24,6 +24,7 @@
 		49CAE6454474546D40CD74E1 /* EventTapController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3216492821234F47E042DD74 /* EventTapController.swift */; };
 		4AA1EB92D31866167A674BCA /* AppDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F467548A3AD0F152969DB2 /* AppDirectory.swift */; };
 		5633593749843878218A20A5 /* WGConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A64E5D44D16632374E7585 /* WGConfig.swift */; };
+		57314E56B7C588769963D7D1 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = A38CA6EDB26507227D534765 /* L10n.swift */; };
 		58FD4C71B2ABD3CB65755E7E /* WGCommandPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72CE5E7190D3810B837000B3 /* WGCommandPlanner.swift */; };
 		5A09BE81C4EBCBD5316C2CD5 /* CommandEditorModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82FE1ABE7E82BDBEFC20BF62 /* CommandEditorModel.swift */; };
 		5BC178E8C5BF03C819D95292 /* WGInputToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54FC8A50F77DDF46B3EC6C08 /* WGInputToken.swift */; };
@@ -125,6 +126,7 @@
 		91F75EFA3ED12D76C1FDEC55 /* CommandSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandSectionView.swift; sourceTree = "<group>"; };
 		92CBA6DC86C7A9DB15273C50 /* CommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandExecutor.swift; sourceTree = "<group>"; };
 		968EB5426BA84E62BE405BB8 /* ConfigBootstrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigBootstrapper.swift; sourceTree = "<group>"; };
+		A38CA6EDB26507227D534765 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		A81491D8DC7F824A57EA9A34 /* KeyEventPoster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEventPoster.swift; sourceTree = "<group>"; };
 		ABAA2D5526E8980C694B5548 /* ConfigStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigStore.swift; sourceTree = "<group>"; };
 		AC8DBAC8592F6FAEC6C1A76E /* WGPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGPreferences.swift; sourceTree = "<group>"; };
@@ -352,6 +354,14 @@
 			path = Overlay;
 			sourceTree = "<group>";
 		};
+		BF4263E3FE7A4FA9E0C09BE5 /* Localization */ = {
+			isa = PBXGroup;
+			children = (
+				A38CA6EDB26507227D534765 /* L10n.swift */,
+			);
+			path = Localization;
+			sourceTree = "<group>";
+		};
 		C5BAE327C43C1BFFFE722BBE /* Recog */ = {
 			isa = PBXGroup;
 			children = (
@@ -399,6 +409,7 @@
 				782AF96029B0E18286914E04 /* Action */,
 				77DF59B90DADCDB32789A412 /* Config */,
 				6F63765F53F4AF7D32167E14 /* Input */,
+				BF4263E3FE7A4FA9E0C09BE5 /* Localization */,
 				87D8FB3F2185EF3110FAD515 /* Overlay */,
 				5E460AE5900A25361D6B25CE /* Recog */,
 				B858D19D5E6D9B014D6FD52E /* Settings */,
@@ -507,6 +518,7 @@
 				960C0E6B6A845CA2A6D7634C /* InputEngine.swift in Sources */,
 				0396B8E74274465ED68367FC /* KeyCaptureView.swift in Sources */,
 				D487BF881310D3FF47DB3C22 /* KeyEventPoster.swift in Sources */,
+				57314E56B7C588769963D7D1 /* L10n.swift in Sources */,
 				6DD1D1C0ACAB1AC9BE244DAE /* LaunchAgent.swift in Sources */,
 				FDF5F36C475F910B6B15D0C9 /* LegacyConfigImporter.swift in Sources */,
 				75A267C79DF6EBC5ADFC54D0 /* Log.swift in Sources */,

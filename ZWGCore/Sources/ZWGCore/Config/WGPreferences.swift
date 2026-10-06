@@ -9,8 +9,8 @@ public enum WGTargetMode: String, Codable, Sendable, CaseIterable {
 
     public var localizedName: String {
         switch self {
-        case .focused: "活动的应用程序和窗口"
-        case .underCursor: "鼠标指针下方的应用程序和窗口"
+        case .focused: L10n.text(.targetModeFocused)
+        case .underCursor: L10n.text(.targetModeUnderCursor)
         }
     }
 }
@@ -36,6 +36,10 @@ public struct WGPreferences: Codable, Equatable, Sendable {
     /// Vertical position of the gesture-name label, as a fraction of the screen height.
     public var gesturePos: Double
     public var skipVersion: String?
+    /// 界面语言。**本项目的扩展键**：原版没有这一项，缺键即视为 `system`（跟随系统），
+    /// 而且**只在非默认时才写出** —— `ConfigTests` 有一条「真实配置重新编码后与原文件逐键一致」
+    /// 的守卫，对默认值也写键会立刻让它失败（与 `WGIntent.enabled` 同一条硬约束）。
+    public var language: WGLanguagePreference
 
     public init(
         autoStart: Bool = true,
@@ -51,7 +55,8 @@ public struct WGPreferences: Codable, Equatable, Sendable {
         targetMode: WGTargetMode = .focused,
         pathLineWidth: Double = 2.25,
         gesturePos: Double = 0.25,
-        skipVersion: String? = nil
+        skipVersion: String? = nil,
+        language: WGLanguagePreference = .system
     ) {
         self.autoStart = autoStart
         self.startDragTimeout = startDragTimeout
@@ -67,6 +72,7 @@ public struct WGPreferences: Codable, Equatable, Sendable {
         self.pathLineWidth = pathLineWidth
         self.gesturePos = gesturePos
         self.skipVersion = skipVersion
+        self.language = language
     }
 
     public enum CodingKeys: String, CodingKey {
@@ -84,6 +90,7 @@ public struct WGPreferences: Codable, Equatable, Sendable {
         case pathLineWidth = "PathLineWidth"
         case gesturePos = "GesturePos"
         case skipVersion = "SkipVersion"
+        case language = "Language"
     }
 
     public init(from decoder: Decoder) throws {
@@ -106,6 +113,7 @@ public struct WGPreferences: Codable, Equatable, Sendable {
         pathLineWidth = try container.decodeIfPresent(Double.self, forKey: .pathLineWidth) ?? defaults.pathLineWidth
         gesturePos = try container.decodeIfPresent(Double.self, forKey: .gesturePos) ?? defaults.gesturePos
         skipVersion = try container.decodeIfPresent(String.self, forKey: .skipVersion)
+        language = try container.decodeIfPresent(WGLanguagePreference.self, forKey: .language) ?? defaults.language
     }
 
     /// Written explicitly rather than synthesised, because the original always emits every
@@ -130,6 +138,10 @@ public struct WGPreferences: Codable, Equatable, Sendable {
             try container.encode(skipVersion, forKey: .skipVersion)
         } else {
             try container.encodeNil(forKey: .skipVersion)
+        }
+        // 扩展键：只在非默认时写出，保证原版文件重新编码后仍然逐键一致（同 `WGIntent.enabled`）。
+        if language != .system {
+            try container.encode(language, forKey: .language)
         }
     }
 }

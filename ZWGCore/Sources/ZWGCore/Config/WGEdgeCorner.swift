@@ -52,15 +52,15 @@ public struct WGEdgeCornerMask: OptionSet, Sendable, Hashable {
 
     public var localizedName: String {
         switch self {
-        case .top: "屏幕上边缘"
-        case .bottom: "屏幕下边缘"
-        case .left: "屏幕左边缘"
-        case .right: "屏幕右边缘"
-        case [.top, .left]: "屏幕左上角"
-        case [.top, .right]: "屏幕右上角"
-        case [.bottom, .left]: "屏幕左下角"
-        case [.bottom, .right]: "屏幕右下角"
-        default: "未知边角(\(rawValue))"
+        case .top: L10n.text(.edgeTop)
+        case .bottom: L10n.text(.edgeBottom)
+        case .left: L10n.text(.edgeLeft)
+        case .right: L10n.text(.edgeRight)
+        case [.top, .left]: L10n.text(.edgeTopLeft)
+        case [.top, .right]: L10n.text(.edgeTopRight)
+        case [.bottom, .left]: L10n.text(.edgeBottomLeft)
+        case [.bottom, .right]: L10n.text(.edgeBottomRight)
+        default: L10n.format(.edgeUnknownFormat, rawValue)
         }
     }
 

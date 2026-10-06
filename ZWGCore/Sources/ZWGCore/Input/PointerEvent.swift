@@ -23,11 +23,11 @@ public enum MouseButton: Int, Sendable, CaseIterable, Codable {
 
     public var localizedName: String {
         switch self {
-        case .left: "鼠标左键"
-        case .right: "鼠标右键"
-        case .center: "鼠标中键"
-        case .side1: "鼠标侧键 1"
-        case .side2: "鼠标侧键 2"
+        case .left: L10n.text(.displayMouseLeft)
+        case .right: L10n.text(.displayMouseRight)
+        case .center: L10n.text(.displayMouseCenter)
+        case .side1: L10n.text(.displayMouseSide1)
+        case .side2: L10n.text(.displayMouseSide2)
         }
     }
 }

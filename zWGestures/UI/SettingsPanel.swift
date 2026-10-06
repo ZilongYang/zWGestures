@@ -28,8 +28,8 @@ struct SettingsPanel: View {
         var id: String { rawValue }
         var title: String {
             switch self {
-            case .gestures: "手势集"
-            case .preferences: "偏好设置"
+            case .gestures: L10n.text(.settingsTabTargets)
+            case .preferences: L10n.text(.settingsTabPreferences)
             }
         }
     }
@@ -123,7 +123,7 @@ struct SettingsPanel: View {
                 .font(.title2)
                 .foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: 1) {
-                Text("zWGestures 设置")
+                Text(L10n.text(.settingsWindowTitle))
                     .font(.headline)
                 Text(subtitle)
                     .font(.caption)
@@ -140,11 +140,11 @@ struct SettingsPanel: View {
 
             Spacer()
             if hasPendingEdits {
-                Label("有未保存的改动", systemImage: "circle.fill")
+                Label(L10n.text(.settingsUnsaved), systemImage: "circle.fill")
                     .font(.caption)
                     .foregroundStyle(.orange)
             } else if justSaved {
-                Label("已保存到 config.json", systemImage: "checkmark.circle.fill")
+                Label(L10n.format(.settingsSavedToFormat, "config.json"), systemImage: "checkmark.circle.fill")
                     .font(.caption)
                     .foregroundStyle(.green)
             }
@@ -156,9 +156,9 @@ struct SettingsPanel: View {
     private var subtitle: String {
         switch section {
         case .gestures:
-            return "共 \(model.targets.count) 个手势集 / \(model.totalIntentCount) 条手势"
+            return L10n.format(.settingsCountsFormat, model.targets.count, model.totalIntentCount)
         case .preferences:
-            return "起始超时、轨迹外观、按哪个窗口选手势集"
+            return L10n.text(.settingsPreferencesSubtitle)
         }
     }
 
@@ -186,12 +186,12 @@ struct SettingsPanel: View {
     private var sidebar: some View {
         VStack(spacing: 0) {
             List(selection: $model.selection) {
-                Section("手势集") {
+                Section(L10n.text(.settingsTabTargets)) {
                     ForEach(model.targets) { target in
                         sidebarRow(target)
                             .tag(selection(for: target))
                             .contextMenu {
-                                Button("移除此手势集…") {
+                                Button(L10n.text(.settingsRemoveTarget)) {
                                     onRemoveTarget(selection(for: target))
                                 }
                                 .disabled(!model.canRemoveTarget(selection(for: target)))
@@ -204,14 +204,14 @@ struct SettingsPanel: View {
             Divider()
             HStack(spacing: 2) {
                 Menu {
-                    Button("从正在运行的应用添加…") { onAddAppTarget(false) }
-                    Button("选择应用文件…") { onAddAppTarget(true) }
+                    Button(L10n.text(.settingsAddRunningApp)) { onAddAppTarget(false) }
+                    Button(L10n.text(.settingsAddAppFile)) { onAddAppTarget(true) }
                 } label: {
                     Image(systemName: "plus")
                 }
                 .menuStyle(.borderlessButton)
                 .frame(width: 26)
-                .help("给某个应用单独配一套手势")
+                .help(L10n.text(.settingsAddAppHelp))
 
                 Button {
                     onRemoveTarget(model.selection)
@@ -220,7 +220,7 @@ struct SettingsPanel: View {
                 }
                 .buttonStyle(.borderless)
                 .disabled(!model.canRemoveTarget(model.selection))
-                .help("移除选中的手势集（全局手势集不能移除）")
+                .help(L10n.text(.settingsRemoveTargetHelp))
 
                 Spacer()
             }
@@ -254,11 +254,11 @@ struct SettingsPanel: View {
         Button {
             onNewGesture()
         } label: {
-            Label("新建手势", systemImage: "plus")
+            Label(L10n.text(.settingsNewGesture), systemImage: "plus")
         }
         .buttonStyle(.borderless)
         .disabled(!model.hasValidSelection)
-        .help("在当前手势集里新增一条手势：先画形状，再选动作")
+        .help(L10n.text(.settingsNewGestureHelp))
     }
 
     private func symbol(for target: WGTarget) -> String {
@@ -273,14 +273,14 @@ struct SettingsPanel: View {
     private func caption(for target: WGTarget) -> String? {
         switch target.kind {
         case .general:
-            "默认手势集"
+            L10n.text(.settingsDefaultTarget)
         case .app:
             // The replacement semantics the user confirmed against the original UI.
-            "替换全局手势"
+            L10n.text(.settingsReplacesGeneral)
         case .desktop:
-            "桌面"
+            L10n.text(.settingsDesktopTarget)
         case .other:
-            "分组"
+            L10n.text(.settingsGroupsTarget)
         }
     }
 
@@ -302,7 +302,7 @@ struct SettingsPanel: View {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
                 TextField(
-                    "搜索手势名称、方向或命令",
+                    L10n.text(.settingsSearchPlaceholder),
                     text: Binding(
                         get: { model.query },
                         set: { model.setQuery($0) }
@@ -317,7 +317,7 @@ struct SettingsPanel: View {
                             .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
-                    .help("清除搜索")
+                    .help(L10n.text(.settingsClearSearch))
                 }
                 Divider().frame(height: 16)
                 addGestureButton
@@ -327,13 +327,13 @@ struct SettingsPanel: View {
 
             if model.hiddenUnsupportedCount > 0 || model.showsUnsupportedGestures {
                 HStack(spacing: 6) {
-                    Toggle("显示本版本暂不支持的手势", isOn: $model.showsUnsupportedGestures)
+                    Toggle(L10n.text(.settingsShowUnsupported), isOn: $model.showsUnsupportedGestures)
                         .toggleStyle(.checkbox)
                         .font(.caption)
                         .help("""
                             边角/滚轮触发还没实现，这些手势画了也不会有反应。                            它们完整保留在配置里，实现之后即可直接用。
                             """)
-                    Text("（当前隐藏 \(model.hiddenUnsupportedCount) 条：边角 / 滚轮触发）")
+                    Text(L10n.format(.settingsHiddenUnsupportedFormat, model.hiddenUnsupportedCount))
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                     Spacer()
@@ -344,7 +344,7 @@ struct SettingsPanel: View {
 
             if model.canToggleInheritance {
                 HStack(spacing: 6) {
-                    Toggle("继承全局手势", isOn: Binding(
+                    Toggle(L10n.text(.settingsInheritsGeneral), isOn: Binding(
                         get: { model.selectedTargetInheritsGlobal },
                         set: { model.setInheritsGlobal($0) }
                     ))
@@ -355,7 +355,7 @@ struct SettingsPanel: View {
                         关闭：这个应用只用手势集里的这几条，全局手势在这里全部失效。
                         """)
                     if model.inheritedRowCount > 0 {
-                        Text("（下方 \(model.inheritedRowCount) 条灰色的是继承来的）")
+                        Text(L10n.format(.settingsInheritedNoteFormat, model.inheritedRowCount))
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
@@ -429,7 +429,7 @@ struct SettingsPanel: View {
             Text(emptyStateText)
                 .foregroundStyle(.secondary)
             if !model.query.isEmpty, model.hiddenByFilterCount > 0 {
-                Button("清除搜索") { model.setQuery("") }
+                Button(L10n.text(.settingsClearSearch)) { model.setQuery("") }
                     .buttonStyle(.link)
             }
             Spacer()
@@ -439,9 +439,9 @@ struct SettingsPanel: View {
 
     private var emptyStateText: String {
         if !model.query.isEmpty {
-            return "没有匹配的手势"
+            return L10n.text(.settingsNoMatches)
         }
-        return model.hasValidSelection ? "这个手势集还没有手势" : "请先在左侧选择一个手势集"
+        return model.hasValidSelection ? L10n.text(.settingsEmptyTarget) : L10n.text(.settingsPickTarget)
     }
 
     // MARK: - Footer
@@ -458,17 +458,17 @@ struct SettingsPanel: View {
                 Image(systemName: "folder")
             }
             .buttonStyle(.borderless)
-            .help("打开配置文件夹（里面有 Backups 子目录，保存前的旧版本都在那里）")
-            Button("放弃改动") {
+            .help(L10n.text(.settingsOpenConfigFolder))
+            Button(L10n.text(.settingsDiscard)) {
                 model.revert()
                 preferences.revert()
                 onRevert()
             }
             .disabled(!hasPendingEdits)
-            Button("保存") { save() }
+            Button(L10n.text(.settingsSave)) { save() }
                 .keyboardShortcut("s", modifiers: .command)
                 .disabled(!hasPendingEdits || (section == .gestures && !model.hasValidSelection))
-                .help("写入 config.json / prefs.json，并让运行中的引擎立即生效")
+                .help(L10n.text(.settingsSaveHelp))
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
@@ -477,25 +477,25 @@ struct SettingsPanel: View {
     private var footerText: String {
         var parts: [String] = []
         if let name = model.selectedTargetName {
-            parts.append("当前：\(name)")
+            parts.append(L10n.format(.settingsCurrentFormat, name))
         }
-        parts.append("显示 \(model.rows.count) 条")
+        parts.append(L10n.format(.settingsShownFormat, model.rows.count))
         let hidden = model.hiddenByFilterCount
         if hidden > 0 {
-            parts.append("被搜索隐藏 \(hidden) 条")
+            parts.append(L10n.format(.settingsHiddenBySearchFormat, hidden))
         }
         if model.inheritedRowCount > 0 {
-            parts.append("继承全局 \(model.inheritedRowCount) 条")
+            parts.append(L10n.format(.settingsInheritedCountFormat, model.inheritedRowCount))
         }
         if model.disabledCount > 0 {
-            parts.append("其中已禁用 \(model.disabledCount) 条")
+            parts.append(L10n.format(.settingsDisabledCountFormat, model.disabledCount))
         }
-        parts.append(canReorder ? "顺序＝优先级（靠前的优先），可拖拽调整" : "清空搜索后可拖拽调整顺序")
-        parts.append("构建 \(BuildInfo.buildStamp)")
+        parts.append(canReorder ? L10n.text(.settingsOrderNote) : L10n.text(.settingsOrderNeedsNoSearch))
+        parts.append(L10n.format(.settingsBuildFormat, BuildInfo.buildStamp))
         // 用 `~` 而不是绝对路径：更短、更友好，而且不必把用户名显示在界面上
         // （截图发出去时也不会带出去）。
         let configPath = (ConfigStore.defaultDirectory.path as NSString).abbreviatingWithTildeInPath
-        parts.append("存于 \(configPath)")
+        parts.append(L10n.format(.settingsStoredAtFormat, configPath))
         return parts.joined(separator: " · ")
     }
 }
@@ -567,30 +567,30 @@ private struct GestureRowView: View {
             .contextMenu {
                 if row.isInherited {
                     // 继承来的手势属于全局，这里只能跳过去改，避免出现「改了却不是改这条」的错觉。
-                    Button("跳到「全局」修改这条") { onShowSource() }
+                    Button(L10n.text(.settingsJumpToGeneral)) { onShowSource() }
                 } else {
-                    Button("编辑手势…") { onEditGesture() }
-                    Button("复制手势") { onDuplicate() }
-                        .help("复制一份放在这条后面，再改形状或动作")
+                    Button(L10n.text(.settingsEditGesture)) { onEditGesture() }
+                    Button(L10n.text(.settingsDuplicateGesture)) { onDuplicate() }
+                        .help(L10n.text(.settingsDuplicateGestureHelp))
                     Divider()
                     if row.isEnabled {
-                        Button("禁用这条手势") { onToggleEnabled(false) }
+                        Button(L10n.text(.settingsDisableGesture)) { onToggleEnabled(false) }
                     } else {
-                        Button("启用这条手势") { onToggleEnabled(true) }
+                        Button(L10n.text(.settingsEnableGesture)) { onToggleEnabled(true) }
                     }
                     Divider()
                     // 顺序就是优先级：同形状的两条手势，靠前的生效。
-                    Button("上移（优先级更高）") { onMove(-1) }
+                    Button(L10n.text(.settingsMoveUp)) { onMove(-1) }
                         .disabled(!canMoveEarlier)
-                    Button("下移（优先级更低）") { onMove(1) }
+                    Button(L10n.text(.settingsMoveDown)) { onMove(1) }
                         .disabled(!canMoveLater)
-                    Button("移到最前（最高优先级）") { onMoveToTop() }
+                    Button(L10n.text(.settingsMoveTop)) { onMoveToTop() }
                         .disabled(!canMoveToTop)
-                    Button("移到最后（最低优先级）") { onMoveToBottom() }
+                    Button(L10n.text(.settingsMoveBottom)) { onMoveToBottom() }
                         .disabled(!canMoveToBottom)
                     Divider()
-                    Button("重命名…") { onEdit() }
-                    Button("删除…", role: .destructive) { onDelete() }
+                    Button(L10n.text(.settingsRename)) { onEdit() }
+                    Button(L10n.text(.settingsDelete), role: .destructive) { onDelete() }
                 }
             }
     }
@@ -612,15 +612,15 @@ private struct GestureRowView: View {
                 ))
                 .labelsHidden()
                 .toggleStyle(.checkbox)
-                .help(row.isEnabled ? "已启用：画这个形状会执行命令。点一下禁用它。" : "已禁用：画这个形状不会有任何反应。点一下启用。")
+                .help(row.isEnabled ? L10n.text(.settingsEnabledHelp) : L10n.text(.settingsDisabledHelp))
             }
 
             Image(systemName: "line.3.horizontal")
                 .font(.caption)
                 .foregroundStyle(canReorder && !row.isInherited ? .tertiary : .quaternary)
                 .help(canReorder
-                    ? "按住拖动可以调整顺序；顺序靠前的优先（两条手势形状相同时由它决定谁生效）"
-                    : "清空搜索后才能调整顺序")
+                    ? L10n.text(.settingsDragOrderHelp)
+                    : L10n.text(.settingsOrderNeedsNoSearch))
 
             StrokeShapeView(points: row.points)
                 .frame(width: 44, height: 44)
@@ -634,19 +634,19 @@ private struct GestureRowView: View {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.caption)
                             .foregroundStyle(.orange)
-                            .help("形状与「\(twin)」相同：两条抢同一个输入，列表靠前的优先。想让你这条生效，右键 →「移到最前」或「上移」。")
+                            .help(L10n.format(.settingsTwinConflictFormat, twin))
                     }
                     if row.isInherited {
-                        Button("继承自全局") { onShowSource() }
+                        Button(L10n.text(.settingsInheritedRow)) { onShowSource() }
                             .buttonStyle(.plain)
                             .font(.caption2)
                             .padding(.horizontal, 5)
                             .padding(.vertical, 1)
                             .background(.quaternary, in: Capsule())
-                            .help("这条手势属于「全局」手势集，在这里只读。点一下跳到全局去修改。")
+                            .help(L10n.text(.settingsInheritedRowHelp))
                     }
                     if row.executeOnRecognize {
-                        Text("识别即执行")
+                        Text(L10n.text(.settingsRunOnRecognise))
                             .font(.caption2)
                             .padding(.horizontal, 5)
                             .padding(.vertical, 1)
@@ -681,7 +681,7 @@ private struct GestureRowView: View {
                         .foregroundStyle(isHovering ? Color.accentColor : .secondary)
                 }
                 .buttonStyle(.borderless)
-                .help("编辑手势形状与动作（双击这一行也可以）")
+                .help(L10n.text(.settingsEditRowHelp))
             }
         }
         .padding(.horizontal, 12)

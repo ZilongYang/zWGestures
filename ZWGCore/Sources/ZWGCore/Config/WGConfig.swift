@@ -530,14 +530,14 @@ public enum WGSystemFunction: Int, CaseIterable, Sendable {
 
     public var localizedName: String {
         switch self {
-        case .brightnessDown: "降低亮度"
-        case .brightnessUp: "增加亮度"
-        case .previousTrack: "上一曲"
-        case .playPause: "播放/暂停"
-        case .nextTrack: "下一曲"
-        case .mute: "静音"
-        case .volumeDown: "降低音量"
-        case .volumeUp: "增加音量"
+        case .brightnessDown: L10n.text(.systemFunctionBrightnessDown)
+        case .brightnessUp: L10n.text(.systemFunctionBrightnessUp)
+        case .previousTrack: L10n.text(.systemFunctionPreviousTrack)
+        case .playPause: L10n.text(.systemFunctionPlayPause)
+        case .nextTrack: L10n.text(.systemFunctionNextTrack)
+        case .mute: L10n.text(.systemFunctionMute)
+        case .volumeDown: L10n.text(.systemFunctionVolumeDown)
+        case .volumeUp: L10n.text(.systemFunctionVolumeUp)
         }
     }
 
@@ -625,20 +625,24 @@ extension WGStrokeStep {
     /// gestures a user actually recognises.
     public var directionDescription: String {
         let path = drawingOrderPoints
-        guard path.count >= 2 else { return "（单点）" }
+        guard path.count >= 2 else { return L10n.text(.displaySinglePoint) }
 
         var parts: [String] = []
         for (from, to) in zip(path, path.dropFirst()) {
             let dx = to.x - from.x
             let dy = to.y - from.y
-            let horizontal = dx > 0 ? "右" : (dx < 0 ? "左" : "")
-            let vertical = dy > 0 ? "下" : (dy < 0 ? "上" : "")
+            let horizontal = dx > 0
+                ? L10n.text(.displayDirectionRight)
+                : (dx < 0 ? L10n.text(.displayDirectionLeft) : "")
+            let vertical = dy > 0
+                ? L10n.text(.displayDirectionDown)
+                : (dy < 0 ? L10n.text(.displayDirectionUp) : "")
             let piece = vertical + horizontal
             guard !piece.isEmpty else { continue }
             if parts.last != piece { parts.append(piece) }
         }
 
         let isClosed = path.count > 2 && path.first == path.last
-        return parts.joined(separator: "→") + (isClosed ? "（闭环）" : "")
+        return parts.joined(separator: "→") + (isClosed ? L10n.text(.displayClosedLoop) : "")
     }
 }
