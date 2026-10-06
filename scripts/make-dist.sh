@@ -97,8 +97,43 @@ built=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Con
 [ "$built" = "$VERSION" ] || fail "产物版本 $built 与 project.yml 的 $VERSION 不一致"
 ok "版本 $built"
 
-[ -f "$APP/Contents/Resources/Defaults/gestures.json" ] || fail "产物里没有出厂默认手势包"
-ok "出厂默认手势包在"
+# 2026-10-06 起出厂默认手势备两份（中文名 / 英文名），按界面语言播种：两份都要在，
+# 而且译名表也要在 —— 「把英文手势名改为中文」靠它。
+for pack in zh-Hans en; do
+  [ -f "$APP/Contents/Resources/Defaults/$pack/gestures.json" ] \
+    || fail "产物里没有 $pack 的出厂默认手势包"
+done
+[ -f "$APP/Contents/Resources/Defaults/name-translations.json" ] \
+  || fail "产物里没有手势名译名表（Defaults/name-translations.json）"
+ok "两份出厂默认手势包与译名表都在"
+
+# 两份包除 Name 外必须逐键一致，否则中英文用户的手势行为会不一样。
+# 这里只看条数与「把名字抹掉后是否完全相同」两件事，够挡住「只改了名字」之外的任何漂移。
+python3 - "$APP/Contents/Resources/Defaults" <<'PY_CHECK' || fail "两份默认包的笔画或命令不一致"
+import json, sys, pathlib
+root = pathlib.Path(sys.argv[1])
+def intents(lang):
+    data = json.loads((root / lang / "gestures.json").read_text())
+    out = []
+    def walk(target):
+        for intent in target.get("Intents", []):
+            copy = dict(intent)
+            copy.pop("Name", None)
+            out.append(copy)
+    general = data.get("General")
+    if isinstance(general, dict):
+        walk(general)
+    for key in ("Apps", "Specials"):
+        for target in data.get(key) or []:
+            walk(target)
+    for group in data.get("Groups") or []:
+        for target in group.get("Targets") or []:
+            walk(target)
+    return out
+zh, en = intents("zh-Hans"), intents("en")
+sys.exit(0 if zh == en and len(zh) > 0 else 1)
+PY_CHECK
+ok "两份默认包除手势名外逐键一致"
 
 if codesign -d --entitlements - "$APP" 2>/dev/null | grep -q "get-task-allow"; then
   fail "产物带着 com.apple.security.get-task-allow（调试用 entitlement），不该分发"
