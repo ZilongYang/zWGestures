@@ -120,6 +120,10 @@ run-debug: stop build
 ## the bundle, and rebuilding the bundle from scratch is the prime suspect for the `.notFound`
 ## status recorded in docs/ROADMAP.md §10.
 install: stop build
+	@# 先删干净再复制：`ditto` 是**合并**，上一版留在 bundle 里的旧资源会一直跟着 ——
+	@# 2026-10-06 真踩到：/Applications 里同时存在新旧两套默认手势包布局（旧版的
+	@# `Defaults/gestures.json` 与新的 `Defaults/{zh-Hans,en}/`），测试时容易被这些陈年文件误导。
+	rm -rf "$(INSTALLED_APP)"
 	ditto "$(APP)" "$(INSTALLED_APP)"
 	@# 目录 mtime 必须刷新：ditto 会保留构建产物里的老时间戳，于是 app 目录看起来「没变过」，
 	@# 靠 bundle 日期判断失效的图标缓存（Finder / 系统设置）就不会更新 —— 图片换了却仍显示旧图标。
