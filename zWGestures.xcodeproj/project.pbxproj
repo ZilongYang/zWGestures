@@ -32,6 +32,7 @@
 		5F271E0433B7609765D9A526 /* WGPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8DBAC8592F6FAEC6C1A76E /* WGPreferences.swift */; };
 		611034544BEA508CCE4CEA83 /* ConfigController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E642F91C963A1195967A57C /* ConfigController.swift */; };
 		62FA2C071BB766A1EF54510E /* CommandSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91F75EFA3ED12D76C1FDEC55 /* CommandSectionView.swift */; };
+		652D1D42C79BF864399513E3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = FB5E8F67BB7139EE8194D6FE /* InfoPlist.strings */; };
 		6DD1D1C0ACAB1AC9BE244DAE /* LaunchAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E2F92B574B900E37E509CAF /* LaunchAgent.swift */; };
 		6EEAAB5A5C3825293D9C469C /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E83B1397FEFFA16BBEED4800 /* StatusItemController.swift */; };
 		6FEBE184B064CDA902641F36 /* StrokeOverlayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6637F3B28D985F981FE71EC7 /* StrokeOverlayController.swift */; };
@@ -139,6 +140,7 @@
 		B940BA59992E1C557CEF9EE7 /* KeyCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyCaptureView.swift; sourceTree = "<group>"; };
 		BCAA306B3006478FA8B51C30 /* EngineController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineController.swift; sourceTree = "<group>"; };
 		BED6B7EF21C4A63D52847B55 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
+		C237214DF6DB5838194A28D0 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		C2A64E5D44D16632374E7585 /* WGConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGConfig.swift; sourceTree = "<group>"; };
 		C36D317132AFEBDEA4B4C7CF /* StrokeCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeCanvasView.swift; sourceTree = "<group>"; };
 		C390F8040B68014AF2B56727 /* StrokeNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeNormalizer.swift; sourceTree = "<group>"; };
@@ -153,6 +155,7 @@
 		F66A3DC1C6690D07CDB62CDF /* WGStrokeConflict.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGStrokeConflict.swift; sourceTree = "<group>"; };
 		FB5A2FA9CBB86A01E460887A /* WGTriggerMatrix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGTriggerMatrix.swift; sourceTree = "<group>"; };
 		FB9215AF0628743AECBEF27C /* StrokeRecordingOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeRecordingOverlay.swift; sourceTree = "<group>"; };
+		FC8AAA5F51D4524F80576822 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -176,6 +179,7 @@
 		27F7F6D1D29A9A41955BB727 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				FB5E8F67BB7139EE8194D6FE /* InfoPlist.strings */,
 				12DA2A9E0A4B348A3E72216A /* Assets.xcassets */,
 				3BCCEA0B77FA559491055938 /* Defaults */,
 			);
@@ -468,6 +472,7 @@
 			knownRegions = (
 				Base,
 				en,
+				"zh-Hans",
 			);
 			mainGroup = 0CC63C350EB1EE0A09888900;
 			minimizedProjectReferenceProxies = 1;
@@ -488,6 +493,7 @@
 			files = (
 				FD1092E7B291CCE0713893B3 /* Assets.xcassets in Resources */,
 				33EC9AB2079211FF662C44D9 /* Defaults in Resources */,
+				652D1D42C79BF864399513E3 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -572,6 +578,18 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXVariantGroup section */
+		FB5E8F67BB7139EE8194D6FE /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				FC8AAA5F51D4524F80576822 /* en */,
+				C237214DF6DB5838194A28D0 /* zh-Hans */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
 /* Begin XCBuildConfiguration section */
 		2C535E7D13DB59D3DD4E35A1 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -613,7 +631,7 @@
 				CODE_SIGN_IDENTITY = "zWGestures Local Signing";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_DEBUG_DYLIB = NO;
@@ -635,7 +653,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.3.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -708,7 +726,7 @@
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEPLOYMENT_POSTPROCESSING = YES;
 				DEVELOPMENT_TEAM = "";
@@ -725,7 +743,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.3.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

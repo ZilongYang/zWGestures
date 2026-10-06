@@ -1,0 +1,3 @@
+/* The text macOS shows in the permission prompt when a gesture wants to drive another app
+   through AppleScript or a shell script. */
+"NSAppleEventsUsageDescription" = "zWGestures needs to control other apps through AppleScript or shell scripts in order to run the commands you assign to gestures.";

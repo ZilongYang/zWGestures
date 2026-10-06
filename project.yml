@@ -18,8 +18,8 @@ settings:
     MACOSX_DEPLOYMENT_TARGET: "14.0"
     ARCHS: arm64
     ONLY_ACTIVE_ARCH: YES
-    MARKETING_VERSION: "0.2.0"
-    CURRENT_PROJECT_VERSION: "2"
+    MARKETING_VERSION: "0.3.0"
+    CURRENT_PROJECT_VERSION: "3"
     # Local-only distribution: App Sandbox off (global event taps + shell scripts require it),
     # hardened runtime off (no notarization).
     ENABLE_HARDENED_RUNTIME: NO
@@ -91,14 +91,15 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleDevelopmentRegion: zh-Hans
-        # 界面目前仅中文（英文化排在 v0.2.0，见 docs/ROADMAP.md 的 v0.2.0 工作包）。
-        # 这里不能声明 `en`：那会让系统把英文用户导向一个其实不存在的英文界面。
-        CFBundleLocalizations: [zh-Hans]
+        # 界面中英双语（设置界面里可切换，见 docs/PLAN-2026-10-06-i18n.md）。
+        # 开发区域仍是 zh-Hans：应用自带的文案以中文为源，英文是第二语言。
+        CFBundleLocalizations: [zh-Hans, en]
         LSMinimumSystemVersion: "14.0"
         # Menu-bar-only agent app (no Dock icon).
         LSUIElement: true
         NSHighResolutionCapable: true
-        NSAppleEventsUsageDescription: zWGestures 需要通过 AppleScript / Shell 脚本控制其它应用来执行你配置的手势命令。
+        # 英文兜底：中文环境由 `Resources/zh-Hans.lproj/InfoPlist.strings` 覆盖（系统按语言挑）。
+        NSAppleEventsUsageDescription: zWGestures needs to control other apps through AppleScript or shell scripts in order to run the commands you assign to gestures.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.github.zilongyang.zwgestures

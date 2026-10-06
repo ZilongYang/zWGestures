@@ -916,7 +916,10 @@ error: external macro implementation type 'ObservationMacros.ObservableMacro' co
 > 除手势名外逐键一致、按界面语言播种）+ 一张 `Defaults/name-translations.json`；
 > 菜单栏新增「把英文手势名改为中文」，并在启动时发现 ≥5 条已知英文名时问一次
 > （只改译名表里查得到的名字，你自己起过名字的不动，写盘前自动备份）。
-> **只剩第 4 期：Info.plist 本地化、`CFBundleLocalizations`、发版 0.3.0。**
+> **第 4 期也已完成（同日）**：`NSAppleEventsUsageDescription` 有了中英两份 `InfoPlist.strings`，
+> `CFBundleLocalizations` 加回 `en`，版本号升到 0.3.0，release notes 与发版清单都已写好
+> （[`RELEASE-CHECKLIST-0.3.0.md`](RELEASE-CHECKLIST-0.3.0.md)）。**四期到此结束**；
+> 剩下的发版动作（push / 打 tag / 发 release / 站点部署）见那份清单第 3 节。
 > 下面保留当初的成本评估原文。
 
 > **2026-10-06 更正**：0.1.0 的 release notes 与站点曾写「英文界面排在 v0.2.0」。**没有兑现** ——

@@ -1,0 +1,3 @@
+/* 系统权限弹窗里的说明。Info.plist 里的原句是英文兜底，这里给系统在中文环境下的正式译法。
+   改这里等于改系统弹窗上显示给用户的字，别只改 Info.plist。 */
+"NSAppleEventsUsageDescription" = "zWGestures 需要通过 AppleScript / Shell 脚本控制其它应用来执行你配置的手势命令。";

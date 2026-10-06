@@ -17,6 +17,7 @@
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>zh-Hans</string>
+		<string>en</string>
 	</array>
 	<key>CFBundleName</key>
 	<string>zWGestures</string>
@@ -31,7 +32,7 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>zWGestures 需要通过 AppleScript / Shell 脚本控制其它应用来执行你配置的手势命令。</string>
+	<string>zWGestures needs to control other apps through AppleScript or shell scripts in order to run the commands you assign to gestures.</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 </dict>

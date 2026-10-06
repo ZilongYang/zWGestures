@@ -186,7 +186,7 @@ WGestures 2 是一款出色的鼠标手势工具。它的「手势＝操作步�
 
 ## 已知限制
 
-- **界面目前仅中文。** 英文界面仍在路线图上、尚未排期（见 [`docs/ROADMAP.md`](docs/ROADMAP.md) 第 15 节）。
+- **界面中英双语。** 设置里可切换或跟随系统；日志与调试面板仍只有中文。
 - **仅支持 Apple Silicon。** 不做 Intel / Universal 支持，`ARCHS=arm64` 保持不变。
 - **未做 Developer ID 签名与公证**，首次打开需要按 [`docs/INSTALL.md`](docs/INSTALL.md) 放行一次；
   而且**每更新一版都要重新授权一次辅助功能**。
@@ -294,6 +294,7 @@ make lint && make test
 | [`docs/PLAN-2026-10-06.md`](docs/PLAN-2026-10-06.md) | 2026-10-06 批准的那份实施方案**原样存档**（识别结构度量 + 慢半拍），文末附「与计划的差异」 |
 | [`docs/PLAN-2026-10-06-i18n.md`](docs/PLAN-2026-10-06-i18n.md) | 界面多语言（中/英）+ 手势名中文化的批准方案**原样存档**，分四期实施 |
 | [`docs/RELEASE-CHECKLIST-0.2.0.md`](docs/RELEASE-CHECKLIST-0.2.0.md) | 0.2.0 发版的打勾清单：发版前回归测试 + 发版步骤（做完即归档） |
+| [`docs/RELEASE-CHECKLIST-0.3.0.md`](docs/RELEASE-CHECKLIST-0.3.0.md) | 0.3.0 发版的打勾清单：双语/改名回归 + 发版步骤（做完即归档） |
 | [`docs/INSTALL.md`](docs/INSTALL.md) | **安装说明**：Gatekeeper 放行、授权辅助功能、卸载、常见问题 |
 | [`CHANGELOG.md`](CHANGELOG.md) | 每个版本值得用户知道的变化 |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | 构建方式、提交前清单、必须遵守的约定 |
