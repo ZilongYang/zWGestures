@@ -919,7 +919,9 @@ error: external macro implementation type 'ObservationMacros.ObservableMacro' co
 > **第 4 期也已完成（同日）**：`NSAppleEventsUsageDescription` 有了中英两份 `InfoPlist.strings`，
 > `CFBundleLocalizations` 加回 `en`，版本号升到 0.3.0，release notes 与发版清单都已写好
 > （[`RELEASE-CHECKLIST-0.3.0.md`](RELEASE-CHECKLIST-0.3.0.md)）。**四期到此结束**；
-> 剩下的发版动作（push / 打 tag / 发 release / 站点部署）见那份清单第 3 节。
+> 剩下的发版动作（push / 打 tag / 发 release / 站点部署）已于 2026-10-06 全部完成：
+> **v0.3.0 已发布**（<https://github.com/ZilongYang/zWGestures/releases/tag/v0.3.0>），
+> 站点线上版本号已刷新为 v0.3.0。清单第 4 节（404 页、全新账号中英各一次验收）是下一步。
 > 下面保留当初的成本评估原文。
 
 > **2026-10-06 更正**：0.1.0 的 release notes 与站点曾写「英文界面排在 v0.2.0」。**没有兑现** ——

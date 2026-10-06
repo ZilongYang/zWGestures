@@ -51,15 +51,25 @@
       **更新后重新授权**、仅 Apple Silicon、必须拖进 Applications、怎么从 WGestures 导入、
       界面语言现状）
 - [x] 三处版本号：`project.yml`（0.2.0→0.3.0、build 2→3）、`site/index.html`（v0.3.0）、CHANGELOG
-- [ ] `git push origin main`
-- [ ] `make dist`（⚠️ 用带完整权限的会话或正常终端跑：`diskutil image create from` 要挂载卷）
-- [ ] 核对产物：`0.3.0` / arm64 / `Signature=adhoc` / 默认包两份都在 / `lipo -archs` 只有 arm64
-- [ ] `git tag v0.3.0 && git push origin v0.3.0`，然后
+- [x] `git push origin main`
+- [x] `make dist`（⚠️ 用带完整权限的会话或正常终端跑：`diskutil image create from` 要挂载卷）
+- [x] 核对产物：`0.3.0` / arm64 / `Signature=adhoc` / 默认包两份都在 / `lipo -archs` 只有 arm64
+- [x] `git tag v0.3.0 && git push origin v0.3.0`，然后
       `gh release create v0.3.0 --title "zWGestures 0.3.0" --notes-file docs/release-notes/0.3.0.md`
       附上 `dist/` 里五个产物（两个版本化 + 两个固定名 + `SHA256SUMS`）
-- [ ] 验证 `releases/latest/download/zWGestures-arm64.dmg` 返回 200
-- [ ] 把站点重新部署一次（`site/index.html` 已是 v0.3.0；部署方式见 `docs/private/local-deploy.md`：
-      `tar` over SSH + 远端 `chown/chmod`，这台服务器**没有 rsync**）
+- [x] 验证 `releases/latest/download/zWGestures-arm64.dmg` 返回 200
+- [x] 把站点重新部署一次（`tar` over SSH + 远端 `chown/chmod`，这台服务器**没有 rsync**）
+
+**实际结果（2026-10-06 16:22 前后）**
+
+| 步骤 | 结果 |
+|---|---|
+| push | `daaf9f6..1313e73`，工作树干净、与远端同步 |
+| `make dist` | **第一次失败**：断言还在查旧的 `Defaults/gestures.json`（第 3 期把包改成按语言分目录了）。修正断言后通过，并新增「两份包除手势名外逐键一致」的产物级校验 |
+| 产物核对 | `0.3.0` / build `3` / arm64 / `Signature=adhoc` / 两份默认包 + 译名表 + 两个 `.lproj` 都在 |
+| tag + release | `v0.3.0`，标题「zWGestures 0.3.0」，五个产物齐、非草稿非预发布、已标记为 **Latest** |
+| 下载地址 | `releases/latest/download/zWGestures-arm64.dmg` 实测 **200** |
+| 站点 | 线上版本号 **v0.3.0**；`index.html` 与仓库**逐字节一致**（sha256 比对），4 张素材一致，HTTP→HTTPS 301 正常 |
 
 ## 4. 发版之后（下一轮）
 
