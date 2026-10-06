@@ -104,6 +104,60 @@ struct DefaultGesturePackTests {
         }
     }
 
+    /// 按语言读一份默认包（两份包的目录结构相同）。
+    private func loadPack(_ language: String) throws -> WGConfig {
+        let directory = try #require(
+            RepoPaths.appDefaults(language),
+            "找不到默认包 zWGestures/Resources/Defaults/\(language) —— 先跑 make default-gestures"
+        )
+        let data = try Data(contentsOf: directory.appendingPathComponent("gestures.json"))
+        return try WGConfigCodec.decode(data).config
+    }
+
+    @Test("两份语言包除手势名外逐键一致")
+    func bothPacksAgreeExceptNames() throws {
+        // 名字是用户数据、不参与界面本地化，所以必须备两份；但**笔画与命令只能有一份**，
+        // 否则中英文用户的手势行为就不一样了。
+        let chinese = try loadPack("zh-Hans")
+        let english = try loadPack("en")
+
+        #expect(chinese.allTargets.count == english.allTargets.count)
+        for (zhTarget, enTarget) in zip(chinese.allTargets, english.allTargets) {
+            #expect(zhTarget.intents.count == enTarget.intents.count)
+            #expect(zhTarget.triggers == enTarget.triggers)
+            for (zhIntent, enIntent) in zip(zhTarget.intents, enTarget.intents) {
+                var zh = zhIntent
+                var en = enIntent
+                zh.name = ""
+                en.name = ""
+                #expect(zh == en, "两份包在「\(zhIntent.name)」这一条上不一致（除名字外必须完全相同）")
+            }
+        }
+    }
+
+    @Test("英文包套上译名表，得到的就是中文包")
+    func englishPackPlusTranslationEqualsChinesePack() throws {
+        // 这条同时钉住三件事：译名表覆盖了每一个需要改的名字、改名逻辑正确、
+        // 两份包确实是同一次生成的两个语言版本。
+        let tableURL = try #require(
+            RepoPaths.nameTranslations,
+            "找不到 Defaults/name-translations.json —— 先跑 make default-gestures"
+        )
+        let table = WGNameTranslator.loadTranslations(from: tableURL)
+        #expect(!table.isEmpty)
+
+        var english = try loadPack("en")
+        let renames = WGNameTranslator.renames(in: english, using: table)
+        #expect(renames.count == 47, "原版 48 条出厂手势里有 47 条需要译名（「Enter」中英同名）")
+
+        let changed = WGNameTranslator.apply(renames, to: &english)
+        #expect(changed == 47)
+        #expect(english.allTargets == (try loadPack("zh-Hans")).allTargets)
+
+        // 幂等：已经改过的配置再跑一次不会有任何改动。
+        #expect(WGNameTranslator.renames(in: english, using: table).isEmpty)
+    }
+
     @Test("逐键往返相等：重新编码不丢键、不改值")
     func roundTripsKeyForKey() throws {
         let data = try Data(contentsOf: try committedDefaults().appendingPathComponent("gestures.json"))

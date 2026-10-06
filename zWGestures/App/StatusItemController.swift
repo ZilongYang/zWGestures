@@ -23,6 +23,7 @@ final class StatusItemController: NSObject {
     private let engineItem = NSMenuItem()
     private let pauseItem = NSMenuItem()
     private let importItem = NSMenuItem()
+    private let renameNamesItem = NSMenuItem()
     private let settingsItem = NSMenuItem()
     private let quickStartItem = NSMenuItem()
     private let debugHUDItem = NSMenuItem()
@@ -101,6 +102,9 @@ final class StatusItemController: NSObject {
         importItem.target = self
         importItem.action = #selector(handleImport)
 
+        renameNamesItem.target = self
+        renameNamesItem.action = #selector(handleRenameEnglishNames)
+
         settingsItem.target = self
         settingsItem.action = #selector(handleOpenSettings)
         settingsItem.keyEquivalent = ","
@@ -128,6 +132,7 @@ final class StatusItemController: NSObject {
         menu.addItem(pauseItem)
         menu.addItem(.separator())
         menu.addItem(importItem)
+        menu.addItem(renameNamesItem)
         menu.addItem(settingsItem)
         menu.addItem(quickStartItem)
         menu.addItem(debugHUDItem)
@@ -145,6 +150,7 @@ final class StatusItemController: NSObject {
     /// 写在那边就会出现「切了语言但菜单还是旧语言」。
     private func applyLocalizedTitles() {
         importItem.title = L10n.text(.menuImportFromWGestures)
+        renameNamesItem.title = L10n.text(.menuRenameEnglishNames)
         settingsItem.title = L10n.text(.menuOpenSettings)
         quickStartItem.title = L10n.text(.menuOpenQuickStart)
         debugHUDItem.title = L10n.text(.menuShowDebugHUD)
@@ -196,6 +202,53 @@ final class StatusItemController: NSObject {
 
     @objc private func handlePauseResume() {
         engine.isRunning ? engine.pause(reason: L10n.text(.menuEnginePausedByUser)) : engine.resume()
+        refresh()
+    }
+
+    /// 把已知的英文手势名改成中文（显式动作；`ConfigStore.saveConfig` 写盘前自动备份）。
+    @objc private func handleRenameEnglishNames() {
+        NSApp.activate(ignoringOtherApps: true)
+        guard config.englishNameCandidates > 0 else {
+            let alert = NSAlert()
+            alert.messageText = L10n.text(.renameNamesNothingToDo)
+            alert.informativeText = L10n.text(.renameNamesNothingToDoDetail)
+            alert.addButton(withTitle: L10n.text(.menuOK))
+            alert.runModal()
+            return
+        }
+
+        let changed = config.renameEnglishNames()
+        let alert = NSAlert()
+        alert.messageText = L10n.format(.renameNamesDoneFormat, changed)
+        alert.informativeText = L10n.text(.renameNamesDoneDetail)
+            + "\n\n" + config.store.configURL.path
+        alert.addButton(withTitle: L10n.text(.menuOK))
+        alert.runModal()
+        refresh()
+    }
+
+    /// 启动时的一次性询问：配置里若还是原版那套英文手势名，问一次要不要改成中文。
+    ///
+    /// 无论选改还是不改，都先把「问过」记进 `prefs.json` —— 每次开机都弹会变成骚扰。
+    func offerEnglishNameRenameIfNeeded() {
+        guard config.shouldOfferEnglishNameRename else { return }
+        let candidates = config.englishNameCandidates
+        Log.app.notice("发现有 \(candidates, privacy: .public) 条英文手势名，已询问是否改成中文")
+
+        NSApp.activate(ignoringOtherApps: true)
+        let alert = NSAlert()
+        alert.messageText = L10n.format(.renameNamesOfferFormat, config.englishNameCandidates)
+        alert.informativeText = L10n.text(.renameNamesOfferDetail)
+            + "\n\n" + config.store.configURL.path
+        alert.addButton(withTitle: L10n.text(.renameNamesOfferAccept))
+        alert.addButton(withTitle: L10n.text(.renameNamesOfferDecline))
+        let accepted = alert.runModal() == .alertFirstButtonReturn
+        // 记在**用户回答之后**：如果这次启动被中途杀掉（或像开发时那样被替换掉），
+        // 下次还会再问一遍，而不是白白吞掉这次询问。
+        config.rememberEnglishNameOffer()
+        if accepted {
+            _ = config.renameEnglishNames()
+        }
         refresh()
     }
 

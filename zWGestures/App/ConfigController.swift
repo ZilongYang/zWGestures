@@ -43,13 +43,13 @@ final class ConfigController {
     /// Where the original app's configuration lives, if it is installed.
     private let locateLegacy: () -> URL?
     /// Where the default gesture pack lives inside this app's bundle.
-    private let bundledDefaults: () -> URL?
+    private let bundledDefaults: (WGLanguage) -> URL?
 
     init(
         store: ConfigStore = ConfigStore(),
         readLoginItem: @escaping () -> Bool = { LoginItem().isEnabled },
         locateLegacy: @escaping () -> URL? = { LegacyConfigImporter.locateVersionDirectory() },
-        bundledDefaults: @escaping () -> URL? = { ConfigController.bundledDefaultsDirectory }
+        bundledDefaults: @escaping (WGLanguage) -> URL? = { ConfigController.bundledDefaultsDirectory(for: $0) }
     ) {
         self.store = store
         self.readLoginItem = readLoginItem
@@ -57,14 +57,27 @@ final class ConfigController {
         self.bundledDefaults = bundledDefaults
     }
 
-    /// The factory-default pack inside the app bundle: `Contents/Resources/Defaults`.
+    /// The factory-default pack inside the app bundle:
+    /// `Contents/Resources/Defaults/<zh-Hans|en>`.
+    ///
+    /// 两份包内容完全相同（笔画与命令逐键一致），只有手势名不同 —— 中文界面看到「拷贝」，
+    /// 英文界面看到 `Copy`。手势名是**用户数据**、不参与界面本地化，所以只能备两份。
     ///
     /// Returns `nil` when the directory is absent, so a packaging mistake degrades to "no gestures
     /// yet" — which the status line already reports — rather than a load error the user cannot act on.
-    static var bundledDefaultsDirectory: URL? {
+    static func bundledDefaultsDirectory(for language: WGLanguage) -> URL? {
         guard let resources = Bundle.main.resourceURL else { return nil }
-        let directory = resources.appendingPathComponent("Defaults", isDirectory: true)
+        let directory = resources
+            .appendingPathComponent("Defaults", isDirectory: true)
+            .appendingPathComponent(language.rawValue, isDirectory: true)
         return FileManager.default.fileExists(atPath: directory.path) ? directory : nil
+    }
+
+    /// 内置的译名表（英文 → 中文），供「把英文手势名改为中文」使用。
+    static var bundledNameTranslations: URL? {
+        guard let resources = Bundle.main.resourceURL else { return nil }
+        let url = resources.appendingPathComponent("Defaults/name-translations.json")
+        return FileManager.default.fileExists(atPath: url.path) ? url : nil
     }
 
     /// Total number of gestures across every target.
@@ -74,10 +87,16 @@ final class ConfigController {
 
     /// Called once at launch. The ordering lives in `ConfigBootstrapper` so it can be tested.
     func start() {
+        // 语言必须在**挑选默认包之前**定下来：中文包与英文包名字不同。
+        // 新装的用户还没有配置文件，语言只能取系统语言；老用户取 prefs.json。
+        L10n.setLanguage(
+            WGLanguagePreference.resolve(preference: store.loadPreferences().language)
+        )
+
         switch ConfigBootstrapper.decide(
             hasConfig: store.hasConfig,
             legacyDirectory: locateLegacy(),
-            defaultsDirectory: bundledDefaults()
+            defaultsDirectory: bundledDefaults(L10n.language)
         ) {
         case .existingConfig:
             reload()
@@ -164,6 +183,58 @@ final class ConfigController {
         warnings = []
         status = .loaded(intents: intentCount)
         onStateChange?()
+    }
+
+    // MARK: - 手势名中文化
+
+    /// 配置里有多少条手势的名字是「已知的英文名」（即内置译名表里查得到、且与原名不同）。
+    var englishNameCandidates: Int {
+        guard let url = Self.bundledNameTranslations else { return 0 }
+        let table = WGNameTranslator.loadTranslations(from: url)
+        return WGNameTranslator.renames(in: config, using: table).count
+    }
+
+    /// 启动时是否该问一次「要不要把这些英文手势名改成中文」。
+    ///
+    /// 只在**真有候选**（≥5 条）而且**没问过**的时候问；问过之后写一条 `prefs.json` 扩展键，
+    /// 免得每次开机都弹。
+    var shouldOfferEnglishNameRename: Bool {
+        !preferences.nameRenameOffered && englishNameCandidates >= 5
+    }
+
+    /// 记下「已经问过」，无论用户选的是改还是不改。
+    func rememberEnglishNameOffer() {
+        guard !preferences.nameRenameOffered else { return }
+        preferences.nameRenameOffered = true
+        do {
+            try store.savePreferences(preferences)
+        } catch {
+            Log.config.error("偏好保存失败：\(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    /// 把已知识别的英文手势名改成中文，**写盘前由 `ConfigStore` 自动备份**。
+    ///
+    /// 只改译名表里查得到、且与原名不同的名字；用户自己起的名字一个字都不动。
+    /// - Returns: 实际改了几处。
+    @discardableResult
+    func renameEnglishNames() -> Int {
+        guard let url = Self.bundledNameTranslations else { return 0 }
+        let table = WGNameTranslator.loadTranslations(from: url)
+        let renames = WGNameTranslator.renames(in: config, using: table)
+        guard !renames.isEmpty else { return 0 }
+
+        let changed = WGNameTranslator.apply(renames, to: &config)
+        do {
+            try store.saveConfig(config)
+        } catch {
+            Log.config.error("手势名改名后保存失败：\(error.localizedDescription, privacy: .public)")
+            return 0
+        }
+        status = .loaded(intents: intentCount)
+        Log.config.notice("已把 \(changed, privacy: .public) 条手势名改成中文（改前已自动备份）")
+        onStateChange?()
+        return changed
     }
 
     /// Takes over preferences that were edited in the settings window and already written to disk.

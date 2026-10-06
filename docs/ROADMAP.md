@@ -911,7 +911,12 @@ error: external macro implementation type 'ObservationMacros.ObservableMacro' co
 > 新增 9 条守卫测试（英文表无中日韩字符、占位符一一对应、跟随系统的取值规则）。
 > **第 2 期也已完成（同日）**：命令编辑器、手势编辑器、应用目标管理、各类弹窗与错误提示、
 > 引擎/权限/登录项提示、ZWGCore 的全部模型校验与导入器文案 —— 共 150 条键。
-> 现在全工程只剩日志与调试面板是中文（12 处，刻意不翻）。**第 3 期（手势名中文化 + 两份默认手势包）与第 4 期（Info.plist、发版）接着做。**
+> 现在全工程只剩日志与调试面板是中文（12 处，刻意不翻）。
+> **第 3 期也已完成（同日）**：出厂默认手势备两份（`Defaults/zh-Hans` / `Defaults/en`，
+> 除手势名外逐键一致、按界面语言播种）+ 一张 `Defaults/name-translations.json`；
+> 菜单栏新增「把英文手势名改为中文」，并在启动时发现 ≥5 条已知英文名时问一次
+> （只改译名表里查得到的名字，你自己起过名字的不动，写盘前自动备份）。
+> **只剩第 4 期：Info.plist 本地化、`CFBundleLocalizations`、发版 0.3.0。**
 > 下面保留当初的成本评估原文。
 
 > **2026-10-06 更正**：0.1.0 的 release notes 与站点曾写「英文界面排在 v0.2.0」。**没有兑现** ——
@@ -999,7 +1004,7 @@ make default-gestures                # 用 /Applications/WGestures.app
 make default-gestures ORIGINAL=/path/to/WGestures.app/Contents/Resources
 ```
 
-生成物 `zWGestures/Resources/Defaults/{gestures.json,prefs.json}` **提交进仓库**，但**不挂进 `build`**
+生成物 `zWGestures/Resources/Defaults/{zh-Hans,en}/{gestures.json,prefs.json}` + `name-translations.json` **提交进仓库**，但**不挂进 `build`**
 —— 只有装了原版的机器才生成得出来。它必须以**目录**形式进 bundle
 （`Contents/Resources/Defaults/`），所以 `project.yml` 里单独给它一条 **folder reference**
 （普通的 `.json` 资源会被 XcodeGen 平铺到 Resources 根目录）；产物路径由 CI 的一条断言守着。

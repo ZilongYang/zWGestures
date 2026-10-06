@@ -69,6 +69,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             settings.show()
         }
 
+        // 配置里若还是原版那套英文手势名（从原版导入的典型情况），问一次要不要改成中文。
+        //
+        // 必须放在**启动流程末尾**，而且让出一轮再弹：`alert.runModal()` 会一直占着主线程，
+        // 放在中间会把「应用目录启动 / 引擎启动 / 事件拦截器安装」全挡在后面 ——
+        // 2026-10-06 第一次接上时就是这样，日志里只有 launched，没有 tap installed。
+        Task { @MainActor [weak statusItemController] in
+            statusItemController?.offerEnglishNameRenameIfNeeded()
+        }
+
         PermissionGate.logCurrentState()
         // The login item lives in the system, not in our config file: record what the system
         // says at launch, so a failure is diagnosable from the log alone.

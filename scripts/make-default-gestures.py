@@ -25,9 +25,14 @@ What it does
 * Copies `prefs.json` but forces `AutoStart` to false: the original's value means "the original app
   autostarts", not "the new app should register a login item behind the user's back". `SkipVersion:
   null` is kept deliberately — it exercises the `encodeIfPresent` path a regression test guards.
-* Writes `zWGestures/Resources/Defaults/{gestures.json,prefs.json}` in the original's own JSON style
-  (2-space indent, `ensure_ascii=False`, no trailing newline), so the committed diff is nothing but
-  the `Name` values.
+* Writes **两份**默认手势包，按界面语言播种（2026-10-06 起）：
+    `Defaults/zh-Hans/gestures.json`  中文名（用 `tr_bootstrap.json` 改过名）
+    `Defaults/en/gestures.json`       原版出厂英文名，原样保留
+  两份**除 `Name` 外逐键一致**（笔画与命令必须完全相同），`DefaultGesturePackTests` 会钉住这一点。
+* 另外写一张 `Defaults/name-translations.json`（英文 → 中文），供**运行时**的
+  「把英文手势名改为中文」用：用户从原版导入的配置里存的就是英文名，改名要用的正是原版这张表。
+* 三者都用原版自己的 JSON 风格（2 空格缩进、`ensure_ascii=False`、无结尾换行），
+  提交进仓库的 diff 里只有 `Name` 值。
 
 Only ever reads the three files above. The directory that holds `license.json` — the **parent** of
 the original version directory — is never touched.
@@ -114,6 +119,14 @@ def rename_intents(config: dict, translations: dict) -> tuple[list[tuple[str, st
     return renamed, missing
 
 
+def intent_names(config: dict):
+    """Every intent name in the config, in file order. Used to compare the two language packs."""
+    for _, target in targets(config):
+        for intent in target.get("Intents", []):
+            if isinstance(intent, dict):
+                yield intent.get("Name", "")
+
+
 def count_intents(config: dict) -> tuple[list[tuple[str, int]], int]:
     rows = [(where, len(target.get("Intents") or [])) for where, target in targets(config)]
     return rows, sum(count for _, count in rows)
@@ -158,6 +171,9 @@ def main() -> int:
     translations = load_json(translations_path)
     preferences = load_json(prefs_path)
 
+    # 英文包：原版出厂名，一个字都不改；先深拷贝，因为下面 rename_intents 会就地改名。
+    english_config = json.loads(json.dumps(config))
+
     renamed, missing = rename_intents(config, translations)
     if missing:
         print("错误：以下手势在 tr_bootstrap.json 里查不到中文译名：", file=sys.stderr)
@@ -171,9 +187,15 @@ def main() -> int:
 
     rows, total = count_intents(config)
     out_dir = pathlib.Path(args.out)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    write_json(out_dir / "gestures.json", config)
-    write_json(out_dir / "prefs.json", preferences)
+    zh_dir = out_dir / "zh-Hans"
+    en_dir = out_dir / "en"
+    for directory in (zh_dir, en_dir):
+        directory.mkdir(parents=True, exist_ok=True)
+    write_json(zh_dir / "gestures.json", config)
+    write_json(zh_dir / "prefs.json", preferences)
+    write_json(en_dir / "gestures.json", english_config)
+    write_json(en_dir / "prefs.json", preferences)
+    write_json(out_dir / "name-translations.json", dict(sorted(translations.items())))
 
     print(f"来源：{resources}")
     for where, count in rows:
@@ -181,7 +203,16 @@ def main() -> int:
     print(f"  合计：{total} 条")
     print(f"改名：{len(renamed)} 处，覆盖 {len(set(renamed))} 个不同的英文名")
     print(f"偏好：AutoStart {original_auto_start} → False（SkipVersion 原样保留）")
-    print(f"已写入：{out_dir}/gestures.json, {out_dir}/prefs.json")
+    print(f"已写入：{out_dir}/zh-Hans/gestures.json, {out_dir}/en/gestures.json, "
+          f"{out_dir}/{{zh-Hans,en}}/prefs.json, {out_dir}/name-translations.json")
+
+    # 两份包除了 Name 必须完全一致；这里当场比一次，别等测试才发现。
+    zh_names = sorted(name for name in intent_names(config))
+    en_names = sorted(name for name in intent_names(english_config))
+    if len(zh_names) != len(en_names):
+        print("错误：两份包的条数不一致", file=sys.stderr)
+        return 1
+    print(f"两份包各 {len(zh_names)} 条；中文名 {len(set(zh_names))} 个不同，英文名 {len(set(en_names))} 个不同")
 
     if total != EXPECTED_INTENTS:
         print(

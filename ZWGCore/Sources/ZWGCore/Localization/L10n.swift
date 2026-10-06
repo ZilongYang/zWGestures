@@ -62,13 +62,27 @@ public enum L10n {
 
     /// 按当前语言取一条文案。
     public static func text(_ key: Key) -> String {
+        text(key, language: language)
+    }
+
+    /// 取指定语言的文案。
+    ///
+    /// 这一版**不读全局状态**，测试要用另一种语言时必须走它：语言是进程级状态，而 Swift Testing
+    /// 默认并行跑用例 —— 一边切语言一边断言中文，会随机把别的用例带崩（2026-10-06 真发生过：
+    /// `StrokeDirectionTests` 读到 `Right→Down` 而它断言的是「右→下」）。
+    public static func text(_ key: Key, language: WGLanguage) -> String {
         let pair = key.pair
-        return lock.withLock { current == .en ? pair.en : pair.zh }
+        return language == .en ? pair.en : pair.zh
     }
 
     /// 带参数的文案（占位符两语言必须一致，`L10nTests` 会检查）。
     public static func format(_ key: Key, _ arguments: CVarArg...) -> String {
         String(format: text(key), arguments: arguments)
+    }
+
+    /// 取指定语言、带参数的文案（同样不读全局状态）。
+    public static func format(_ key: Key, language: WGLanguage, _ arguments: CVarArg...) -> String {
+        String(format: text(key, language: language), arguments: arguments)
     }
 
     /// 语言偏好设置项自身的名字。
@@ -234,6 +248,17 @@ public enum L10n {
         case gestureSheetRedrawHelp
         case gestureSheetKeepOld
         case gestureSheetKeepOldHelp
+
+        // MARK: 手势名中文化
+        case menuRenameEnglishNames
+        case renameNamesOfferFormat
+        case renameNamesOfferDetail
+        case renameNamesOfferAccept
+        case renameNamesOfferDecline
+        case renameNamesDoneFormat
+        case renameNamesDoneDetail
+        case renameNamesNothingToDo
+        case renameNamesNothingToDoDetail
 
         // MARK: 菜单栏
         case menuImportFromWGestures
@@ -580,6 +605,17 @@ public enum L10n {
             case .gestureSheetRedrawHelp: ("丢掉刚画的形状，重新在全屏幕上画一个", "Discard the shape you just drew and draw another one full-screen")
             case .gestureSheetKeepOld: ("不改了", "Leave it")
             case .gestureSheetKeepOldHelp: ("放弃新手势，这条手势保持原来的形状", "Discard the new shape; this gesture keeps its original one")
+
+            // 手势名中文化
+            case .menuRenameEnglishNames: ("把英文手势名改为中文", "Rename English gestures to Chinese")
+            case .renameNamesOfferFormat: ("检测到 %d 条手势用的是英文名（Close、Web Search 这类）", "%d gestures use English names (Close, Web Search and so on)")
+            case .renameNamesOfferDetail: ("要用原版自带的那张中文译名表把它们逐条改成中文吗？改之前会自动备份到配置目录的 Backups 里；你自己起过名字的手势不会被动。", "Rename them using the original's own Chinese name table? The current configuration is backed up to the Backups folder first, and gestures you named yourself are never touched.")
+            case .renameNamesOfferAccept: ("改成中文", "Rename them")
+            case .renameNamesOfferDecline: ("不用了", "Not now")
+            case .renameNamesDoneFormat: ("已把 %d 条手势名改成中文", "Renamed %d gestures to Chinese")
+            case .renameNamesDoneDetail: ("改之前的配置已经备份到配置目录的 Backups 里，想回退随时可以拿。", "The previous configuration is in the Backups folder if you want to go back.")
+            case .renameNamesNothingToDo: ("没有需要改名的英文手势名", "No English gesture names to rename")
+            case .renameNamesNothingToDoDetail: ("配置里的手势名要么已经是中文，要么不在内置译名表里 —— 你自己起的名字一律不动。", "Every gesture name is either already Chinese or missing from the built-in name table — names you chose yourself are never touched.")
 
             // 菜单栏
             case .menuImportFromWGestures: ("从 WGestures 导入配置…", "Import from WGestures…")

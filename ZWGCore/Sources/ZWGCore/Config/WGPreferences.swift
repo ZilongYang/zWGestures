@@ -36,6 +36,9 @@ public struct WGPreferences: Codable, Equatable, Sendable {
     /// Vertical position of the gesture-name label, as a fraction of the screen height.
     public var gesturePos: Double
     public var skipVersion: String?
+    /// 是否已经问过用户「要不要把已知的英文手势名改成中文」。**扩展键**，缺键即「没问过」，
+    /// 且**只在问过之后才写出**（同 `--language` 的规则，保住逐键一致守卫）。
+    public var nameRenameOffered: Bool
     /// 界面语言。**本项目的扩展键**：原版没有这一项，缺键即视为 `system`（跟随系统），
     /// 而且**只在非默认时才写出** —— `ConfigTests` 有一条「真实配置重新编码后与原文件逐键一致」
     /// 的守卫，对默认值也写键会立刻让它失败（与 `WGIntent.enabled` 同一条硬约束）。
@@ -56,7 +59,8 @@ public struct WGPreferences: Codable, Equatable, Sendable {
         pathLineWidth: Double = 2.25,
         gesturePos: Double = 0.25,
         skipVersion: String? = nil,
-        language: WGLanguagePreference = .system
+        language: WGLanguagePreference = .system,
+        nameRenameOffered: Bool = false
     ) {
         self.autoStart = autoStart
         self.startDragTimeout = startDragTimeout
@@ -73,6 +77,7 @@ public struct WGPreferences: Codable, Equatable, Sendable {
         self.gesturePos = gesturePos
         self.skipVersion = skipVersion
         self.language = language
+        self.nameRenameOffered = nameRenameOffered
     }
 
     public enum CodingKeys: String, CodingKey {
@@ -91,6 +96,7 @@ public struct WGPreferences: Codable, Equatable, Sendable {
         case gesturePos = "GesturePos"
         case skipVersion = "SkipVersion"
         case language = "Language"
+        case nameRenameOffered = "NameRenameOffered"
     }
 
     public init(from decoder: Decoder) throws {
@@ -114,6 +120,8 @@ public struct WGPreferences: Codable, Equatable, Sendable {
         gesturePos = try container.decodeIfPresent(Double.self, forKey: .gesturePos) ?? defaults.gesturePos
         skipVersion = try container.decodeIfPresent(String.self, forKey: .skipVersion)
         language = try container.decodeIfPresent(WGLanguagePreference.self, forKey: .language) ?? defaults.language
+        nameRenameOffered = try container.decodeIfPresent(Bool.self, forKey: .nameRenameOffered)
+            ?? defaults.nameRenameOffered
     }
 
     /// Written explicitly rather than synthesised, because the original always emits every
@@ -142,6 +150,9 @@ public struct WGPreferences: Codable, Equatable, Sendable {
         // 扩展键：只在非默认时写出，保证原版文件重新编码后仍然逐键一致（同 `WGIntent.enabled`）。
         if language != .system {
             try container.encode(language, forKey: .language)
+        }
+        if nameRenameOffered {
+            try container.encode(nameRenameOffered, forKey: .nameRenameOffered)
         }
     }
 }

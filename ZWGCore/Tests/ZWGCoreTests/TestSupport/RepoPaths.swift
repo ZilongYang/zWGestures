@@ -18,11 +18,29 @@ enum RepoPaths {
             .deletingLastPathComponent()  // repository root
     }
 
-    /// `zWGestures/Resources/Defaults`, or `nil` when it has not been generated yet.
-    static var appDefaults: URL? {
+    /// `zWGestures/Resources/Defaults`（两份语言包 + 译名表），尚未生成时为 `nil`。
+    static var appDefaultsRoot: URL? {
         let directory = root.appendingPathComponent("zWGestures/Resources/Defaults", isDirectory: true)
+        return FileManager.default.fileExists(atPath: directory.path) ? directory : nil
+    }
+
+    /// 指定语言的默认手势包目录（`zh-Hans` / `en`）。
+    static func appDefaults(_ language: String) -> URL? {
+        guard let directory = appDefaultsRoot?.appendingPathComponent(language, isDirectory: true) else {
+            return nil
+        }
         let gestures = directory.appendingPathComponent("gestures.json")
         return FileManager.default.fileExists(atPath: gestures.path) ? directory : nil
+    }
+
+    /// 中文包（默认包）。
+    static var appDefaults: URL? { appDefaults("zh-Hans") }
+
+    /// 运行时译名表（英文 → 中文）。
+    static var nameTranslations: URL? {
+        let url = appDefaultsRoot?.appendingPathComponent("name-translations.json")
+        guard let url, FileManager.default.fileExists(atPath: url.path) else { return nil }
+        return url
     }
 
     /// The committed reference configuration (`ZWGCoreTests/Fixtures/...`), copied into the test

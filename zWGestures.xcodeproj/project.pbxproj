@@ -70,6 +70,7 @@
 		DEBD2C91305267F6D14EFAEA /* WGActionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39CB8AC93BED2227B3EB998 /* WGActionContext.swift */; };
 		E2A29BDBB1334AD17B516FE7 /* ConfigStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABAA2D5526E8980C694B5548 /* ConfigStore.swift */; };
 		E600576F631A200D29E7BE94 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ECC7CDA01EA1FFBEEDD5B97 /* AppDelegate.swift */; };
+		E629F3D22EAE9435F2EBE509 /* WGNameTranslator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E48C1F5342CBEF5B44A8BADC /* WGNameTranslator.swift */; };
 		EA0DEA35FE0CAAD9344F1664 /* StrokeRecordingOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB9215AF0628743AECBEF27C /* StrokeRecordingOverlay.swift */; };
 		EE4116EB8761F60759F845B4 /* WGIntentDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C7D665A6E9A709EFF4A1D19 /* WGIntentDisplay.swift */; };
 		EEC10BE290ACF7CC365CCDDF /* SettingsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B03BAF5A7173629D283714E /* SettingsPanel.swift */; };
@@ -145,6 +146,7 @@
 		E1F92AEC05105E2560C739F2 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		E3411F37FC05B72B39D6837A /* LegacyConfigImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyConfigImporter.swift; sourceTree = "<group>"; };
 		E41BB23D0A2A7A253D962D95 /* PermissionHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionHistory.swift; sourceTree = "<group>"; };
+		E48C1F5342CBEF5B44A8BADC /* WGNameTranslator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGNameTranslator.swift; sourceTree = "<group>"; };
 		E83B1397FEFFA16BBEED4800 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
 		EDF7450D4D95AE0D3DF2B5F3 /* SettingsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModel.swift; sourceTree = "<group>"; };
 		F550AB1F613BC1B599471EFE /* OverlayState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayState.swift; sourceTree = "<group>"; };
@@ -233,6 +235,7 @@
 				4B3261300424B06F6A1DFA1D /* WGConfigCodec.swift */,
 				389CCF3A1A0E88671C79DD3A /* WGEdgeCorner.swift */,
 				54FC8A50F77DDF46B3EC6C08 /* WGInputToken.swift */,
+				E48C1F5342CBEF5B44A8BADC /* WGNameTranslator.swift */,
 				AC8DBAC8592F6FAEC6C1A76E /* WGPreferences.swift */,
 				FB5A2FA9CBB86A01E460887A /* WGTriggerMatrix.swift */,
 			);
@@ -556,6 +559,7 @@
 				EE4116EB8761F60759F845B4 /* WGIntentDisplay.swift in Sources */,
 				7BD238A177C5ED3225C78992 /* WGKeyCode.swift in Sources */,
 				7B436B422C1C59B67A507FB0 /* WGModifierKind.swift in Sources */,
+				E629F3D22EAE9435F2EBE509 /* WGNameTranslator.swift in Sources */,
 				5F271E0433B7609765D9A526 /* WGPreferences.swift in Sources */,
 				A818D9E18687807FC919C00D /* WGStrokeConflict.swift in Sources */,
 				C5E35053643C3C55C6F56620 /* WGStrokeRecorder.swift in Sources */,

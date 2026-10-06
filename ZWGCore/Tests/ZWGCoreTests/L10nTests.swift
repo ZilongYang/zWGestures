@@ -74,40 +74,25 @@ struct L10nTests {
         #expect(WGLanguagePreference.resolve(preference: .zhHans, system: ["en-US"]) == .zhHans)
     }
 
-    @Test("切换语言后取到的文案跟着变，且能切回来")
-    func switchingChangesText() {
-        let original = L10n.language
-        defer { L10n.setLanguage(original) }
+    @Test("指定语言时取到的是那一版的文案（不碰全局状态）")
+    func textFollowsRequestedLanguage() {
+        // 故意**不**用 `L10n.setLanguage`：语言是进程级状态，而 Swift Testing 默认并行跑用例 ——
+        // 一边切语言一边断言中文，会随机把同时运行的别的用例带崩。
+        // 2026-10-06 真发生过：`StrokeDirectionTests` 读到 `Right→Down`，而它断言的是「右→下」。
+        #expect(L10n.text(.displayGeneralTarget, language: .zhHans) == "全局")
+        #expect(L10n.text(.displayGeneralTarget, language: .en) == "General")
 
-        L10n.setLanguage(.zhHans)
-        #expect(L10n.text(.displayGeneralTarget) == "全局")
-        L10n.setLanguage(.en)
-        #expect(L10n.text(.displayGeneralTarget) == "General")
-        L10n.setLanguage(.zhHans)
-        #expect(L10n.text(.displayGeneralTarget) == "全局")
-    }
-
-    @Test("带参数的文案按当前语言套用参数")
-    func formattedTextFollowsLanguage() {
-        let original = L10n.language
-        defer { L10n.setLanguage(original) }
-
-        L10n.setLanguage(.zhHans)
-        #expect(L10n.format(.statusLoadedFormat, 67) == "配置已载入（67 条手势）")
-        L10n.setLanguage(.en)
-        #expect(L10n.format(.statusLoadedFormat, 67) == "Configuration loaded (67 gestures)")
+        #expect(L10n.format(.statusLoadedFormat, language: .zhHans, 67) == "配置已载入（67 条手势）")
+        #expect(L10n.format(.statusLoadedFormat, language: .en, 67) == "Configuration loaded (67 gestures)")
     }
 
     @Test("语言选项用该语言自己的写法")
     func languageOptionsAreSelfNamed() {
-        let original = L10n.language
-        defer { L10n.setLanguage(original) }
-
+        // 两个具体语言的名字与「当前语言」无关，可以直接断言。
         #expect(WGLanguagePreference.zhHans.localizedName == "简体中文")
         #expect(WGLanguagePreference.en.localizedName == "English")
-        L10n.setLanguage(.en)
-        #expect(WGLanguagePreference.system.localizedName == "System")
-        L10n.setLanguage(.zhHans)
-        #expect(WGLanguagePreference.system.localizedName == "跟随系统")
+        // 只有「跟随系统」这一项读当前语言，用纯函数版覆盖两种情形。
+        #expect(L10n.text(.languageSystem, language: .en) == "System")
+        #expect(L10n.text(.languageSystem, language: .zhHans) == "跟随系统")
     }
 }
