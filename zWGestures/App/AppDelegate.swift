@@ -43,8 +43,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.statusItemController = statusItemController
 
         let hadConfig = config.store.hasConfig
-        config.onStateChange = { [weak statusItemController] in
+        config.onStateChange = { [weak statusItemController, weak settings] in
             statusItemController?.refresh()
+            // 设置窗口里改了「界面语言」也走这条路：窗口标题与 AppKit 分段控件不会自己重绘。
+            settings?.applyLanguageChange()
         }
         // 菜单是个静态 NSMenu，没人刷新它就永远保持构建时的文案。少了这一句，引擎在启动后
         // 自己跑起来了，菜单栏还一直写着「等待辅助功能授权」——而这恰恰是用户最需要看准的一行。

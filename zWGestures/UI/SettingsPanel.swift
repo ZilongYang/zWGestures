@@ -137,6 +137,11 @@ struct SettingsPanel: View {
             .pickerStyle(.segmented)
             .labelsHidden()
             .frame(width: 200)
+            // 分段选择器是 AppKit 控件：只改标签文字、不改 tag 时 SwiftUI 不会重建它，
+            // 于是切换界面语言后这两个标签会停在旧语言上（2026-10-06 作者验收亲眼所见）。
+            // 用 `id` 把它标记成「换语言就是另一个控件」；只重建这一个控件，
+            // 不动整块面板 —— 整块重建会把当前标签页和搜索框状态一起重置。
+            .id(L10n.language)
 
             Spacer()
             if hasPendingEdits {

@@ -31,8 +31,21 @@ final class SettingsWindowController {
 
         let window = window ?? makeWindow()
         self.window = window
+        applyLanguageChange()
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
+    }
+
+    /// 语言变了以后要补的一件事：**窗口标题**。
+    ///
+    /// 标题是 `NSWindow` 上的字符串，SwiftUI 管不到它，只能在这里重设。
+    /// 顶部那个分段选择器同样不会自己刷新（它是 AppKit 的 `NSSegmentedControl`，段落标签只改文字、
+    /// 不改 tag，SwiftUI 就不会重建控件）—— 那个由 `SettingsPanel` 里的 `.id(L10n.language)` 解决：
+    /// 只重建那一个控件，而不是整块面板。整块重建会把作者当前所在的标签页重置回「手势集」。
+    ///
+    /// 2026-10-06 作者验收时正是这一幕：面板正文变英文了，两个分段标签和窗口标题还是中文。
+    func applyLanguageChange() {
+        window?.title = L10n.text(.settingsWindowTitle)
     }
 
     private func makeWindow() -> NSWindow {
