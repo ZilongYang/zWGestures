@@ -338,6 +338,7 @@ make lint && make test
 |---|---|
 | [`README.md`](README.md) | The Chinese README (the primary one) |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | **Plan and progress**; start here when picking up development (Chinese) |
+| [`docs/reference/`](docs/reference/) | Topic-by-topic reference docs split out of the roadmap: post-mortems, legacy format, settings UI, packaging, site, i18n, performance, launch-at-login, icon |
 | [`docs/INSTALL.md`](docs/INSTALL.md) | **Install guide**: Gatekeeper, Accessibility, uninstalling, FAQ (Chinese) |
 | [`CHANGELOG.md`](CHANGELOG.md) | What changed in each version (Chinese) |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to build, pre-submit checklist, mandatory conventions (Chinese) |

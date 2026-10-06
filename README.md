@@ -290,7 +290,8 @@ make lint && make test
 
 | 文件 | 内容 |
 |---|---|
-| [`docs/ROADMAP.md`](docs/ROADMAP.md) | **计划与进度**，接手开发从这里开始读 |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | **计划与进度**，接手开发从这里开始读（只有目标 / 已完成 / 下一步 / 结论级的坑，约 380 行） |
+| [`docs/reference/`](docs/reference/) | 路线图按主题拆出的**参考文档**：事故调查、原版格式勘察、设置界面、打包发版、站点、多语言、性能、开机自启、图标 |
 | [`docs/PLAN-2026-10-06.md`](docs/PLAN-2026-10-06.md) | 2026-10-06 批准的那份实施方案**原样存档**（识别结构度量 + 慢半拍），文末附「与计划的差异」 |
 | [`docs/PLAN-2026-10-06-i18n.md`](docs/PLAN-2026-10-06-i18n.md) | 界面多语言（中/英）+ 手势名中文化的批准方案**原样存档**，分四期实施 |
 | [`docs/RELEASE-CHECKLIST-0.2.0.md`](docs/RELEASE-CHECKLIST-0.2.0.md) | 0.2.0 发版的打勾清单：发版前回归测试 + 发版步骤（做完即归档） |
