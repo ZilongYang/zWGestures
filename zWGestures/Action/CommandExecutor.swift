@@ -19,7 +19,7 @@ final class CommandExecutor {
 
     func execute(plan: WGCommandPlan, intentName: String, context: WGActionContext) {
         guard plan.isExecutable else {
-            let detail = plan.problems.isEmpty ? "没有可执行的动作" : plan.problems.joined(separator: "；")
+            let detail = plan.problems.isEmpty ? L10n.text(.executorNothingToRun) : plan.problems.joined(separator: "；")
             Log.action.error("手势「\(intentName, privacy: .public)」无法执行：\(detail, privacy: .public)")
             return
         }

@@ -24,10 +24,10 @@ public final class CommandEditorModel: ObservableObject {
 
         public var localizedName: String {
             switch self {
-            case .keySequence: "按键序列"
-            case .webSearch: "Web 搜索"
-            case .shellScript: "Shell 脚本"
-            case .systemFunctionKey: "系统功能键"
+            case .keySequence: L10n.text(.cmdKindKeySequence)
+            case .webSearch: L10n.text(.cmdKindWebSearch)
+            case .shellScript: L10n.text(.cmdKindShellScript)
+            case .systemFunctionKey: L10n.text(.cmdKindSystemFunction)
             }
         }
 
@@ -193,22 +193,22 @@ public final class CommandEditorModel: ObservableObject {
     /// Whether the current state can be turned into a command.
     public var validationError: String? {
         guard !isReplacingUnknownCommand else {
-            return "这条命令的类型（\(unknownTypeName ?? "?")）本版本不认识，直接保存会覆盖它。"
+            return L10n.format(.cmdUnknownTypeWarningFormat, unknownTypeName ?? "?")
         }
         switch kind {
         case .keySequence:
-            return keySteps.isEmpty ? "按键序列至少需要一步（例如 ⌘+C）。" : nil
+            return keySteps.isEmpty ? L10n.text(.cmdKeySequenceNeedsStep) : nil
         case .webSearch:
             let template = searchEngine.trimmingCharacters(in: .whitespacesAndNewlines)
-            if template.isEmpty { return "搜索地址不能为空。" }
-            if !template.contains("{0}") { return "搜索地址里需要 {0} 占位符，它会被替换成搜索词。" }
+            if template.isEmpty { return L10n.text(.cmdWebSearchEmptyURL) }
+            if !template.contains("{0}") { return L10n.text(.cmdWebSearchNeedsPlaceholder) }
             return nil
         case .shellScript:
             return script.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                ? "脚本不能为空。" : nil
+                ? L10n.text(.cmdShellScriptEmpty) : nil
         case .systemFunctionKey:
             return WGSystemFunction(rawValue: functionIndex) == nil
-                ? "请选择一个系统功能键。" : nil
+                ? L10n.text(.cmdSystemFunctionMissing) : nil
         }
     }
 

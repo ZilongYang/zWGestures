@@ -26,11 +26,11 @@ public enum WGConfigCodec {
         if let raw = try? JSONSerialization.jsonObject(with: cleaned) {
             let unknown = unknownTypes(in: raw)
             if !unknown.isEmpty {
-                warnings.append("配置里有本版本不认识的对象类型，相关内容会被丢弃：\(unknown.sorted().joined(separator: ", "))")
+                warnings.append(L10n.format(.codecUnknownObjectsFormat, unknown.sorted().joined(separator: ", ")))
             }
             let unknownKeys = unknownRootKeys(in: raw)
             if !unknownKeys.isEmpty {
-                warnings.append("配置里有未识别的顶层字段：\(unknownKeys.sorted().joined(separator: ", "))")
+                warnings.append(L10n.format(.codecUnknownTopLevelFormat, unknownKeys.sorted().joined(separator: ", ")))
             }
         }
         return WGConfigLoadResult(config: config, warnings: warnings)

@@ -41,7 +41,7 @@ final class SettingsCoordinator {
     func beginShapeEditing() {
         engineWasRunningBeforeShapeEditing = engine.isRunning
         guard engine.isRunning else { return }
-        engine.pause(reason: "正在编辑手势形状")
+        engine.pause(reason: L10n.text(.engineEditingShape))
     }
 
     /// Restores the engine, but only if it was running before the editor opened: a user who had
@@ -59,14 +59,14 @@ final class SettingsCoordinator {
     func promptRename(intentAt index: Int, currentName: String) {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
-        alert.messageText = "重命名手势"
-        alert.informativeText = "只改名称，不会改动笔画与命令。"
-        alert.addButton(withTitle: "重命名")
-        alert.addButton(withTitle: "取消")
+        alert.messageText = L10n.text(.dialogRenameGestureTitle)
+        alert.informativeText = L10n.text(.dialogRenameGestureMessage)
+        alert.addButton(withTitle: L10n.text(.dialogRename))
+        alert.addButton(withTitle: L10n.text(.dialogCancel))
 
         let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 260, height: 24))
         field.stringValue = currentName
-        field.placeholderString = "手势名称"
+        field.placeholderString = L10n.text(.dialogGestureName)
         alert.accessoryView = field
         alert.window.initialFirstResponder = field
 
@@ -75,9 +75,9 @@ final class SettingsCoordinator {
         guard model.renameIntent(at: index, to: newName) else {
             // Blank or a stale index: say so instead of silently doing nothing.
             let failure = NSAlert()
-            failure.messageText = "名称不能为空"
-            failure.informativeText = "手势名称没有改动。"
-            failure.addButton(withTitle: "好")
+            failure.messageText = L10n.text(.dialogNameEmpty)
+            failure.informativeText = L10n.text(.dialogNameUnchanged)
+            failure.addButton(withTitle: L10n.text(.menuOK))
             failure.runModal()
             return
         }
@@ -94,7 +94,7 @@ final class SettingsCoordinator {
         guard gestureEdits || preferenceEdits else { return true }
 
         if let problem = preferences.validationError {
-            presentFailure(title: "偏好设置有误", reason: problem, path: config.store.preferencesURL.path)
+            presentFailure(title: L10n.text(.dialogPreferencesInvalid), reason: problem, path: config.store.preferencesURL.path)
             return false
         }
 
@@ -108,7 +108,7 @@ final class SettingsCoordinator {
         } catch {
             Log.config.error("设置界面保存失败：\(error.localizedDescription, privacy: .public)")
             presentFailure(
-                title: "配置保存失败",
+                title: L10n.text(.dialogSaveFailed),
                 reason: error.localizedDescription,
                 path: (gestureEdits ? config.store.configURL : config.store.preferencesURL).path
             )
@@ -154,7 +154,7 @@ final class SettingsCoordinator {
 
             磁盘上的文件没有被改动，可以修正后重试。
             """
-        alert.addButton(withTitle: "好")
+        alert.addButton(withTitle: L10n.text(.menuOK))
         alert.runModal()
     }
 }

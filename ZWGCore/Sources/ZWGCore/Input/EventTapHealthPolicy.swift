@@ -84,6 +84,6 @@ public struct EventTapHealthPolicy: Sendable {
 
     /// Why the engine switched itself off, phrased for the menu bar and the alert.
     public static func failureReason(count: Int) -> String {
-        "事件拦截器连续超时 \(count) 次，已主动停用"
+        L10n.format(.tapTimeoutGiveUpFormat, count)
     }
 }

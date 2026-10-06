@@ -172,10 +172,10 @@ final class EngineController {
             switch grantState {
             case .lostAfterUpdate:
                 Log.app.error("辅助功能授权已失效（更新后未重新授权的典型表现），不安装事件拦截器")
-                lastFailureReason = "辅助功能授权已失效，需要重新授权"
+                lastFailureReason = L10n.text(.enginePermissionLost)
             default:
                 Log.app.notice("尚未获得辅助功能权限，暂不安装事件拦截器")
-                lastFailureReason = "尚未获得辅助功能权限"
+                lastFailureReason = L10n.text(.enginePermissionMissing)
             }
             isRunning = false
             startPermissionPolling()
@@ -186,7 +186,7 @@ final class EngineController {
         permissionHistory.recordGranted()
         stopPermissionPolling()
         isRunning = coordinator.start()
-        lastFailureReason = isRunning ? nil : "事件拦截器安装失败"
+        lastFailureReason = isRunning ? nil : L10n.text(.engineTapInstallFailed)
         if isRunning {
             overlay.start()
             startPanicMonitors()
@@ -233,7 +233,7 @@ final class EngineController {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = "辅助功能授权已失效，画手势不会有反应"
+        alert.messageText = L10n.text(.enginePermissionLost)
         alert.informativeText = """
             这通常发生在更新之后：这个版本没有 Apple 开发者签名，系统按版本指纹识别它，\
             所以每次更新都要重新授权一次。
@@ -243,8 +243,8 @@ final class EngineController {
 
             授权之后手势引擎会自动启动，不需要重启应用。
             """
-        alert.addButton(withTitle: "打开系统设置")
-        alert.addButton(withTitle: "稍后")
+        alert.addButton(withTitle: L10n.text(.engineOpenSystemSettings))
+        alert.addButton(withTitle: L10n.text(.engineLater))
         if alert.runModal() == .alertFirstButtonReturn {
             PermissionGate.openAccessibilitySettings()
         }
@@ -308,7 +308,7 @@ final class EngineController {
     private func firePanicShortcut() {
         // Auto-repeat while the keys are held would otherwise fire this repeatedly.
         guard isRunning else { return }
-        pause(reason: "急停快捷键 \(PanicShortcut.displayName)")
+        pause(reason: L10n.format(.aboutPanicShortcutFormat, PanicShortcut.displayName))
     }
 
     // MARK: - Slow-tap self-protection
@@ -335,7 +335,7 @@ final class EngineController {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
         alert.alertStyle = .critical
-        alert.messageText = "手势引擎已自动停用"
+        alert.messageText = L10n.text(.engineAutoDisabled)
         alert.informativeText = """
             事件拦截器在短时间内连续 \(timeoutCount) 次没能及时响应系统。\
             一个响应不及时的拦截器会拖慢整台电脑的键盘和鼠标输入，严重时只能强制关机。
@@ -344,8 +344,8 @@ final class EngineController {
 
             可以稍后从菜单栏「继续手势引擎」重新启用。若反复出现，请把这个现象反馈到项目 issue。
             """
-        alert.addButton(withTitle: "保持停用")
-        alert.addButton(withTitle: "重新启用")
+        alert.addButton(withTitle: L10n.text(.engineStayDisabled))
+        alert.addButton(withTitle: L10n.text(.engineReEnable))
         if alert.runModal() == .alertSecondButtonReturn {
             resume()
         }

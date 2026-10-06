@@ -37,15 +37,12 @@ struct CommandSectionView: View {
 
     private var unknownCommandWarning: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("这条命令的类型本版本不认识", systemImage: "exclamationmark.triangle.fill")
+            Label(L10n.text(.cmdViewUnknownTypeBanner), systemImage: "exclamationmark.triangle.fill")
                 .foregroundStyle(.orange)
-            Text("""
-                配置里存的是「\(model.unknownTypeName ?? "?")」。本版本只能编辑按键序列、\
-                Web 搜索、Shell 脚本和系统功能键，直接保存会把它替换掉。
-                """)
+            Text(L10n.format(.cmdViewUnknownTypeDetailFormat, model.unknownTypeName ?? "?"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            Button("我知道，要替换它") { model.beginReplacingUnknownCommand() }
+            Button(L10n.text(.cmdViewReplaceIt)) { model.beginReplacingUnknownCommand() }
         }
         .padding(10)
         .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
@@ -54,7 +51,7 @@ struct CommandSectionView: View {
     // MARK: - Kind
 
     private var kindPicker: some View {
-        Picker("命令类型", selection: Binding(
+        Picker(L10n.text(.cmdViewKindLabel), selection: Binding(
             get: { model.kind },
             set: { model.setKind($0) }
         )) {
@@ -81,14 +78,14 @@ struct CommandSectionView: View {
     private var keySequenceEditor: some View {
         VStack(alignment: .leading, spacing: 10) {
             if model.keySteps.isEmpty {
-                Text("还没有按键。点「录制按键」后按下一个组合键（例如 ⌘C）。")
+                Text(L10n.text(.cmdViewNoKeysHint))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(Array(model.keySteps.enumerated()), id: \.offset) { index, step in
                         HStack(spacing: 8) {
-                            Text("第 \(index + 1) 步")
+                            Text(L10n.format(.cmdViewStepFormat, index + 1))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .frame(width: 46, alignment: .leading)
@@ -101,7 +98,7 @@ struct CommandSectionView: View {
                                 Image(systemName: "minus.circle")
                             }
                             .buttonStyle(.plain)
-                            .help("删除这一步")
+                            .help(L10n.text(.cmdViewRemoveStepHelp))
                         }
                     }
                 }
@@ -112,32 +109,32 @@ struct CommandSectionView: View {
                     Label(
                         heldModifiers.isEmpty
                             ? recordingHint
-                            : "已按住 " + heldModifiers.map(WGCommand.keySymbol).joined(separator: "+"),
+                            : L10n.text(.cmdViewHoldingPrefix) + heldModifiers.map(WGCommand.keySymbol).joined(separator: "+"),
                         systemImage: "record.circle"
                     )
                     .foregroundStyle(.red)
-                    Button("结束录制") { stopRecording() }
+                    Button(L10n.text(.cmdViewStopRecording)) { stopRecording() }
                 } else {
-                    Button(model.keySteps.isEmpty ? "录制按键" : "重新录制") {
+                    Button(model.keySteps.isEmpty ? L10n.text(.cmdViewRecordKeys) : L10n.text(.cmdViewReRecord)) {
                         recordingMode = .replace
                     }
-                    .help("按下一个组合键，它会替换掉现在的整个序列")
-                    Button("添加一步") { recordingMode = .append }
+                    .help(L10n.text(.cmdViewRecordReplaceHelp))
+                    Button(L10n.text(.cmdViewAddStep)) { recordingMode = .append }
                         .disabled(model.keySteps.isEmpty)
-                        .help("按下一个组合键，把它接到序列的最后（可连续添加多步）")
-                    Button("清空") { model.clearKeys() }
+                        .help(L10n.text(.cmdViewAddStepHelp))
+                    Button(L10n.text(.cmdViewClear)) { model.clearKeys() }
                         .disabled(model.keySteps.isEmpty)
                 }
                 Spacer()
             }
 
             if !isRecording {
-                Text("单个组合键就是一个步骤；需要多步序列（例如先 ⌘V 再 ↩）时用「添加一步」。")
+                Text(L10n.text(.cmdViewKeySequenceHelp))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
-            Toggle("这是一个系统快捷键（发送前不激活目标应用）", isOn: $model.isSystemHotKey)
+            Toggle(L10n.text(.cmdViewSystemHotKey), isOn: $model.isSystemHotKey)
                 .font(.caption)
         }
         .overlay(alignment: .topLeading) {
@@ -155,8 +152,8 @@ struct CommandSectionView: View {
 
     private var recordingHint: String {
         switch recordingMode {
-        case .replace: "正在录制，按下的组合键会成为整个序列…"
-        case .append: "正在添加一步，按下的组合键会接到序列最后…"
+        case .replace: L10n.text(.cmdViewRecordingReplace)
+        case .append: L10n.text(.cmdViewRecordingAppend)
         case nil: ""
         }
     }
@@ -185,7 +182,7 @@ struct CommandSectionView: View {
         VStack(alignment: .leading, spacing: 8) {
             TextField("https://www.google.com/search?q={0}", text: $model.searchEngine)
                 .textFieldStyle(.roundedBorder)
-            Text("{0} 会被替换成搜索词。")
+            Text(L10n.text(.cmdViewPlaceholderNote))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -199,7 +196,7 @@ struct CommandSectionView: View {
                 .font(.body.monospaced())
                 .frame(minHeight: 120)
                 .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
-            Text("脚本在 /bin/sh 下执行，可用的环境变量见 README。")
+            Text(L10n.text(.cmdViewShellNote))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -209,7 +206,7 @@ struct CommandSectionView: View {
 
     private var systemFunctionEditor: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Picker("功能", selection: $model.functionIndex) {
+            Picker(L10n.text(.cmdViewFunctionLabel), selection: $model.functionIndex) {
                 ForEach(WGSystemFunction.allCases, id: \.rawValue) { function in
                     Text(function.localizedName).tag(function.rawValue)
                 }

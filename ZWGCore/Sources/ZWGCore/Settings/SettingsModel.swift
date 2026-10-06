@@ -88,11 +88,11 @@ public enum WGAddTargetProblem: Error, Equatable {
     public var errorDescription: String? {
         switch self {
         case .duplicate(let existingName):
-            return "「\(existingName)」已经有自己的手势集了 —— 同一个应用只能有一个目标，否则第二个永远不会被用到。"
+            return L10n.format(.settingsDuplicateTargetFormat, existingName)
         case .noIdentity:
-            return "这个应用既没有 Bundle ID 也没有路径，无法识别。"
+            return L10n.text(.settingsAppUnidentifiable)
         case .missingName:
-            return "这个应用没有可用的名称。"
+            return L10n.text(.settingsAppNoName)
         }
     }
 }
@@ -548,7 +548,7 @@ public final class SettingsModel: ObservableObject {
     /// `"Copy"` → `"Copy 副本"`, then `"Copy 副本 2"`, … so a name is never duplicated.
     static func uniqueName(basedOn name: String, taken: [String]) -> String {
         let existing = Set(taken)
-        let base = "\(name) 副本"
+        let base = L10n.format(.settingsCopySuffixFormat, name)
         guard existing.contains(base) else { return base }
         for number in 2...999 where !existing.contains("\(base) \(number)") {
             return "\(base) \(number)"

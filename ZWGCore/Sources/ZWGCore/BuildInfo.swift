@@ -36,7 +36,7 @@ public enum BuildInfo {
 
     /// Short, sortable rendering of `buildDate`, e.g. `09-28 15:10:40`.
     public static var buildStamp: String {
-        guard let date = buildDate else { return "未知构建" }
+        guard let date = buildDate else { return L10n.text(.buildUnknown) }
         let formatter = DateFormatter()
         formatter.dateFormat = "MM-dd HH:mm:ss"
         return formatter.string(from: date)

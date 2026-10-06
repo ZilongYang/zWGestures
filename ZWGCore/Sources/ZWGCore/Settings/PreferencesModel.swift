@@ -129,13 +129,13 @@ public final class PreferencesModel: ObservableObject {
     /// values loaded from a hand-edited file.
     public var validationError: String? {
         guard Self.timeoutRange.contains(startDragTimeout) else {
-            return "起始超时需要在 \(Self.timeoutRange.lowerBound)–\(Self.timeoutRange.upperBound) 毫秒之间。"
+            return L10n.format(.prefsErrorTimeoutFormat, Double(Self.timeoutRange.lowerBound), Double(Self.timeoutRange.upperBound))
         }
         guard Self.lineWidthRange.contains(pathLineWidth) else {
-            return "线宽需要在 \(Self.lineWidthRange.lowerBound)–\(Self.lineWidthRange.upperBound) 之间。"
+            return L10n.format(.prefsErrorLineWidthFormat, Double(Self.lineWidthRange.lowerBound), Double(Self.lineWidthRange.upperBound))
         }
         guard Self.gesturePositionRange.contains(gesturePos) else {
-            return "手势名位置需要在 0–1 之间。"
+            return L10n.text(.prefsErrorGesturePos)
         }
         return nil
     }

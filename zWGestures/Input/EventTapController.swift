@@ -169,13 +169,13 @@ final class EventTapController: @unchecked Sendable {
             callback: eventTapCallback,
             userInfo: userInfo
         ) else {
-            lock.withLock { statusStorage = .failed("CGEvent.tapCreate 返回 nil（通常是没有辅助功能权限）") }
+            lock.withLock { statusStorage = .failed(L10n.text(.eventTapCreateFailed)) }
             return false
         }
 
         guard let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0) else {
             CFMachPortInvalidate(tap)
-            lock.withLock { statusStorage = .failed("CFMachPortCreateRunLoopSource 失败") }
+            lock.withLock { statusStorage = .failed(L10n.text(.eventTapRunLoopSourceFailed)) }
             return false
         }
 

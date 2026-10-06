@@ -43,9 +43,9 @@ struct AddAppTargetSheet: View {
             Image(systemName: "plus.app")
                 .foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: 1) {
-                Text("添加应用手势集")
+                Text(L10n.text(.addAppSheetTitle))
                     .font(.headline)
-                Text("给某个应用单独配一套手势（会替换全局手势，不叠加）")
+                Text(L10n.text(.addAppSheetSubtitle))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -59,7 +59,7 @@ struct AddAppTargetSheet: View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
-            TextField("搜索正在运行的应用", text: $query)
+            TextField(L10n.text(.addAppSheetSearchPlaceholder), text: $query)
                 .textFieldStyle(.plain)
             if !query.isEmpty {
                 Button {
@@ -82,9 +82,9 @@ struct AddAppTargetSheet: View {
                     Image(systemName: "app.dashed")
                         .font(.largeTitle)
                         .foregroundStyle(.tertiary)
-                    Text(runningApps.isEmpty ? "没有可添加的正在运行的应用" : "没有匹配的应用")
+                    Text(runningApps.isEmpty ? L10n.text(.addAppSheetNoRunning) : L10n.text(.addAppSheetNoMatches))
                         .foregroundStyle(.secondary)
-                    Text("也可以直接用下面的「选择应用文件…」。")
+                    Text(L10n.text(.addAppSheetHint))
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                     Spacer()
@@ -131,12 +131,12 @@ struct AddAppTargetSheet: View {
 
     private var footer: some View {
         HStack(spacing: 10) {
-            Button("选择应用文件…") { onChooseFile() }
-                .help("适合没有运行、或不在上面列表里的应用")
+            Button(L10n.text(.addAppSheetChooseFile)) { onChooseFile() }
+                .help(L10n.text(.addAppSheetChooseFileHelp))
             Spacer()
-            Button("取消", action: onCancel)
+            Button(L10n.text(.dialogCancel), action: onCancel)
                 .keyboardShortcut(.cancelAction)
-            Button("添加") {
+            Button(L10n.text(.addAppSheetAdd)) {
                 if let selection { onAdd(selection) }
             }
             .keyboardShortcut(.defaultAction)

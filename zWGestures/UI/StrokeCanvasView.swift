@@ -111,7 +111,7 @@ final class StrokeCanvasNSView: NSView {
         shape.stroke()
 
         guard points.count > 1 else {
-            drawHint("在这里按住拖动画出手势（左右键都可以）", color: .tertiaryLabelColor)
+            drawHint(L10n.text(.canvasDrawHint), color: .tertiaryLabelColor)
             return
         }
         drawTrail(lineWidth: 3)
@@ -123,7 +123,7 @@ final class StrokeCanvasNSView: NSView {
 
         guard points.count > 1 else {
             drawHint(
-                "在全屏幕上按住并拖动画出新手势（左右键都可以）· 按 Esc 取消",
+                L10n.text(.canvasFullScreenHint),
                 color: .white.withAlphaComponent(0.9),
                 size: 15
             )
@@ -226,7 +226,7 @@ struct StrokeShapeView: View {
     let points: [CGPoint]
     var lineWidth: CGFloat = 2.2
     /// Shown when there is no shape to draw.
-    var placeholder: String = "（无形状）"
+    var placeholder: String = L10n.text(.canvasNoShape)
 
     var body: some View {
         Canvas { context, size in

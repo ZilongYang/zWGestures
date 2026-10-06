@@ -55,7 +55,7 @@ public enum WGCommandPlanner {
                 return WGCommandPlan(
                     activateTargetFirst: false,
                     actions: [],
-                    problems: ["未知的系统功能键索引 \(function.selectedIndex)"]
+                    problems: [L10n.format(.plannerUnknownFunctionFormat, function.selectedIndex)]
                 )
             }
             return WGCommandPlan(activateTargetFirst: false, actions: [.systemFunction(resolved)], problems: [])
@@ -64,7 +64,7 @@ public enum WGCommandPlanner {
         case .webSearch(let search):
             return WGCommandPlan(activateTargetFirst: false, actions: [.webSearch(template: search.searchEngine)], problems: [])
         case .unknown(let type):
-            return WGCommandPlan(activateTargetFirst: false, actions: [], problems: ["不支持的命令类型 \(type)"])
+            return WGCommandPlan(activateTargetFirst: false, actions: [], problems: [L10n.format(.plannerUnsupportedCommandFormat, type)])
         }
     }
 
@@ -95,7 +95,7 @@ public enum WGCommandPlanner {
             }
 
             if !unrecognised.isEmpty {
-                problems.append("第 \(index + 1) 步里有无法识别的键名：\(unrecognised.joined(separator: "、"))")
+                problems.append(L10n.format(.plannerUnrecognisedKeysFormat, index + 1, unrecognised.joined(separator: "、")))
             }
             if let mainKey {
                 actions.append(.keyStroke(

@@ -44,9 +44,9 @@ public enum WGModifierKind: Hashable, CaseIterable, Sendable {
         case .mouseButton(let button):
             button.localizedName
         case .scrollUp:
-            "向上滚动"
+            L10n.text(.modifierScrollUp)
         case .scrollDown:
-            "向下滚动"
+            L10n.text(.modifierScrollDown)
         }
     }
 

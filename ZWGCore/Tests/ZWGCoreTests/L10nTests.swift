@@ -50,7 +50,7 @@ struct L10nTests {
         // 专有名词（Web / Shell / WGestures / Finder / Apple Silicon…）是刻意保留的，它们至少有一个
         // 大写字母；真正的漏翻（整句英文留在中文表里）必然留下**全小写**的 4 字母以上单词。
         // 按词切分而不是用正则，否则 `Shell` 会被切出 `hell` 这种假阳性。
-        let allowed: Set<String> = ["config", "prefs", "json", "launchagent"]
+        let allowed: Set<String> = ["config", "prefs", "json", "launchagent", "gestures", "launchctl", "bootstrap"]
         for key in L10n.Key.allCases {
             for token in key.pair.zh.split(whereSeparator: { !$0.isLetter }) {
                 guard token.count >= 4, token.allSatisfy({ $0.isLowercase }) else { continue }

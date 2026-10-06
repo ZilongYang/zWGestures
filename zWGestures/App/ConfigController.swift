@@ -130,9 +130,9 @@ final class ConfigController {
                 已从 WGestures 导入配置：\
                 \(result.statistics.summary, privacy: .public)
                 """)
-            logWarnings(result.warnings, what: "导入")
+            logWarnings(result.warnings, what: L10n.text(.configMenuImport))
         } catch {
-            recordFailure(error, during: "导入")
+            recordFailure(error, during: L10n.text(.configMenuImport))
         }
     }
 
@@ -151,9 +151,9 @@ final class ConfigController {
                 已载入内置默认手势：\
                 \(result.statistics.summary, privacy: .public)
                 """)
-            logWarnings(result.warnings, what: "默认手势")
+            logWarnings(result.warnings, what: L10n.text(.configMenuDefaultGestures))
         } catch {
-            recordFailure(error, during: "载入内置默认手势")
+            recordFailure(error, during: L10n.text(.configMenuLoadDefaults))
         }
     }
 
@@ -249,9 +249,9 @@ final class ConfigController {
                 原版的配置目录只被读取，不会被修改。
                 """
         }
-        var body = "zWGestures 只读取原版配置，不会修改它。\n\n"
+        var body = L10n.text(.importSummaryReadOnly) + "\n\n"
         body += warnings.isEmpty
-            ? "所有对象类型都能识别，没有数据被丢弃。"
+            ? L10n.text(.importSummaryAllTypes)
             : warnings.joined(separator: "\n")
         return body
     }

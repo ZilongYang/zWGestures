@@ -114,7 +114,7 @@ struct LoginItem {
         }
 
         if let failure = installLaunchAgent() {
-            let smReason = serviceManagementFailure ?? "系统登录项报告 \(smAppServiceStatus)"
+            let smReason = serviceManagementFailure ?? L10n.format(.loginItemSystemReportFormat, String(describing: smAppServiceStatus))
             Log.app.error("""
                 开机自启两种机制都失败：系统登录项 \(smReason, privacy: .public)；\
                 LaunchAgent \(failure, privacy: .public)
@@ -163,7 +163,7 @@ struct LoginItem {
             try LaunchAgent.makePlist(appPath: Bundle.main.bundlePath)
                 .write(to: LaunchAgent.plistURL, options: .atomic)
         } catch {
-            return "写入 \(LaunchAgent.plistURL.path) 失败：\(error.localizedDescription)"
+            return L10n.format(.loginItemWriteFailedFormat, LaunchAgent.plistURL.path, error.localizedDescription)
         }
 
         // `bootstrap` fails when the label is already loaded, so clear it first — that also makes
@@ -171,7 +171,7 @@ struct LoginItem {
         _ = runLaunchctl(["bootout", "gui/\(getuid())/\(LaunchAgent.label)"])
         let bootstrapped = runLaunchctl(["bootstrap", "gui/\(getuid())", LaunchAgent.plistURL.path])
         guard bootstrapped.status == 0 else {
-            return "launchctl bootstrap 失败：\(bootstrapped.message)"
+            return L10n.format(.loginItemBootstrapFailedFormat, bootstrapped.message)
         }
         return nil
     }
@@ -184,7 +184,7 @@ struct LoginItem {
         do {
             try FileManager.default.removeItem(at: LaunchAgent.plistURL)
         } catch {
-            return "删除 \(LaunchAgent.plistURL.path) 失败：\(error.localizedDescription)"
+            return L10n.format(.loginItemDeleteFailedFormat, LaunchAgent.plistURL.path, error.localizedDescription)
         }
         return nil
     }
@@ -206,7 +206,7 @@ struct LoginItem {
         process.waitUntilExit()
         let text = String(data: data, encoding: .utf8)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return (process.terminationStatus, text.isEmpty ? "（无输出）" : text)
+        return (process.terminationStatus, text.isEmpty ? L10n.text(.loginItemNoOutput) : text)
     }
 
     /// Opens the Login Items pane, for the `requiresApproval` case.

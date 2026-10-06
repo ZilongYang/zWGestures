@@ -65,7 +65,7 @@ public final class ConfigStore: @unchecked Sendable {
 
     public func loadConfig() throws -> WGConfigLoadResult {
         guard hasConfig else {
-            return WGConfigLoadResult(config: WGConfig(), warnings: ["尚未导入配置，当前使用空的默认配置"])
+            return WGConfigLoadResult(config: WGConfig(), warnings: [L10n.text(.storeNoConfig)])
         }
         return try WGConfigCodec.decode(try Data(contentsOf: configURL))
     }

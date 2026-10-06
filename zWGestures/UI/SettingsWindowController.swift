@@ -150,11 +150,11 @@ final class SettingsWindowController {
     /// 「新手势」/「新手势 2」/… so a list of new gestures stays readable.
     private func defaultNewGestureName() -> String {
         let existing = Set(coordinator.model.selectedTarget?.intents.map(\.name) ?? [])
-        guard existing.contains("新手势") else { return "新手势" }
-        for number in 2...999 where !existing.contains("新手势 \(number)") {
-            return "新手势 \(number)"
+        guard existing.contains(L10n.text(.gestureNewName)) else { return L10n.text(.gestureNewName) }
+        for number in 2...999 where !existing.contains(L10n.format(.dialogNewGestureNumberFormat, number)) {
+            return L10n.format(.dialogNewGestureNumberFormat, number)
         }
-        return "新手势"
+        return L10n.text(.gestureNewName)
     }
 
     private func presentGestureEditor(_ editor: GestureEditorModel, existingIndex: Int?) {
@@ -177,8 +177,8 @@ final class SettingsWindowController {
             onCommit: { [weak self] intent in
                 guard let self else { return }
                 let applied = self.coordinator.model.apply(intent: intent, at: existingIndex)
-                let shape = intent.strokeStep?.directionDescription ?? "无"
-                let outcome = existingIndex == nil ? "新增" : "修改"
+                let shape = intent.strokeStep?.directionDescription ?? L10n.text(.sheetNone)
+                let outcome = existingIndex == nil ? L10n.text(.sheetAdded) : L10n.text(.sheetModified)
                 Log.ui.debug("""
                     手势编辑器已提交：\(outcome, privacy: .public)，形状「\(shape, privacy: .public)」，\
                     动作 \(intent.command.typeName, privacy: .public)，成功 \(applied, privacy: .public)
@@ -193,7 +193,7 @@ final class SettingsWindowController {
             backing: .buffered,
             defer: false
         )
-        sheetWindow.title = existingIndex == nil ? "新建手势" : "编辑手势"
+        sheetWindow.title = existingIndex == nil ? L10n.text(.gestureNewName) : L10n.text(.gestureSheetEditTitle)
         sheetWindow.contentView = NSHostingView(rootView: sheet)
         commandSheet = sheetWindow
         coordinator.beginShapeEditing()
@@ -256,7 +256,7 @@ final class SettingsWindowController {
             backing: .buffered,
             defer: false
         )
-        sheetWindow.title = "添加应用手势集"
+        sheetWindow.title = L10n.text(.addAppSheetTitle)
         sheetWindow.contentView = NSHostingView(rootView: sheet)
         commandSheet = sheetWindow
         window.beginSheet(sheetWindow)
@@ -296,8 +296,8 @@ final class SettingsWindowController {
         panel.allowedContentTypes = [.applicationBundle]
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
-        panel.prompt = "选择"
-        panel.message = "选择一个应用（.app），给它单独配一套手势"
+        panel.prompt = L10n.text(.dialogChoose)
+        panel.message = L10n.text(.dialogChooseAppTitle)
         panel.directoryURL = URL(fileURLWithPath: "/Applications", isDirectory: true)
         guard panel.runModal() == .OK, let url = panel.url else { return }
 
@@ -324,10 +324,10 @@ final class SettingsWindowController {
             dismissGestureEditor()
         case .failure(let problem):
             let alert = NSAlert()
-            alert.messageText = "无法添加这个应用"
+            alert.messageText = L10n.text(.dialogCannotAddApp)
             alert.alertStyle = .warning
-            alert.informativeText = problem.errorDescription ?? "未知原因"
-            alert.addButton(withTitle: "好")
+            alert.informativeText = problem.errorDescription ?? L10n.text(.dialogUnknownReason)
+            alert.addButton(withTitle: L10n.text(.menuOK))
             alert.runModal()
         }
     }
@@ -346,7 +346,7 @@ final class SettingsWindowController {
 
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
-        alert.messageText = "移除手势集「\(target.displayName)」？"
+        alert.messageText = L10n.format(.dialogRemoveTargetFormat, target.displayName)
         alert.alertStyle = .warning
         alert.informativeText = """
             这个手势集里的 \(target.intents.count) 条手势会一起移除。
@@ -354,8 +354,8 @@ final class SettingsWindowController {
 
             移除只作用于编辑中的配置，点「保存」后才会写入 config.json；            写入前的旧版本会自动备份到 Backups 目录。
             """
-        alert.addButton(withTitle: "移除")
-        alert.addButton(withTitle: "取消")
+        alert.addButton(withTitle: L10n.text(.dialogRemove))
+        alert.addButton(withTitle: L10n.text(.dialogCancel))
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         coordinator.model.removeTarget(selection)
     }
@@ -363,11 +363,11 @@ final class SettingsWindowController {
     private func confirmDelete(intentAt index: Int, name: String) {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
-        alert.messageText = "删除手势「\(name)」？"
+        alert.messageText = L10n.format(.dialogDeleteGestureFormat, name)
         alert.alertStyle = .warning
-        alert.informativeText = "删除先只作用于编辑中的配置，点击「保存」后才会写入 config.json。"
-        alert.addButton(withTitle: "删除")
-        alert.addButton(withTitle: "取消")
+        alert.informativeText = L10n.text(.dialogDeleteGestureMessage)
+        alert.addButton(withTitle: L10n.text(.dialogDelete))
+        alert.addButton(withTitle: L10n.text(.dialogCancel))
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         // Deliberately no engine.apply here: the running engine keeps the saved configuration
         // until the edit is saved, so what runs always matches what is on disk.

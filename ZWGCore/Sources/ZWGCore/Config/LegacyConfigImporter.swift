@@ -40,9 +40,9 @@ public enum WGImportError: Error, LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .directoryNotFound:
-            "没有找到 WGestures 的配置目录"
+            L10n.text(.importerNoDirectory)
         case .gesturesFileMissing(let url):
-            "配置目录里没有 gestures.json：\(url.path)"
+            L10n.format(.importerNoGesturesFormat, url.path)
         }
     }
 }
@@ -106,10 +106,10 @@ public enum LegacyConfigImporter {
             do {
                 preferences = try WGConfigCodec.decodePreferences(try Data(contentsOf: prefsURL))
             } catch {
-                warnings.append("prefs.json 解析失败，将使用默认偏好：\(error.localizedDescription)")
+                warnings.append(L10n.format(.importerPrefsFailedFormat, error.localizedDescription))
             }
         } else {
-            warnings.append("配置目录里没有 prefs.json，将使用默认偏好")
+            warnings.append(L10n.text(.importerNoPrefs))
         }
 
         return WGImportResult(

@@ -43,7 +43,7 @@ public struct WGResolvedTarget: Sendable, Equatable {
 
     public var displayName: String {
         switch kind {
-        case .general: "全局"
+        case .general: L10n.text(.displayGeneralTarget)
         case .desktop: target.name
         case .application: application?.localizedName ?? target.name
         }
@@ -153,6 +153,6 @@ public enum TargetResolver {
 extension WGApplicationIdentity {
     /// The preferred human-readable name, falling back to the bundle identifier.
     public var displayName: String {
-        localizedName ?? bundleIdentifier ?? executablePath.map { ($0 as NSString).lastPathComponent } ?? "未知应用"
+        localizedName ?? bundleIdentifier ?? executablePath.map { ($0 as NSString).lastPathComponent } ?? L10n.text(.unknownApplication)
     }
 }

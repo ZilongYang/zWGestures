@@ -138,7 +138,7 @@ public final class GestureEditorModel: ObservableObject {
     }
 
     /// Convenience for a brand-new gesture: right-button trigger, no stroke, empty key sequence.
-    public convenience init(newGestureNamed name: String = "新手势", siblings: [WGIntent] = []) {
+    public convenience init(newGestureNamed name: String = L10n.text(.gestureNewName), siblings: [WGIntent] = []) {
         self.init(
             mode: .new,
             intent: nil,
@@ -169,8 +169,7 @@ public final class GestureEditorModel: ObservableObject {
     public var shapeConflictDescription: String? {
         guard let conflict = shapeConflict else { return nil }
         return String(
-            format: "这个形状与「%@」相同（距离 %.3f），两条手势抢同一个输入。列表里**靠前的一条优先**："
-                + "要让这一条生效，保存后用右键把它「上移」到「%@」前面；否则画这个形状只会触发「%@」。",
+            format: L10n.text(.gestureConflictFormat),
             conflict.name, Double(conflict.distance), conflict.name, conflict.name
         )
     }
@@ -193,17 +192,17 @@ public final class GestureEditorModel: ObservableObject {
 
     /// What the editor's left column shows.
     public var currentStrokeDescription: String {
-        currentStroke?.directionDescription ?? "（这条手势原本没有形状）"
+        currentStroke?.directionDescription ?? L10n.text(.gestureNoOriginalShape)
     }
 
     /// What the editor's right column shows.
     public var pendingStrokeDescription: String {
-        pendingStroke?.directionDescription ?? "（还没画）"
+        pendingStroke?.directionDescription ?? L10n.text(.gestureNothingDrawn)
     }
 
     /// The shape that will actually be stored.
     public var strokeDescription: String {
-        effectiveStroke?.directionDescription ?? "（还没画）"
+        effectiveStroke?.directionDescription ?? L10n.text(.gestureNothingDrawn)
     }
 
     /// Records a drawing from the canvas.
@@ -241,8 +240,8 @@ public final class GestureEditorModel: ObservableObject {
 
     /// Whether everything needed to store this gesture is present.
     public var validationError: String? {
-        guard !trimmedName.isEmpty else { return "名字不能为空。" }
-        guard effectiveStroke != nil else { return "还没有画出手势形状 —— 点右边的框，在全屏幕上画一个。" }
+        guard !trimmedName.isEmpty else { return L10n.text(.gestureNameEmpty) }
+        guard effectiveStroke != nil else { return L10n.text(.gestureShapeMissing) }
         // A collision is no longer a refusal: the list order decides which entry wins, so the user
         // can keep both and reorder. The warning is shown next to the shape instead.
         return commandEditor.validationError

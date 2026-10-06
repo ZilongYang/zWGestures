@@ -52,10 +52,10 @@ public enum WGStrokeRecorder {
         public var errorDescription: String? {
             switch self {
             case .empty:
-                "没有画出手势。在画布上按住并拖动画一个形状。"
+                L10n.text(.recorderNothingDrawn)
             case .tooShort(let length, let minimum):
                 String(
-                    format: "画得太短了（%.0f 点，至少需要 %.0f 点）。画得长一点再试。",
+                    format: L10n.text(.recorderTooShortFormat),
                     length, minimum
                 )
             }
@@ -91,7 +91,7 @@ public enum WGStrokeRecorder {
     /// Deliberately the same code path as `encode` (minus the length gate), so the preview cannot
     /// disagree with what would be stored.
     public static func directionPreview(screenPoints: [CGPoint]) -> String {
-        guard screenPoints.count >= 2 else { return "（还没画）" }
+        guard screenPoints.count >= 2 else { return L10n.text(.gestureNothingDrawn) }
         if let simple = simpleForm(for: screenPoints) {
             return simple.directionDescription
         }

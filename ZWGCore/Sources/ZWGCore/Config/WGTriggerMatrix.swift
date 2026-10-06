@@ -33,7 +33,7 @@ public struct WGTriggerSignature: Hashable, Sendable {
             return mask.localizedName
         case .scroll(let isHorizontal, let direction):
             let arrow = direction > 0 ? "↓" : (direction < 0 ? "↑" : "")
-            return (isHorizontal ? "横向滚轮" : "滚轮") + arrow
+            return (isHorizontal ? L10n.text(.triggerHorizontalScroll) : L10n.text(.triggerScroll)) + arrow
         }
     }
 

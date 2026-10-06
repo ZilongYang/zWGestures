@@ -60,9 +60,9 @@ struct GestureEditorSheet: View {
             Image(systemName: isNew ? "plus.circle" : "hand.draw")
                 .foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: 1) {
-                Text(isNew ? "新建手势" : "编辑手势")
+                Text(isNew ? L10n.text(.gestureNewName) : L10n.text(.gestureSheetEditTitle))
                     .font(.headline)
-                Text("触发方式：鼠标右键（本版本只实现了右键手势）")
+                Text(L10n.text(.gestureSheetTriggerNote))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -76,16 +76,14 @@ struct GestureEditorSheet: View {
 
     private var strokeSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            sectionTitle("1. 手势形状", detail: "左边是现在的手势；点右边可以在全屏幕上画一个新手势")
+            sectionTitle(L10n.text(.gestureSheetShapeTitle), detail: L10n.text(.gestureSheetShapeDetail))
 
             if model.hasUnsupportedTrigger {
                 VStack(alignment: .leading, spacing: 4) {
-                    Label("这条手势的触发方式本版本还没实现", systemImage: "exclamationmark.triangle.fill")
+                    Label(L10n.text(.gestureSheetUnsupportedTrigger), systemImage: "exclamationmark.triangle.fill")
                         .font(.callout.weight(.semibold))
                         .foregroundStyle(.orange)
-                    Text("""
-                        它用的是屏幕边角或滚轮触发，而这两种触发还没实现 —— 形状和动作都保存得住，                        但画它不会有任何反应。等实现之后它就能直接用。
-                        """)
+                    Text(L10n.text(.gestureSheetUnsupportedTriggerDetail))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -101,10 +99,7 @@ struct GestureEditorSheet: View {
             }
 
             modifierRow
-            Text("""
-                手势修饰键是画这个形状的同时额外做的动作：同一条轨迹可以用它区分多个命令 \
-                （例如「拷贝」与「剪切」都是向上，按住左键触发的是「剪切」）。
-                """)
+            Text(L10n.text(.gestureSheetModifierNote))
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -113,7 +108,7 @@ struct GestureEditorSheet: View {
             // which one wins, so this is advice rather than a refusal.
             if let conflict = model.shapeConflictDescription {
                 VStack(alignment: .leading, spacing: 4) {
-                    Label("这个形状与另一条手势相同", systemImage: "exclamationmark.triangle.fill")
+                    Label(L10n.text(.gestureSheetConflictBanner), systemImage: "exclamationmark.triangle.fill")
                         .font(.callout.weight(.semibold))
                         .foregroundStyle(.orange)
                     Text(conflict)
@@ -131,12 +126,12 @@ struct GestureEditorSheet: View {
     /// The 手势修饰键 of this gesture, editable.
     private var modifierRow: some View {
         HStack(spacing: 6) {
-            Text("修饰键")
+            Text(L10n.text(.gestureSheetModifiers))
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
             if model.modifiers.isEmpty {
-                Text("（无 —— 画出这个形状就触发）")
+                Text(L10n.text(.gestureSheetNoModifier))
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
             } else {
@@ -151,7 +146,7 @@ struct GestureEditorSheet: View {
                                 .font(.caption2)
                         }
                         .buttonStyle(.plain)
-                        .help("移除这个修饰键")
+                        .help(L10n.text(.gestureSheetRemoveModifier))
                     }
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
@@ -161,7 +156,7 @@ struct GestureEditorSheet: View {
 
             Spacer()
 
-            Menu("添加修饰键") {
+            Menu(L10n.text(.gestureSheetAddModifier)) {
                 ForEach(WGModifierKind.allCases, id: \.key) { kind in
                     Button(kind.localizedName) { model.addModifier(kind) }
                         .disabled(!model.canAddModifier(kind))
@@ -169,20 +164,20 @@ struct GestureEditorSheet: View {
             }
             .menuStyle(.borderlessButton)
             .fixedSize()
-            .help("按住的鼠标键或滚轮方向；列表里已有的会变灰")
+            .help(L10n.text(.gestureSheetModifierHelp))
         }
     }
 
     /// What the gesture uses today.
     private var currentShapeColumn: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("现在的手势")
+            Text(L10n.text(.gestureSheetCurrentShape))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             StrokeShapeView(
                 points: model.currentStroke?.drawingOrderPoints ?? [],
                 lineWidth: 3,
-                placeholder: "（原本没有形状）"
+                placeholder: L10n.text(.gestureSheetOriginalShapePlaceholder)
             )
             .frame(width: 200, height: 110)
             .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
@@ -195,7 +190,7 @@ struct GestureEditorSheet: View {
     /// gesture will actually be drawn in daily use.
     private var newShapeColumn: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("新手势")
+            Text(L10n.text(.gestureSheetNewShape))
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -207,7 +202,7 @@ struct GestureEditorSheet: View {
                         VStack(spacing: 6) {
                             Image(systemName: "hand.draw")
                                 .font(.title2)
-                            Text("点击这里在全屏幕上画一个")
+                            Text(L10n.text(.gestureSheetClickToDraw))
                                 .font(.caption)
                         }
                         .foregroundStyle(.secondary)
@@ -218,19 +213,19 @@ struct GestureEditorSheet: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .help("点一下，然后在屏幕任意位置按住拖动，画出新手势")
+            .help(L10n.text(.gestureSheetDrawHelp))
 
             HStack(spacing: 8) {
-                Text(model.hasPendingStroke ? model.pendingStrokeDescription : "（还没画）")
+                Text(model.hasPendingStroke ? model.pendingStrokeDescription : L10n.text(.gestureNothingDrawn))
                     .font(.callout.monospaced())
                 Spacer()
                 // 重画：丢掉刚画的，重新进入全屏录制。
-                Button("重画") { onRecordOnScreen() }
-                    .help("丢掉刚画的形状，重新在全屏幕上画一个")
+                Button(L10n.text(.gestureSheetRedraw)) { onRecordOnScreen() }
+                    .help(L10n.text(.gestureSheetRedrawHelp))
                 // 不想改：丢掉刚画的，保留原来那条。
-                Button("不改了") { model.discardPendingStroke() }
+                Button(L10n.text(.gestureSheetKeepOld)) { model.discardPendingStroke() }
                     .disabled(!model.hasPendingStroke)
-                    .help("放弃新手势，这条手势保持原来的形状")
+                    .help(L10n.text(.gestureSheetKeepOldHelp))
             }
             .frame(width: 200)
         }
@@ -240,8 +235,8 @@ struct GestureEditorSheet: View {
 
     private var nameSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            sectionTitle("2. 名称", detail: nil)
-            TextField("手势名称", text: $model.name)
+            sectionTitle(L10n.text(.gestureSheetNameTitle), detail: nil)
+            TextField(L10n.text(.dialogGestureName), text: $model.name)
                 .textFieldStyle(.roundedBorder)
         }
     }
@@ -250,19 +245,16 @@ struct GestureEditorSheet: View {
 
     private var commandSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionTitle("3. 这个手势做什么", detail: "形状定下来之后，再选它要触发的动作")
+            sectionTitle(L10n.text(.gestureSheetActionTitle), detail: L10n.text(.gestureSheetActionDetail))
             CommandSectionView(model: model.commandEditor)
             Divider()
             VStack(alignment: .leading, spacing: 6) {
-                Toggle("启用这条手势", isOn: $model.enabled)
-                Text("取消勾选后，这条手势会保留在列表里但不再生效（画这个形状不会有任何反应）。")
+                Toggle(L10n.text(.settingsEnableGesture), isOn: $model.enabled)
+                Text(L10n.text(.gestureSheetEnabledDetail))
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Toggle("识别手势后立即执行", isOn: $model.executeOnRecognize)
-                Text("""
-                    勾选后，笔画一被识别就执行命令，不再等待后面的手势修饰键；\
-                    同一条轨迹用修饰键区分多个命令时不要勾选。
-                    """)
+                Toggle(L10n.text(.gestureSheetExecuteNow), isOn: $model.executeOnRecognize)
+                Text(L10n.text(.gestureSheetExecuteNowDetail))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -292,14 +284,14 @@ struct GestureEditorSheet: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
             } else {
-                Label(isNew ? "可以添加了" : "可以保存了", systemImage: "checkmark.circle")
+                Label(isNew ? L10n.text(.gestureSheetReadyAdd) : L10n.text(.gestureSheetReadySave), systemImage: "checkmark.circle")
                     .font(.caption)
                     .foregroundStyle(.green)
             }
             Spacer()
-            Button("取消", action: onCancel)
+            Button(L10n.text(.dialogCancel), action: onCancel)
                 .keyboardShortcut(.cancelAction)
-            Button(isNew ? "添加" : "完成") { onCommit(model.intent) }
+            Button(isNew ? L10n.text(.addAppSheetAdd) : L10n.text(.gestureSheetDone)) { onCommit(model.intent) }
                 .keyboardShortcut(.defaultAction)
                 .disabled(!model.canCommit)
         }
