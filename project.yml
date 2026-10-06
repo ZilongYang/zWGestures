@@ -18,8 +18,8 @@ settings:
     MACOSX_DEPLOYMENT_TARGET: "14.0"
     ARCHS: arm64
     ONLY_ACTIVE_ARCH: YES
-    MARKETING_VERSION: "0.1.0"
-    CURRENT_PROJECT_VERSION: "1"
+    MARKETING_VERSION: "0.2.0"
+    CURRENT_PROJECT_VERSION: "2"
     # Local-only distribution: App Sandbox off (global event taps + shell scripts require it),
     # hardened runtime off (no notarization).
     ENABLE_HARDENED_RUNTIME: NO

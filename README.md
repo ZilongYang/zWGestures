@@ -186,7 +186,7 @@ WGestures 2 是一款出色的鼠标手势工具。它的「手势＝操作步�
 
 ## 已知限制
 
-- **界面目前仅中文。** 英文界面在 v0.2.0 的路线图上（见 [`docs/ROADMAP.md`](docs/ROADMAP.md)）。
+- **界面目前仅中文。** 英文界面仍在路线图上、尚未排期（见 [`docs/ROADMAP.md`](docs/ROADMAP.md) 第 15 节）。
 - **仅支持 Apple Silicon。** 不做 Intel / Universal 支持，`ARCHS=arm64` 保持不变。
 - **未做 Developer ID 签名与公证**，首次打开需要按 [`docs/INSTALL.md`](docs/INSTALL.md) 放行一次；
   而且**每更新一版都要重新授权一次辅助功能**。
