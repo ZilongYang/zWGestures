@@ -17,7 +17,7 @@ jobs:
     name: ZWGCore 单元测试
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 工具链版本
         run: |
@@ -39,7 +39,7 @@ jobs:
     name: App target 编译
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 安装 XcodeGen
         run: brew install xcodegen
@@ -62,21 +62,12 @@ jobs:
       # XcodeGen flattens plain .json resources to Contents/Resources/ unless the directory is a
       # folder reference (see project.yml), so this is the check that catches a regression there —
       # and a bundle without the pack is an app that does nothing when you draw a gesture.
+      #
+      # 断言本体在 scripts/check-defaults-in-bundle.sh，因为 make-dist.sh 要查同一件事。它以前是
+      # 两处拷贝，2026-10-06 CI 就是被「拷贝没跟上默认包改成分语言目录」搞红的 —— 别再把逻辑抄回来。
+      # 条数与手势名不在这里查：ZWGCore 的 DefaultGesturePackTests 已经把名册钉死了。
       - name: 断言出厂默认手势包在产物里
-        run: |
-          APP=build/Build/Products/Debug/zWGestures.app
-          test -f "$APP/Contents/Resources/Defaults/gestures.json"
-          test -f "$APP/Contents/Resources/Defaults/prefs.json"
-          python3 - "$APP" <<'PY'
-          import json, pathlib, sys
-          pack = pathlib.Path(sys.argv[1]) / "Contents/Resources/Defaults/gestures.json"
-          data = json.loads(pack.read_text(encoding="utf-8"))
-          intents = data["General"]["Intents"] + [i for a in data["Apps"] for i in a["Intents"]]
-          assert len(intents) == 48, f"预期 48 条默认手势，实际 {len(intents)}"
-          assert all(any("\u4e00" <= c <= "\u9fff" for c in i["Name"]) or i["Name"] == "Enter" for i in intents), \
-              "默认手势的名字应当是中文"
-          print(f"默认手势包：{len(intents)} 条，名字已译成中文")
-          PY
+        run: scripts/check-defaults-in-bundle.sh build/Build/Products/Debug/zWGestures.app
 
       # Compiling is not the same as working: this confirms the resource landed where
       # `ConfigController.bundledDefaultsDirectory` looks for it.
